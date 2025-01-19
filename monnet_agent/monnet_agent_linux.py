@@ -12,28 +12,29 @@ import time
 import json
 import signal
 import uuid
-import http.client
-from datetime import datetime
-from pathlib import Path
-
-# Third Party
-import psutil
+import time
 import daemon
+from datetime import datetime
+import http.client
+import sys
+from pathlib import Path
+# TrdParty
+import psutil
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
 import globals
+from constants import LogLevel
+from constants import EventType
+from shared.log_linux import log, logpo
 import info_linux
 import time_utils
-import tasks
-from constants import LogLevel, EventType
-from shared.log_linux import log, logpo
 from datastore import Datastore
 from event_processor import EventProcessor
 from agent_config import load_config
-
+import tasks
 
 
 # Config file
@@ -167,7 +168,8 @@ def send_request(cmd="ping", data=None):
         if response.status == 200:
             if raw_data:
                 return json.loads(raw_data)
-            log("Empty response from server", "err")
+            else:
+                log("Empty response from server", "err")
         else:
             log(f"Error HTTP: {response.status} {response.reason}, Respuesta: {raw_data}", "err")
 
@@ -256,8 +258,8 @@ def validate_config():
     missing_keys = [key for key in required_keys if not config.get(key)]
     if missing_keys:
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
-    log("Configuration is valid", "debug")
-
+    else:
+        log("Configuration is valid", "debug")
     return True
 
 def run():

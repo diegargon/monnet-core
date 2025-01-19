@@ -34,7 +34,7 @@ class TestMonnetGateway(unittest.TestCase):
 
         # Iniciar el servidor en un subproceso
         cls.server_process = subprocess.Popen(
-            ["python3", cls.server_script],
+            ["python3", cls.server_script, "--working-dir", os.getcwd()],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
