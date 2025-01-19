@@ -29,11 +29,11 @@ from utils.context import AppContext
 from shared.log_linux import log, logpo
 
 VERSION = "0.3"
-MINOR_VERSION = 6
+MINOR_VERSION = 7
 HOST = 'localhost'
-#PORT = 65432
+PORT = 65432
 # Testing port
-PORT = 65433
+#PORT = 65433
 
 ALLOWED_COMMANDS = ["playbook"]
 

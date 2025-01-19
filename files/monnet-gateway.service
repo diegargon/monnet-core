@@ -3,7 +3,7 @@ Description=Monnet Gateway Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/monnet-core/monnet-gateway/monnet_ansible.py
+ExecStart=/usr/bin/python3 /opt/monnet-core/monnet-gateway/monnet_gateway.py
 WorkingDirectory=/opt/monnet-core
 Group=root
 Restart=always
