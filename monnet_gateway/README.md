@@ -1,5 +1,32 @@
 # Monnet Gateway
 
+# Payload
+
+Recive
+{
+    "command": playbook
+    "data": {
+        "playbook": "mi_playbook.yml",
+        "extra_vars": {
+            "var1": "valor1",
+            "var2": "valor2"
+        },
+        "ip": "192.168.1.100",
+        "limit": "mi_grupo"
+        "user": "user" # optional
+    }
+}
+
+# Netcat test
+
+```
+echo '{"command": "playbook", "data": {"playbook": "test.yml"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "test.yml", "extra_vars": {"var1": "value1", "var2": "value2"}}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.117"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.117", "user": "ansible"}}' | nc localhost 65432
+```
+
+## Planing structure
 
 ```
 monnet_gateway/
