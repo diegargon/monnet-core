@@ -5,33 +5,9 @@ Monnet Ansible Gateway
 
 This code is just a basic/preliminary draft.
 
-Originally to do task only ansible relate but will be a move to a more generic monnet-gateway service
-
-
-Recive
-{
-    "command": playbook
-    "data": {
-        "playbook": "mi_playbook.yml",
-        "extra_vars": {
-            "var1": "valor1",
-            "var2": "valor2"
-        },
-        "ip": "192.168.1.100",
-        "limit": "mi_grupo"
-        "user": "user" # optional
-    }
-}
-
-Netcat test
-
-echo '{"command": "playbook", "data": {"playbook": "test.yml"}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "test.yml", "extra_vars": {"var1": "value1", "var2": "value2"}}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.117"}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.117", "user": "ansible"}}' | nc localhost 65432
 
 """
-
+import daemon
 import traceback
 import socket
 import subprocess
@@ -44,9 +20,6 @@ import argparse
 import sys
 from pathlib import Path
 from time import sleep
-
-# Third party
-import daemon
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -178,7 +151,7 @@ def run_ansible_playbook(playbook, extra_vars=None, ip=None, user=None, limit=No
     if extra_vars:
         extra_vars_str = json.dumps(extra_vars)
 
-    playbook_path = os.path.join('/opt/monnet-gateway/playbooks', playbook)
+    playbook_path = os.path.join('/opt/monnet-core/monnet-gateway/playbooks', playbook)
 
     command = ['ansible-playbook', playbook_path]
 
@@ -273,5 +246,5 @@ if __name__ == "__main__":
     if args.no_daemon:
         run()
     else:
-        with daemon.DaemonContext(working_directory="/opt/monnet-gateway"):
+        with daemon.DaemonContext(working_directory="/opt/monnet-core"):
             run()
