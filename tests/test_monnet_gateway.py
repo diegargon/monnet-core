@@ -27,7 +27,7 @@ class TestMonnetGateway(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Configurar el entorno para iniciar el servidor una vez"""
-        cls.server_script = os.path.abspath("src/monnet_gateway.py")
+        cls.server_script = os.path.abspath("monnet_gateway/monnet_gateway.py")
 
         # Iniciar el servidor en un subproceso
         cls.server_process = subprocess.Popen(
