@@ -12,7 +12,7 @@ import re
 #from collections import defaultdict
 
 # LOCAL
-from log_linux import log, logpo
+from shared.log_linux import log
 
 def bytes_to_mb(bytes_value):
     """

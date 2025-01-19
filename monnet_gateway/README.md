@@ -1,11 +1,35 @@
 # Monnet Gateway
 
+Mediates between web ui and the system
+
+At this momment is optional only used for  ansible features.
+
+Will be mandatory.
+
+
+# Install
+
+```
+mkdir /opt/monnet-core
+
+cd /opt/monnet-core
+
+git clone https://github.com/diegargon/monnet-core.git
+
+cp files/monnet-gateway.service  /etc/systemd/system
+
+systemctl enable  monnet-gateway.service
+
+systemctl start  monnet-gateway.service
+```
+
 # Notes
-    pytest need __init__.py on main package and modules
+
+pytest need __init__.py on main package and modules
 
 # Payload
 
-Recive
+Receive
 {
     "command": playbook
     "data": {
@@ -15,21 +39,21 @@ Recive
             "var2": "valor2"
         },
         "ip": "192.168.1.100",
-        "limit": "mi_grupo"
+        "limit": "mi_grupo" #optional
         "user": "user" # optional
     }
 }
 
-# Netcat test
+# Netcat test examples
 
 ```
 echo '{"command": "playbook", "data": {"playbook": "test.yml"}}' | nc localhost 65432
 echo '{"command": "playbook", "data": {"playbook": "test.yml", "extra_vars": {"var1": "value1", "var2": "value2"}}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.148"}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.148", "user": "ansible"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "extra_vars": {}, "ip": "192.168.2.148"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "extra_vars": {}, "ip": "192.168.2.148", "user": "ansible"}}' | nc localhost 65432
 ```
 
-## Planing structure
+## Planing structure (deprecated)
 
 ```
 monnet_gateway/

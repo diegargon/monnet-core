@@ -1,19 +1,17 @@
 # Monnet Core
 
-Monnet Gateway
+Includes:
 
-## Install
+Monnet Gateway : Mediates between web ui and the system  (atm only for ansible)
+Monnet Agent : Agent Client to install on other hosts and send stats and otheers
+    can be installed manually or via ui/ansible
 
-```
-mkdir /opt/monnet-core
+## Install Monnet Gateway
+    See monnet_gateway/README.md
 
-cd /opt/monnet-core
+## Install Monnet Agent
+    See monnet_agent/README.md
 
-git clone https://github.com/diegargon/monnet-core.git
 
-cp files/monnet-gateway.service  /etc/systemd/system
 
-systemctl enable  monnet-gateway.service
 
-systemctl start  monnet-gateway.service
-```

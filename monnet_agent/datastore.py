@@ -6,7 +6,7 @@ Monnet Agent
 
 import json
 from typing import Optional, Dict, Any
-from log_linux import log
+from shared.log_linux import log
 
 class Datastore:
     """
