@@ -17,7 +17,7 @@ test:
 
 deploy_to_github:
   stage: deploy
-  when: never
+  when: manual
   image: alpine/git
   script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf
