@@ -47,7 +47,7 @@ def get_memory_info():
         dict: "meminfo" dict
     """
     meminfo = {}
-    with open("/proc/meminfo", "r") as f:
+    with open("/proc/meminfo", "r", encoding='utf-8') as f:
         for line in f:
             key, value = line.split(":")
             meminfo[key.strip()] = int(value.split()[0]) * 1024  # Convertir a bytes
@@ -103,7 +103,7 @@ def get_disks_info():
     }
 
     # Read
-    with open("/proc/mounts", "r") as mounts:
+    with open("/proc/mounts", "r", encoding='utf-8') as mounts:
         for line in mounts:
             parts = line.split()
             device, mountpoint, fstype = parts[0], parts[1], parts[2]
@@ -137,7 +137,7 @@ def get_cpus():
     return os.cpu_count()
 
 def get_uptime():
-    with open('/proc/uptime', 'r') as f:
+    with open('/proc/uptime', 'r', encoding='utf-8') as f:
         uptime_seconds = float(f.readline().split()[0])
     return uptime_seconds
 
@@ -152,7 +152,7 @@ def cpu_usage(cpu_load):
 
 def read_cpu_stats():
     """ CPU Stats from /proc/stat."""
-    with open("/proc/stat", "r") as f:
+    with open("/proc/stat", "r", encoding='utf-8') as f:
         for line in f:
             if line.startswith("cpu "):
                 parts = line.split()

@@ -1,5 +1,8 @@
 # Monnet Gateway
 
+# Notes
+    pytest need __init__.py on main package and modules
+
 # Payload
 
 Recive
