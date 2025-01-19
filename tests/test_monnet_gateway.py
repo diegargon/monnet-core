@@ -19,7 +19,7 @@ from pathlib import Path
 
 # Local
 from monnet_gateway.monnet_gateway import run_ansible_playbook
-
+from monnet_gateway.utils.context import AppContext
 # Modificar sys.path para incluir el directorio src
 #sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -104,6 +104,7 @@ class TestMonnetGateway(unittest.TestCase):
 
     @patch('subprocess.Popen')
     def test_run_ansible_playbook_success(self, mock_subprocess):
+        ctx = AppContext(os.getcwd())
         # Simular un resultado exitoso de Ansible
         mock_process = MagicMock()  # Creamos el mock del proceso
         mock_process.returncode = 0  # El código de salida es 0 (éxito)
@@ -113,7 +114,7 @@ class TestMonnetGateway(unittest.TestCase):
         mock_subprocess.return_value = mock_process
 
         # Llamar a la función
-        result = run_ansible_playbook("test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
+        result = run_ansible_playbook(ctx, "test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
 
         result_dict = json.loads(result)
         print("Resultado completo:", result_dict)

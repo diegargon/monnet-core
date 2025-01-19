@@ -25,10 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
+from utils.context import AppContext
 from shared.log_linux import log, logpo
 
-VERSION = "0.2"
-MINOR_VERSION = 5
+VERSION = "0.3"
+MINOR_VERSION = 6
 HOST = 'localhost'
 #PORT = 65432
 # Testing port
@@ -37,14 +38,13 @@ PORT = 65433
 ALLOWED_COMMANDS = ["playbook"]
 
 stop_event = threading.Event()
-working_directory = None
 
 """
 
 Client Handle
 
 """
-def handle_client(conn, addr):
+def handle_client(ctx, conn, addr):
     try:
         log(f"Connection established from {addr}", "info")
 
@@ -89,6 +89,7 @@ def handle_client(conn, addr):
                         try:
                             # Execute the playbook and retrieve the result
                             result = run_ansible_playbook(
+                                ctx,
                                 playbook, extra_vars,
                                 ip=ip,
                                 user=user,
@@ -146,15 +147,16 @@ def handle_client(conn, addr):
     except Exception as e:
         log(f"Error handling connection with {addr}: {str(e)}", "err")
 
-def run_ansible_playbook(playbook, extra_vars=None, ip=None, user=None, limit=None):
+def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, limit=None):
     # extra vars to json
-    global working_directory
+    workdir = ctx.working_directory
+
     extra_vars_str = ""
 
     if extra_vars:
         extra_vars_str = json.dumps(extra_vars)
 
-    playbook_directory = os.path.join(working_directory, 'monnet-gateway/playbooks')
+    playbook_directory = os.path.join(workdir, 'monnet_gateway/playbooks')
     playbook_path = os.path.join(playbook_directory, playbook)
 
     command = ['ansible-playbook', playbook_path]
@@ -201,7 +203,7 @@ def signal_handler(sig, frame):
 Server
 
 """
-def run_server():
+def run_server(ctx):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
             s.settimeout(1.0)
@@ -212,19 +214,19 @@ def run_server():
             while not stop_event.is_set():
                 try:
                     conn, addr = s.accept()
-                    threading.Thread(target=handle_client, args=(conn, addr)).start()
+                    threading.Thread(target=handle_client, args=(ctx, conn, addr)).start()
                 except socket.timeout:
                     continue
         except Exception as e:
             log(f"Error en el servidor: {str(e)}", "err")
             error_message = {"status": "error", "message": f"Error en el servidor: {str(e)}"}
-            print(json.dumps(error_message))
+            log(json.dumps(error_message))
 
 """
 Run
 """
-def run():
-    server_thread = threading.Thread(target=run_server, daemon=False)
+def run(ctx):
+    server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
     server_thread.start()
 
     try:
@@ -249,11 +251,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     working_directory = args.working_dir
+
     if not os.path.exists(working_directory):
         raise FileNotFoundError(f"Working direcotry not found: {working_directory}")
 
+    ctx = AppContext(working_directory)
+
     if args.no_daemon:
-        run()
+        run(ctx)
     else:
         with daemon.DaemonContext(working_directory=working_directory):
-            run()
+            run(ctx)
