@@ -22,7 +22,8 @@ from monnet_gateway.monnet_gateway import run_ansible_playbook
 from monnet_gateway.utils.context import AppContext
 # Modificar sys.path para incluir el directorio monnet_gateway
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../monnet_gateway')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
