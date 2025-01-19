@@ -8,7 +8,7 @@ test:
   stage: test
   image: python:3.9
   variables:
-    PYTHONPATH: "/builds/diegargon/monnet-core:$PYTHONPATH"
+    PYTHONPATH: "/builds/diegargon/monnet-core"
   before_script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf
     - pip install -r requirements.txt
