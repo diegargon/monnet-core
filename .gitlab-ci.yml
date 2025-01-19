@@ -13,7 +13,7 @@ test:
     - pip install -r requirements.txt
 
   script:
-    - pytest -v tests/test_monnet_gateway.py
+    - PYTHONPATH=$(pwd) pytest -v tests/test_monnet_gateway.py
 
 deploy_to_github:
   stage: deploy
