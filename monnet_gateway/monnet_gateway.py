@@ -37,6 +37,7 @@ PORT = 65433
 ALLOWED_COMMANDS = ["playbook"]
 
 stop_event = threading.Event()
+working_directory = None
 
 """
 
@@ -147,11 +148,14 @@ def handle_client(conn, addr):
 
 def run_ansible_playbook(playbook, extra_vars=None, ip=None, user=None, limit=None):
     # extra vars to json
+    global working_directory
     extra_vars_str = ""
+
     if extra_vars:
         extra_vars_str = json.dumps(extra_vars)
 
-    playbook_path = os.path.join('/opt/monnet-core/monnet-gateway/playbooks', playbook)
+    playbook_directory = os.path.join(working_directory, 'monnet-gateway/playbooks')
+    playbook_path = os.path.join(playbook_directory, playbook)
 
     command = ['ansible-playbook', playbook_path]
 
@@ -241,10 +245,15 @@ if __name__ == "__main__":
     log("Iniciando el servicio Monnet Gateway...", "info")
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-daemon", action="store_true", help="Run without daemonizing")
+    parser.add_argument("--working-dir", type=str, default="/opt/monnet-core", help="Working directory")
     args = parser.parse_args()
+
+    working_directory = args.working_dir
+    if not os.path.exists(working_directory):
+        raise FileNotFoundError(f"Working direcotry not found: {working_directory}")
 
     if args.no_daemon:
         run()
     else:
-        with daemon.DaemonContext(working_directory="/opt/monnet-core"):
+        with daemon.DaemonContext(working_directory=working_directory):
             run()
