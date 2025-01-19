@@ -1,0 +1,12 @@
+- name: Gather iptables state
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+  - name: get current state of the firewall
+    community.general.iptables_state:
+      state: saved
+      path: /tmp/iptables
+    check_mode: true
+    changed_when: false
+    register: iptables_state

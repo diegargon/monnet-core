@@ -1,0 +1,103 @@
+- name: Install Monnet Agent on systemd
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Print agent_config
+      debug:
+        msg: "{{ agent_config }}"
+
+    - name: Gather OS family
+      ansible.builtin.setup:
+        filter: ansible_os_family
+
+    - name: Print OS family with a message
+      ansible.builtin.debug:
+        msg: "The OS family of this host is: {{ ansible_os_family }}"
+
+    - name: Install Python libs requeriments on Debian-based systems
+      ansible.builtin.package:
+        name:
+          - python3-psutil
+          - python3-daemon
+        state: present
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Install Python libs requeriments on RedHat-based systems
+      ansible.builtin.package:
+        name:
+          - python3-psutil
+          - python3-daemon
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Warn if OS family is not recognized
+      ansible.builtin.debug:
+        msg: "Warning: Unsupported OS family detected: {{ ansible_facts['os_family'] }}. Skipping installation."
+      when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
+
+    - name: Warn if OS family could not be detected
+      ansible.builtin.debug:
+        msg: "Warning: OS family could not be detected. Skipping installation."
+      when: ansible_facts['os_family'] is undefined
+
+    - name: Ensure that agent_config exists
+      assert:
+        that:
+          - agent_config is defined
+        fail_msg: "The variable 'agent_config' is required and must be defined."
+
+    - name: Check if the /opt/monnet-agent directory exists
+      stat:
+        path: /opt/monnet-agent
+      register: opt_monnet_dir
+
+    - name: Create the /opt/monnet-agent directory if it doesn't exist
+      file:
+        path: /opt/monnet-agent
+        state: directory
+        mode: '0755'
+      when: not opt_monnet_dir.stat.exists
+
+    - name: Copy the src/* content to /opt/monnet-agent
+      copy:
+        src: ../src/
+        dest: /opt/monnet-agent/
+        mode: '0755'
+
+    - name: Check if the /etc/monnet directory exists
+      stat:
+        path: /etc/monnet
+      register: etc_monnet_dir
+
+    - name: Create the /etc/monnet directory if it doesn't exist
+      file:
+        path: /etc/monnet
+        state: directory
+        mode: '0755'
+      when: not etc_monnet_dir.stat.exists
+
+    - name: Create the agent-config file with pretty JSON configuration
+      copy:
+        dest: /etc/monnet/agent-config
+        content: "{{ agent_config }}"
+        mode: '0644'
+
+    - name: Copy the monnet-agent-linux.service file to /etc/systemd/system
+      copy:
+        src: ../files/monnet-agent-linux.service
+        dest: /etc/systemd/system/monnet-agent-linux.service
+        mode: '0644'
+
+    - name: Check if the /etc/systemd/system/monnet-agent-linux.service file exists
+      stat:
+        path: /etc/systemd/system/monnet-agent-linux.service
+      register: systemd_service
+
+    - name: Enable and start the monnet-agent-linux service
+      systemd:
+        name: monnet-agent-linux
+        enabled: yes
+        state: restarted
+      when: systemd_service.stat.exists

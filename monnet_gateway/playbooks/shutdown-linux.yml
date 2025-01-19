@@ -1,0 +1,16 @@
+- name: Shutdown a Linux system
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Shutdown the system
+      command: shutdown -h now
+      async: 1
+      poll: 0
+      register: shutdown_result
+      when: groups['all'] | length == 1
+
+    - name: Debug shutdown result
+      debug:
+        msg: "Shutdown command was executed successfully: {{ shutdown_result }}"
+      when: shutdown_result is defined
