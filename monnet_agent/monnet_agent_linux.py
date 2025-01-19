@@ -12,27 +12,28 @@ import time
 import json
 import signal
 import uuid
-import http.client
+import time
 from datetime import datetime
+import http.client
 from pathlib import Path
-# TrdParty
+
+# Third Party
 import psutil
+import daemon
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
 import globals
-import info_linux
-import time_utils
-import tasks
 from constants import LogLevel, EventType
 from shared.log_linux import log, logpo
+import info_linux
+import time_utils
 from datastore import Datastore
 from event_processor import EventProcessor
 from agent_config import load_config
-from constants import LogLevel, EventType
-from shared.logging import log, logpo
+import tasks
 
 
 # Config file
@@ -67,7 +68,7 @@ def get_meta():
         "uuid": _uuid                           # ID uniq
     }
 
-def send_notification(name: str, data: dict):
+def send_notification(name, data):
     """
         Send notification to server.
 
@@ -166,8 +167,7 @@ def send_request(cmd="ping", data=None):
         if response.status == 200:
             if raw_data:
                 return json.loads(raw_data)
-            else:
-                log("Empty response from server", "err")
+            log("Empty response from server", "err")
         else:
             log(f"Error HTTP: {response.status} {response.reason}, Respuesta: {raw_data}", "err")
 
@@ -256,8 +256,8 @@ def validate_config():
     missing_keys = [key for key in required_keys if not config.get(key)]
     if missing_keys:
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
-    else:
-        log("Configuration is valid", "debug")
+    log("Configuration is valid", "debug")
+
     return True
 
 def run():

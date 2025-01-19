@@ -8,17 +8,9 @@ from datetime import datetime, timezone
 
 
 def get_datatime():
-    """
-    UTC Datetime
-    Returns:
-        datatime:
-    """
+    """ UTC Datetime """
     return datetime.now(timezone.utc).isoformat()
 
 def get_local_timezone():
-    """
-    Timezone
-    Returns:
-        datatime:
-    """
+    """ Timezone """
     return datetime.now().astimezone().tzinfo

@@ -2,24 +2,20 @@
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
 
 Monnet Agent
-
-
 """
 
 import json
 from typing import Optional, Dict, Any
-from shared.logging import log
+from log_linux import log
 
 class Datastore:
     """
-    Keep data and Save/Load from disk in json format
-    Attributes:
-         :param filename: File to save/load data.
+        Keep data and Save/Load from disk in json format
     """
     def __init__(self, filename: str = "datastore.json"):
         """
         Initialization
-            :param filename: File to save/load data.
+        :param filename: File to save/load data.
         """
         self.filename = filename
         self.data: Dict[str, Optional[Dict[str, Any]]] = {
@@ -35,10 +31,6 @@ class Datastore:
         """
         Updates the specified data set.
         If the key does not exist, it is automatically added to allow future expansion.
-
-        Args
-            key (str):
-            data (dict):
         """
         if key not in self.data:
             log(f"New data set added: {key}")
@@ -49,11 +41,6 @@ class Datastore:
     def get_data(self, key: str) -> Optional[Dict[str, Any]]:
         """
         Retrieves the data set associated with the given key.
-
-        Args:
-            key (str):
-        Returns:
-            dict: Optional
         """
         return self.data.get(key)
 
@@ -68,7 +55,7 @@ class Datastore:
         Saves the current data to a JSON file.
         """
         try:
-            with open(self.filename, "w") as file:
+            with open(self.filename, "w", encoding='utf-8') as file:
                 json.dump(self.data, file, indent=4)
             log(f"Data saved successfully to {self.filename}")
         except Exception as e:
@@ -79,7 +66,7 @@ class Datastore:
         Loads data from a JSON file.
         """
         try:
-            with open(self.filename, "r") as file:
+            with open(self.filename, "r", encoding='utf-8') as file:
                 self.data = json.load(file)
             log(f"Data loaded successfully from {self.filename}")
         except FileNotFoundError:
