@@ -7,7 +7,7 @@ This code is just a basic/preliminary draft.
 
 
 """
-import daemon
+
 import traceback
 import socket
 import subprocess
@@ -20,6 +20,9 @@ import argparse
 import sys
 from pathlib import Path
 from time import sleep
+
+# Third party
+import daemon
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))

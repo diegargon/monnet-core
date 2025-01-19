@@ -47,7 +47,7 @@ def send_stats(datastore, notify_callback):
         globals.timers['send_stats'].cancel()
     # Load
     last_avg_stats = datastore.get_data("last_load_avg")
-    if (last_avg_stats is None) :
+    if last_avg_stats is None :
         return
     load_stats_5m = last_avg_stats['loadavg']['5min']
     # Io wait

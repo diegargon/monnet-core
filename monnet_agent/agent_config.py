@@ -12,7 +12,7 @@ from shared.log_linux import log, logpo
 def load_config(file_path):
     """Load JSON config"""
     try:
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding='utf-8') as file:
             config = json.load(file)
             config['_config_path'] = file_path
             return config
@@ -40,7 +40,7 @@ def update_config(config: dict, key: str, value):
         config[key] = value
 
         # Save the updated config back to the file
-        with open(config['_config_path'], 'w') as file:
+        with open(config['_config_path'], 'w', encoding='utf-8') as file:
             json.dump(config, file, indent=4)
 
         return True

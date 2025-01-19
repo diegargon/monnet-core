@@ -13,21 +13,20 @@ import json
 import signal
 import uuid
 import time
-import daemon
 from datetime import datetime
 import http.client
-import sys
 from pathlib import Path
-# TrdParty
+
+# Third Party
 import psutil
+import daemon
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
 import globals
-from constants import LogLevel
-from constants import EventType
+from constants import LogLevel, EventType
 from shared.log_linux import log, logpo
 import info_linux
 import time_utils
@@ -168,8 +167,7 @@ def send_request(cmd="ping", data=None):
         if response.status == 200:
             if raw_data:
                 return json.loads(raw_data)
-            else:
-                log("Empty response from server", "err")
+            log("Empty response from server", "err")
         else:
             log(f"Error HTTP: {response.status} {response.reason}, Respuesta: {raw_data}", "err")
 
@@ -258,8 +256,8 @@ def validate_config():
     missing_keys = [key for key in required_keys if not config.get(key)]
     if missing_keys:
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
-    else:
-        log("Configuration is valid", "debug")
+    log("Configuration is valid", "debug")
+
     return True
 
 def run():
