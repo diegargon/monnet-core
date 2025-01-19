@@ -7,14 +7,16 @@ stages:
 test:
   stage: test
   image: python:3.9
+  variables:
+    PYTHONPATH: "/builds/diegargon/monnet-core:$PYTHONPATH"
   before_script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf
-    - export PYTHONPATH=$PYTHONPATH:/builds/diegargon/monnet-core
-    - tree .
     - pip install -r requirements.txt
 
   script:
-    -  pytest -v tests/test_monnet_gateway.py
+    - python -c "import sys; print('PYTHONPATH is:', sys.path)"
+    - ls -al
+    - pytest -v tests/test_monnet_gateway.py
 
 deploy_to_github:
   stage: deploy
