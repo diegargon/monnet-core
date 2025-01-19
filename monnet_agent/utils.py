@@ -7,22 +7,19 @@ Misc utils
 """
 import json
 from collections import defaultdict
+from log_linux import log, logpo
 
 def normalize(data):
     """ NOT USED """
     if isinstance(data, defaultdict):
         return {k: normalize(v) for k, v in data.items()}
-
-    if isinstance(data, dict):
+    elif isinstance(data, dict):
         return {k: normalize(v) for k, v in data.items()}
-
-    if isinstance(data, list):
+    elif isinstance(data, list):
         return [normalize(v) for v in data]
-
-    if isinstance(data, tuple):  # Convierte tuplas en listas
+    elif isinstance(data, tuple):  # Convierte tuplas en listas
         return list(data)
-
-    if isinstance(data, (str, int, float, bool)) or data is None:
+    elif isinstance(data, (str, int, float, bool)) or data is None:
         return data
     else:
         return str(data)
