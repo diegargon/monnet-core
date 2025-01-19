@@ -12,11 +12,8 @@ import time
 import json
 import signal
 import uuid
-import time
-import daemon
-from datetime import datetime
 import http.client
-import sys
+from datetime import datetime
 from pathlib import Path
 # TrdParty
 import psutil
@@ -26,15 +23,15 @@ sys.path.append(str(BASE_DIR))
 
 # Local
 import globals
-from constants import LogLevel
-from constants import EventType
-from shared.log_linux import log, logpo
 import info_linux
 import time_utils
+import tasks
+from constants import LogLevel, EventType
+from shared.log_linux import log, logpo
 from datastore import Datastore
 from event_processor import EventProcessor
 from agent_config import load_config
-import tasks
+
 
 
 # Config file
