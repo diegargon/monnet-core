@@ -10,10 +10,11 @@ test:
   before_script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf
     - export PYTHONPATH=$PYTHONPATH:/builds/diegargon/monnet-core
+    - tree .
     - pip install -r requirements.txt
 
   script:
-    - PYTHONPATH=$(pwd) pytest -v tests/test_monnet_gateway.py
+    -  pytest -v tests/test_monnet_gateway.py
 
 deploy_to_github:
   stage: deploy
