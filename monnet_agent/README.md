@@ -37,6 +37,7 @@ For manually processs check the ansible playbook install-agent-systemd
         'agent_version': str, # Version of the agent that generated the payload.
         'uuid': str           # Unique identifier (UUID) of the system or agent.
     }
+}
 ```
 ## Response Structure Documentation
 

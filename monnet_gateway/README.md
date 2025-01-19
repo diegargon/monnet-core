@@ -7,7 +7,7 @@ At this momment is optional only used for  ansible features.
 Will be mandatory.
 
 
-# Install
+## Install
 
 ```
 mkdir /opt/monnet-core
@@ -23,13 +23,15 @@ systemctl enable  monnet-gateway.service
 systemctl start  monnet-gateway.service
 ```
 
-# Notes
+## Notes
 
 pytest need __init__.py on main package and modules
 
-# Payload
+## Payload
 
 Receive
+
+```
 {
     "command": playbook
     "data": {
@@ -43,8 +45,9 @@ Receive
         "user": "user" # optional
     }
 }
+```
 
-# Netcat test examples
+## Netcat test examples
 
 ```
 echo '{"command": "playbook", "data": {"playbook": "test.yml"}}' | nc localhost 65432
