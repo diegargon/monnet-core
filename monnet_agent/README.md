@@ -1,16 +1,4 @@
-# Monnet Agent
-
-Agent Client to install on other hosts and send stats and otheers can be installed manually or via ui/ansible
-
-Support: Linux
-
-Planning Support: Windows, and probably others non-POSIX
-
-## Install Monnet Agent Linux (systemd)
-
-Via UI and ansible is the easy/fast way
-
-For manually processs check the ansible playbook install-agent-systemd
+# Monet Agent
 
 ## Payload Structure Documentation
 
