@@ -54,6 +54,8 @@ from shared.log_linux import log, logpo
 VERSION = "0.2"
 MINOR_VERSION = 5
 HOST = 'localhost'
+#PORT = 65432
+# Testing port
 PORT = 65433
 
 ALLOWED_COMMANDS = ["playbook"]
