@@ -1,0 +1,16 @@
+[Unit]
+Description=Monnet Gateway Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/monnet-gateway/src/monnet_ansible.py
+WorkingDirectory=/opt/monnet-gateway
+Group=root
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=syslog
+SyslogIdentifier=monnet-gateway
+
+[Install]
+WantedBy=multi-user.target
