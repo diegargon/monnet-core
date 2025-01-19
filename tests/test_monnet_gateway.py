@@ -31,6 +31,8 @@ class TestMonnetGateway(unittest.TestCase):
     def setUpClass(cls):
         """Configurar el entorno para iniciar el servidor una vez"""
         cls.server_script = os.path.abspath("monnet_gateway/monnet_gateway.py")
+        assert os.path.exists(cls.server_script), f"El script no existe: {cls.server_script}"
+        print(f"Usando el script del servidor: {cls.server_script}")
 
         # Iniciar el servidor en un subproceso
         cls.server_process = subprocess.Popen(
@@ -44,7 +46,8 @@ class TestMonnetGateway(unittest.TestCase):
         if cls.server_process.poll() is not None:
             stdout, stderr = cls.server_process.communicate()
             raise RuntimeError(
-                f"El servidor no se inició correctamente:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}"
+                f"El servidor no se inició correctamente:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}\n"
+                f"Directorio actual: {os.getcwd()}"
             )
 
     @classmethod
