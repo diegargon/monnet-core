@@ -36,7 +36,8 @@ class TestMonnetGateway(unittest.TestCase):
         cls.server_process = subprocess.Popen(
             ["python3", cls.server_script],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
+            cwd=str(BASE_DIR)  # Establece el directorio base como cwd
         )
         time.sleep(1)  # Dar tiempo para que el servidor inicie
 
