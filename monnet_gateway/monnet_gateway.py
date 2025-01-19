@@ -151,7 +151,7 @@ def run_ansible_playbook(playbook, extra_vars=None, ip=None, user=None, limit=No
     if extra_vars:
         extra_vars_str = json.dumps(extra_vars)
 
-    playbook_path = os.path.join('/opt/monnet-gateway/playbooks', playbook)
+    playbook_path = os.path.join('/opt/monnet-core/monnet-gateway/playbooks', playbook)
 
     command = ['ansible-playbook', playbook_path]
 
@@ -246,5 +246,5 @@ if __name__ == "__main__":
     if args.no_daemon:
         run()
     else:
-        with daemon.DaemonContext(working_directory="/opt/monnet-gateway"):
+        with daemon.DaemonContext(working_directory="/opt/monnet-core"):
             run()
