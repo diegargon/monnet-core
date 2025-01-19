@@ -36,11 +36,11 @@ class TestMonnetGateway(unittest.TestCase):
 
         # Iniciar el servidor en un subproceso
         cls.server_process = subprocess.Popen(
-            ["python3", cls.server_script, "--working-dir", os.getcwd()],
+            ["python3", cls.server_script, "--working-dir", os.getcwd(), "--no-daemon"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        time.sleep(1)  # Dar tiempo para que el servidor inicie
+        time.sleep(2)  # Dar tiempo para que el servidor inicie
 
         """ Verificar que arranco """
         if cls.server_process.poll() is not None:
