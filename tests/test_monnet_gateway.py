@@ -1,5 +1,5 @@
 """
-@copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
+@copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
 
 Just initial Near do nothing test
 """
@@ -18,13 +18,8 @@ import sys
 from pathlib import Path
 
 # Local
-from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
+from monnet_gateway.monnet_gateway import run_ansible_playbook
 from monnet_gateway.utils.context import AppContext
-# Modificar sys.path para incluir el directorio monnet_gateway
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-
 # Modificar sys.path para incluir el directorio src
 #sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,7 +30,7 @@ class TestMonnetGateway(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Configurar el entorno para iniciar el servidor una vez"""
-        cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
+        cls.server_script = os.path.abspath("monnet_gateway/monnet_gateway.py")
         assert os.path.exists(cls.server_script), f"El script no existe: {cls.server_script}"
         print(f"Usando el script del servidor: {cls.server_script}")
 
@@ -109,6 +104,7 @@ class TestMonnetGateway(unittest.TestCase):
 
     @patch('subprocess.Popen')
     def test_run_ansible_playbook_success(self, mock_subprocess):
+        ctx = AppContext(os.getcwd())
         # Simular un resultado exitoso de Ansible
         mock_process = MagicMock()  # Creamos el mock del proceso
         mock_process.returncode = 0  # El código de salida es 0 (éxito)
@@ -118,7 +114,7 @@ class TestMonnetGateway(unittest.TestCase):
         mock_subprocess.return_value = mock_process
 
         # Llamar a la función
-        result = run_ansible_playbook("test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
+        result = run_ansible_playbook(ctx, "test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
 
         result_dict = json.loads(result)
         print("Resultado completo:", result_dict)
