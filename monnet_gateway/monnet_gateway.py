@@ -5,6 +5,30 @@ Monnet Ansible Gateway
 
 This code is just a basic/preliminary draft.
 
+Originally to do task only ansible relate but will be a move to a more generic monnet-gateway service
+
+
+Recive
+{
+    "command": playbook
+    "data": {
+        "playbook": "mi_playbook.yml",
+        "extra_vars": {
+            "var1": "valor1",
+            "var2": "valor2"
+        },
+        "ip": "192.168.1.100",
+        "limit": "mi_grupo"
+        "user": "user" # optional
+    }
+}
+
+Netcat test
+
+echo '{"command": "playbook", "data": {"playbook": "test.yml"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "test.yml", "extra_vars": {"var1": "value1", "var2": "value2"}}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.117"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.117", "user": "ansible"}}' | nc localhost 65432
 
 """
 import daemon
@@ -25,15 +49,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
-from utils.context import AppContext
 from shared.log_linux import log, logpo
 
-VERSION = "0.3"
-MINOR_VERSION = 7
+VERSION = "0.2"
+MINOR_VERSION = 5
 HOST = 'localhost'
-PORT = 65432
+#PORT = 65432
 # Testing port
-#PORT = 65433
+PORT = 65433
 
 ALLOWED_COMMANDS = ["playbook"]
 
@@ -44,7 +67,7 @@ stop_event = threading.Event()
 Client Handle
 
 """
-def handle_client(ctx, conn, addr):
+def handle_client(conn, addr):
     try:
         log(f"Connection established from {addr}", "info")
 
@@ -89,7 +112,6 @@ def handle_client(ctx, conn, addr):
                         try:
                             # Execute the playbook and retrieve the result
                             result = run_ansible_playbook(
-                                ctx,
                                 playbook, extra_vars,
                                 ip=ip,
                                 user=user,
@@ -147,17 +169,13 @@ def handle_client(ctx, conn, addr):
     except Exception as e:
         log(f"Error handling connection with {addr}: {str(e)}", "err")
 
-def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, limit=None):
+def run_ansible_playbook(playbook, extra_vars=None, ip=None, user=None, limit=None):
     # extra vars to json
-    workdir = ctx.working_directory
-
     extra_vars_str = ""
-
     if extra_vars:
         extra_vars_str = json.dumps(extra_vars)
 
-    playbook_directory = os.path.join(workdir, 'monnet_gateway/playbooks')
-    playbook_path = os.path.join(playbook_directory, playbook)
+    playbook_path = os.path.join('/opt/monnet-gateway/playbooks', playbook)
 
     command = ['ansible-playbook', playbook_path]
 
@@ -203,7 +221,7 @@ def signal_handler(sig, frame):
 Server
 
 """
-def run_server(ctx):
+def run_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
             s.settimeout(1.0)
@@ -214,19 +232,19 @@ def run_server(ctx):
             while not stop_event.is_set():
                 try:
                     conn, addr = s.accept()
-                    threading.Thread(target=handle_client, args=(ctx, conn, addr)).start()
+                    threading.Thread(target=handle_client, args=(conn, addr)).start()
                 except socket.timeout:
                     continue
         except Exception as e:
             log(f"Error en el servidor: {str(e)}", "err")
             error_message = {"status": "error", "message": f"Error en el servidor: {str(e)}"}
-            log(json.dumps(error_message))
+            print(json.dumps(error_message))
 
 """
 Run
 """
-def run(ctx):
-    server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
+def run():
+    server_thread = threading.Thread(target=run_server, daemon=False)
     server_thread.start()
 
     try:
@@ -247,18 +265,10 @@ if __name__ == "__main__":
     log("Iniciando el servicio Monnet Gateway...", "info")
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-daemon", action="store_true", help="Run without daemonizing")
-    parser.add_argument("--working-dir", type=str, default="/opt/monnet-core", help="Working directory")
     args = parser.parse_args()
 
-    working_directory = args.working_dir
-
-    if not os.path.exists(working_directory):
-        raise FileNotFoundError(f"Working direcotry not found: {working_directory}")
-
-    ctx = AppContext(working_directory)
-
     if args.no_daemon:
-        run(ctx)
+        run()
     else:
-        with daemon.DaemonContext(working_directory=working_directory):
-            run(ctx)
+        with daemon.DaemonContext(working_directory="/opt/monnet-gateway"):
+            run()

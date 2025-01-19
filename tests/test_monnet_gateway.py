@@ -14,19 +14,13 @@ import os
 import signal
 import time
 import select
-import sys
-from pathlib import Path
 
 # Local
-from monnet_gateway.monnet_gateway import run_ansible_playbook
-from monnet_gateway.utils.context import AppContext
-# Modificar sys.path para incluir el directorio monnet_gateway
+from monnet_gateway import run_ansible_playbook
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Modificar sys.path para incluir el directorio src
+#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
 
 class TestMonnetGateway(unittest.TestCase):
 
@@ -34,23 +28,20 @@ class TestMonnetGateway(unittest.TestCase):
     def setUpClass(cls):
         """Configurar el entorno para iniciar el servidor una vez"""
         cls.server_script = os.path.abspath("monnet_gateway/monnet_gateway.py")
-        assert os.path.exists(cls.server_script), f"El script no existe: {cls.server_script}"
-        print(f"Usando el script del servidor: {cls.server_script}")
 
         # Iniciar el servidor en un subproceso
         cls.server_process = subprocess.Popen(
-            ["python3", cls.server_script, "--working-dir", os.getcwd(), "--no-daemon"],
+            ["python3", cls.server_script],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        time.sleep(2)  # Dar tiempo para que el servidor inicie
+        time.sleep(1)  # Dar tiempo para que el servidor inicie
 
         """ Verificar que arranco """
         if cls.server_process.poll() is not None:
             stdout, stderr = cls.server_process.communicate()
             raise RuntimeError(
-                f"El servidor no se inició correctamente:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}\n"
-                f"Directorio actual: {os.getcwd()}"
+                f"El servidor no se inició correctamente:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}"
             )
 
     @classmethod
@@ -107,7 +98,6 @@ class TestMonnetGateway(unittest.TestCase):
 
     @patch('subprocess.Popen')
     def test_run_ansible_playbook_success(self, mock_subprocess):
-        ctx = AppContext(os.getcwd())
         # Simular un resultado exitoso de Ansible
         mock_process = MagicMock()  # Creamos el mock del proceso
         mock_process.returncode = 0  # El código de salida es 0 (éxito)
@@ -117,7 +107,7 @@ class TestMonnetGateway(unittest.TestCase):
         mock_subprocess.return_value = mock_process
 
         # Llamar a la función
-        result = run_ansible_playbook(ctx, "test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
+        result = run_ansible_playbook("test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
 
         result_dict = json.loads(result)
         print("Resultado completo:", result_dict)

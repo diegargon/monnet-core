@@ -7,20 +7,17 @@ stages:
 test:
   stage: test
   image: python:3.9
-  variables:
-    PYTHONPATH: "/builds/diegargon/monnet-core:/builds/diegargon/monnet-core/monnet_gateway"
   before_script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf
+    - export PYTHONPATH=$PYTHONPATH:/builds/diegargon/monnet-core
     - pip install -r requirements.txt
 
   script:
-    - python -c "import sys; print('PYTHONPATH is:', sys.path)"
-    - ls -al
     - pytest -v tests/test_monnet_gateway.py
 
 deploy_to_github:
   stage: deploy
-#  when: manual
+  when: manual
   image: alpine/git
   script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf

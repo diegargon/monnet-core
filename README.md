@@ -5,11 +5,11 @@ Monnet Gateway
 ## Install
 
 ```
-mkdir /opt/monnet-core
+mkdir /opt/monnet-gateway
 
-cd /opt/monnet-core
+cd /opt/monnet-gateway
 
-git clone https://github.com/diegargon/monnet-core.git
+git clone https://github.com/diegargon/monnet-gateway.git
 
 cp files/monnet-gateway.service  /etc/systemd/system
 
