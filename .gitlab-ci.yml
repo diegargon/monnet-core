@@ -2,14 +2,14 @@
 
 stages:
   - test
-#  - deploy
+  - deploy
 
 test:
   stage: test
   image: python:3.9
   before_script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf
-    - export PYTHONPATH=$PYTHONPATH:/builds/diegargon/monnet-gateway/src
+    - export PYTHONPATH=$PYTHONPATH:/builds/diegargon/monnet-core
     - pip install -r requirements.txt
 
   script:
@@ -17,13 +17,14 @@ test:
 
 deploy_to_github:
   stage: deploy
+  when: never
   image: alpine/git
   script:
     - echo "nameserver 192.168.2.126" > /etc/resolv.conf
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git remote remove github || true
-    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-gateway.git
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git remote -v
     - git fetch github main
     - git checkout -b main || git checkout main
