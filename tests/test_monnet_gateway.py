@@ -19,7 +19,7 @@ import select
 from monnet_gateway import run_ansible_playbook
 
 # Modificar sys.path para incluir el directorio src
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 
 class TestMonnetGateway(unittest.TestCase):
