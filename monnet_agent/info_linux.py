@@ -12,7 +12,7 @@ import re
 #from collections import defaultdict
 
 # LOCAL
-from shared.log_linux import log
+from log_linux import log, logpo
 
 def bytes_to_mb(bytes_value):
     """
@@ -227,13 +227,9 @@ def get_listen_ports_info():
                 dedup_key = (local_address, port, protocol, ip_version)
 
                 if dedup_key not in seen_ports:
-                    if local_address == '*':
-                        interface = '0.0.0.0' if ip_version == 'ipv4' else '[::]'
-                    else:
-                        interface = local_address
                     ports_flattened.append(
                         {
-                            'interface': interface,
+                            'interface': local_address if local_address != '*' else ('0.0.0.0' if ip_version == 'ipv4' else '[::]'),
                             'port': port,
                             'service': service,  # Only the first service
                             'protocol': protocol,

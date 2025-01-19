@@ -14,6 +14,7 @@ import os
 import signal
 import time
 import select
+import sys
 from pathlib import Path
 
 # Local
@@ -30,20 +31,23 @@ class TestMonnetGateway(unittest.TestCase):
     def setUpClass(cls):
         """Configurar el entorno para iniciar el servidor una vez"""
         cls.server_script = os.path.abspath("monnet_gateway/monnet_gateway.py")
+        assert os.path.exists(cls.server_script), f"El script no existe: {cls.server_script}"
+        print(f"Usando el script del servidor: {cls.server_script}")
 
         # Iniciar el servidor en un subproceso
         cls.server_process = subprocess.Popen(
-            ["python3", cls.server_script, "--working-dir", os.getcwd()],
+            ["python3", cls.server_script, "--working-dir", os.getcwd(), "--no-daemon"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        time.sleep(1)  # Dar tiempo para que el servidor inicie
+        time.sleep(2)  # Dar tiempo para que el servidor inicie
 
         """ Verificar que arranco """
         if cls.server_process.poll() is not None:
             stdout, stderr = cls.server_process.communicate()
             raise RuntimeError(
-                f"El servidor no se inició correctamente:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}"
+                f"El servidor no se inició correctamente:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}\n"
+                f"Directorio actual: {os.getcwd()}"
             )
 
     @classmethod

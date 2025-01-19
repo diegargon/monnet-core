@@ -10,7 +10,7 @@ import threading
 # Local
 import globals
 import info_linux
-#from shared.log_linux import log, logpo
+#from log_linux import log, logpo
 
 
 def check_listen_ports(datastore, notify_callback, startup=None):

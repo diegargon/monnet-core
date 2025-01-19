@@ -17,6 +17,7 @@ import sys
 import os
 import threading
 import argparse
+import sys
 from pathlib import Path
 from time import sleep
 
@@ -25,7 +26,15 @@ sys.path.append(str(BASE_DIR))
 
 # Local
 from shared.log_linux import log, logpo
-from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION, ALLOWED_COMMANDS
+
+VERSION = "0.2"
+MINOR_VERSION = 5
+HOST = 'localhost'
+#PORT = 65432
+# Testing port
+PORT = 65433
+
+ALLOWED_COMMANDS = ["playbook"]
 
 stop_event = threading.Event()
 working_directory = None
@@ -139,8 +148,7 @@ def handle_client(conn, addr):
 
 def run_ansible_playbook(playbook, extra_vars=None, ip=None, user=None, limit=None):
     # extra vars to json
-    workdir = ctx.workdir
-
+    global working_directory
     extra_vars_str = ""
 
     if extra_vars:
@@ -195,15 +203,11 @@ Server
 """
 def run_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        if ctx.has_var('test'):
-            port = PORT_TEST
-        else:
-            port = PORT
         try:
             s.settimeout(1.0)
-            s.bind((HOST, port))
+            s.bind((HOST, PORT))
             s.listen()
-            log(f"v{VERSION}.{MINOR_VERSION}: Esperando conexión en {HOST}:{port}...", "info")
+            log(f"v{VERSION}.{MINOR_VERSION}: Esperando conexión en {HOST}:{PORT}...", "info")
 
             while not stop_event.is_set():
                 try:
@@ -242,19 +246,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-daemon", action="store_true", help="Run without daemonizing")
     parser.add_argument("--working-dir", type=str, default="/opt/monnet-core", help="Working directory")
-    parser.add_argument("--test", action="store_true", help="Run the server on the test port.")
     args = parser.parse_args()
 
-    workdir = args.working_dir
-
-    if not os.path.exists(workdir):
-        raise FileNotFoundError(f"Working direcotry not found: {workdir}")
-
-    ctx = AppContext(workdir)
-    ctx.set_var('test', 1)
+    working_directory = args.working_dir
+    if not os.path.exists(working_directory):
+        raise FileNotFoundError(f"Working direcotry not found: {working_directory}")
 
     if args.no_daemon:
         run()
     else:
-        with daemon.DaemonContext(working_directory=workdir):
-            run(ctx)
+        with daemon.DaemonContext(working_directory=working_directory):
+            run()
