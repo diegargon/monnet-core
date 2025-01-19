@@ -31,7 +31,7 @@ echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars":
 echo '{"command": "playbook", "data": {"playbook": "linux-df.yml", "extra_vars": {}, "ip": "192.168.2.117", "user": "ansible"}}' | nc localhost 65432
 
 """
-import daemon
+
 import traceback
 import socket
 import subprocess
@@ -44,6 +44,9 @@ import argparse
 import sys
 from pathlib import Path
 from time import sleep
+
+# Third party
+import daemon
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
