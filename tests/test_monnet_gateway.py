@@ -14,7 +14,6 @@ import os
 import signal
 import time
 import select
-import sys
 from pathlib import Path
 
 # Local
