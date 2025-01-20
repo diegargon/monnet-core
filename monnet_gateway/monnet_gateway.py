@@ -29,15 +29,7 @@ sys.path.append(str(BASE_DIR))
 # Local
 from utils.context import AppContext
 from shared.log_linux import log, logpo
-
-VERSION = "0.3"
-MINOR_VERSION = 7
-HOST = 'localhost'
-PORT = 65432
-# Testing port
-#PORT = 65433
-
-ALLOWED_COMMANDS = ["playbook"]
+from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION, ALLOWED_COMMANDS
 
 stop_event = threading.Event()
 
@@ -151,7 +143,7 @@ def handle_client(ctx, conn, addr):
 
 def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, limit=None):
     # extra vars to json
-    workdir = ctx.working_directory
+    workdir = ctx.workdir
 
     extra_vars_str = ""
 
@@ -207,11 +199,15 @@ Server
 """
 def run_server(ctx):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if ctx.has_var('test'):
+            port = PORT_TEST
+        else:
+            port = PORT
         try:
             s.settimeout(1.0)
-            s.bind((HOST, PORT))
+            s.bind((HOST, port))
             s.listen()
-            log(f"v{VERSION}.{MINOR_VERSION}: Esperando conexión en {HOST}:{PORT}...", "info")
+            log(f"v{VERSION}.{MINOR_VERSION}: Esperando conexión en {HOST}:{port}...", "info")
 
             while not stop_event.is_set():
                 try:
@@ -250,17 +246,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-daemon", action="store_true", help="Run without daemonizing")
     parser.add_argument("--working-dir", type=str, default="/opt/monnet-core", help="Working directory")
+    parser.add_argument("--test", action="store_true", help="Run the server on the test port.")
     args = parser.parse_args()
 
-    working_directory = args.working_dir
+    workdir = args.working_dir
 
-    if not os.path.exists(working_directory):
-        raise FileNotFoundError(f"Working direcotry not found: {working_directory}")
+    if not os.path.exists(workdir):
+        raise FileNotFoundError(f"Working direcotry not found: {workdir}")
 
-    ctx = AppContext(working_directory)
+    ctx = AppContext(workdir)
+    ctx.set_var('test', 1)
 
     if args.no_daemon:
         run(ctx)
     else:
-        with daemon.DaemonContext(working_directory=working_directory):
+        with daemon.DaemonContext(working_directory=workdir):
             run(ctx)
