@@ -28,12 +28,11 @@ import globals
 import info_linux
 import time_utils
 import tasks
-from constants import LogLevel, EventType
-from shared.log_linux import log, logpo
 from datastore import Datastore
 from event_processor import EventProcessor
 from agent_config import load_config
-
+from constants import LogLevel, EventType
+from shared.log_linux import log, logpo
 
 
 # Config file

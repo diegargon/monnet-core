@@ -44,5 +44,4 @@ def deep_compare(obj1, obj2):
         if len(obj1) != len(obj2):
             return False
         return all(deep_compare(i, j) for i, j in zip(obj1, obj2))
-    else:
-        return obj1 == obj2
+    return obj1 == obj2

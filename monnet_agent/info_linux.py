@@ -227,9 +227,13 @@ def get_listen_ports_info():
                 dedup_key = (local_address, port, protocol, ip_version)
 
                 if dedup_key not in seen_ports:
+                    if local_address == '*':
+                        interface = '0.0.0.0' if ip_version == 'ipv4' else '[::]'
+                    else:
+                        interface = local_address
                     ports_flattened.append(
                         {
-                            'interface': local_address if local_address != '*' else ('0.0.0.0' if ip_version == 'ipv4' else '[::]'),
+                            'interface': interface,
                             'port': port,
                             'service': service,  # Only the first service
                             'protocol': protocol,

@@ -17,7 +17,6 @@ import sys
 import os
 import threading
 import argparse
-import sys
 from pathlib import Path
 from time import sleep
 
