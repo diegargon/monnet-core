@@ -10,16 +10,17 @@ Server
 import json
 import socket
 import threading
-from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
+from monnet_gateway.config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
 from monnet_gateway.handlers.handler_client import handle_client
+from monnet_gateway.utils.context import AppContext
 from shared.logging import log
 
-def run_server(ctx):
+def run_server(ctx: AppContext):
     """
         Runs Server
 
         Args:
-            Appcontext: ctx
+            ctx (Appcontext): context
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         if ctx.has_var('test'):
@@ -42,5 +43,4 @@ def run_server(ctx):
         except Exception as e:
             log(f"Error en el servidor: {str(e)}", "err")
             error_message = {"status": "error", "message": f"Error en el servidor: {str(e)}"}
-            log(json.dumps(error_message))
-
+            log(json.dumps(error_message),"debug")

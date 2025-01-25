@@ -9,23 +9,46 @@ Monnet Gateway
 class AppContext:
     """
     Class AppContext
+
+    Arguments:
+        workdir (str): Working directory
     """
     def __init__(self, workdir: str):
+        """
+        Init
+        Args:
+            workdir(str): Working Directory
+        """
         self.workdir = workdir
         self._database = None
         self._variables = {}
 
     """ Dynamic Vars Getters/Setters"""
-    def set_var(self, key: str, value):
-        """ Setter """
+    def set_var(self, key: str, value)-> None:
+        """
+        Var Setter
+        Args:
+            key(str):
+
+        """
         self._variables[key] = value
 
     def get_var(self, key: str):
-        """ Getter """
+        """
+        Var Getter
+        Args:
+            key(str):
+        """
         return self._variables.get(key, None)
 
     def has_var(self, key: str) -> bool:
-        """ Check var """
+        """
+        Check var
+        Args:
+            key(str)
+        Returns:
+            bool
+        """
         return key in self._variables
 
 """

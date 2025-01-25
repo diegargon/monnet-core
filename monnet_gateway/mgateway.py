@@ -26,8 +26,8 @@ stop_event = threading.Event()
 
 # Local
 from monnet_gateway.server import run_server
-from utils.context import AppContext
-from shared.logging import log, logpo
+from monnet_gateway.utils.context import AppContext
+from shared.logging import log
 
 def signal_handler(sig: signal.Signals, frame: types.FrameType) -> None:
     """
