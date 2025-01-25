@@ -25,6 +25,8 @@ import daemon
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
+stop_event = threading.Event()
+
 # Local
 from monnet_gateway.server import run_server
 from utils.context import AppContext
@@ -61,8 +63,6 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
 
     log("Iniciando el servicio Monnet Gateway...", "info")
-
-    stop_event = threading.Event()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-daemon", action="store_true", help="Run without daemonizing")

@@ -15,6 +15,12 @@ from monnet_gateway.handlers.handler_client import handle_client
 from shared.log_linux import log
 
 def run_server(ctx):
+    """
+        Runs Server
+
+        Args:
+            Appcontext: ctx
+    """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         if ctx.has_var('test'):
             port = PORT_TEST
