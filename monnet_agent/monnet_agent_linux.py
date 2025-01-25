@@ -33,7 +33,8 @@ from shared.log_linux import log, logpo
 from datastore import Datastore
 from event_processor import EventProcessor
 from agent_config import load_config
-
+from constants import LogLevel, EventType
+from shared.logging import log, logpo
 
 
 # Config file
@@ -68,7 +69,7 @@ def get_meta():
         "uuid": _uuid                           # ID uniq
     }
 
-def send_notification(name, data):
+def send_notification(name: str, data: dict):
     """
         Send notification to server.
 

@@ -11,8 +11,26 @@ import json
 import os
 import subprocess
 
+from monnet_gateway.utils.context import AppContext
 
-def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, limit=None):
+
+def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=None, user=None, limit=None):
+    """
+        Run Ansible Playbook
+
+        Flags:
+            --extra_vars -i ip --limit pattern -u user
+        Args:
+            AppContext ctx:
+            playbook string:
+            extra_vars : json
+            limit string: pattern
+            ip: x.x.x.x
+            user: user
+
+        Returns:
+            json: response or "status": error, "message": message
+    """
     # extra vars to json
     workdir = ctx.workdir
 
