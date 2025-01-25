@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 
+# Local
 from monnet_gateway.utils.context import AppContext
 
 
@@ -60,7 +61,7 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
     try:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        if stderr:
+        if process.returncode != 0:
             raise Exception(
                 f"Error ejecutando ansible playbook: STDOUT: {stdout.decode()} STDERR: {stderr.decode()}"
             )
