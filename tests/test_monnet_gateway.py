@@ -32,7 +32,7 @@ class TestMonnetGateway(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Configurar el entorno para iniciar el servidor una vez"""
-        cls.server_script = os.path.abspath("monnet_gateway/monnet_gateway.py")
+        cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
         assert os.path.exists(cls.server_script), f"El script no existe: {cls.server_script}"
         print(f"Usando el script del servidor: {cls.server_script}")
 
