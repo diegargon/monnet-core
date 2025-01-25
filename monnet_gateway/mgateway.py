@@ -12,9 +12,9 @@ import sys
 import os
 import threading
 import argparse
+import types
 from pathlib import Path
 from time import sleep
-import types
 
 # Third party
 import daemon
@@ -22,26 +22,31 @@ import daemon
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
-stop_event = threading.Event()
-
 # Local
 from monnet_gateway.server import run_server
 from monnet_gateway.utils.context import AppContext
 from shared.logging import log
 
+stop_event = threading.Event()
+
 def signal_handler(sig: signal.Signals, frame: types.FrameType) -> None:
     """
     Manejador de señales para capturar la terminación del servicio
+
+    Args:
+        sig (signal.Signals):
+        frame (types.FrameType):
     """
     log(f"Monnet Gateway server shuttdown... signal receive {sig}", "info")
     log(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}", "debug")
     log(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}", "debug")
     stop_event.set()
-    sys.exit(0)
 
-def run(ctx):
+def run(ctx: AppContext):
     """
     Start Server Thread
+    Args:
+        ctx (AppContext): context
     """
     server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
     server_thread.start()
@@ -52,12 +57,11 @@ def run(ctx):
             sleep(1)
     except (KeyboardInterrupt, SystemExit):
         log("Stopping server...", "info")
+    finally:
+        stop_event.set()
         server_thread.join()
 
 if __name__ == "__main__":
-    """
-    Main
-    """
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
