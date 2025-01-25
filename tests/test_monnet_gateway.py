@@ -1,5 +1,5 @@
 """
-@copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
+@copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
 
 Just initial Near do nothing test
 """
@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 # Local
-from monnet_gateway.monnet_gateway import run_ansible_playbook
+from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from monnet_gateway.utils.context import AppContext
 # Modificar sys.path para incluir el directorio monnet_gateway
 
