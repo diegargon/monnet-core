@@ -6,7 +6,7 @@ Monnet Agent
 
 import json
 # Local
-from shared.log_linux import log
+from shared.logging import log
 
 def load_config(file_path):
     """Load JSON config"""

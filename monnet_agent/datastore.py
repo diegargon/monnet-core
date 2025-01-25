@@ -2,20 +2,24 @@
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
 
 Monnet Agent
+
+
 """
 
 import json
 from typing import Optional, Dict, Any
-from shared.log_linux import log
+from shared.logging import log
 
 class Datastore:
     """
-        Keep data and Save/Load from disk in json format
+    Keep data and Save/Load from disk in json format
+    Attributes:
+         :param filename: File to save/load data.
     """
     def __init__(self, filename: str = "datastore.json"):
         """
         Initialization
-        :param filename: File to save/load data.
+            :param filename: File to save/load data.
         """
         self.filename = filename
         self.data: Dict[str, Optional[Dict[str, Any]]] = {
@@ -31,6 +35,10 @@ class Datastore:
         """
         Updates the specified data set.
         If the key does not exist, it is automatically added to allow future expansion.
+
+        Args
+            key (str):
+            data (dict):
         """
         if key not in self.data:
             log(f"New data set added: {key}")
@@ -41,6 +49,11 @@ class Datastore:
     def get_data(self, key: str) -> Optional[Dict[str, Any]]:
         """
         Retrieves the data set associated with the given key.
+
+        Args:
+            key (str):
+        Returns:
+            dict: Optional
         """
         return self.data.get(key)
 

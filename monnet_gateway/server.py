@@ -10,9 +10,9 @@ Server
 import json
 import socket
 import threading
-from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION, ALLOWED_COMMANDS
+from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
 from monnet_gateway.handlers.handler_client import handle_client
-from shared.log_linux import log
+from shared.logging import log
 
 def run_server(ctx):
     """

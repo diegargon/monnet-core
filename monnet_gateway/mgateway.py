@@ -7,10 +7,6 @@ This code is just a basic/preliminary draft.
 
 """
 
-import traceback
-import socket
-import subprocess
-import json
 import signal
 import sys
 import os
@@ -18,6 +14,7 @@ import threading
 import argparse
 from pathlib import Path
 from time import sleep
+import types
 
 # Third party
 import daemon
@@ -30,19 +27,22 @@ stop_event = threading.Event()
 # Local
 from monnet_gateway.server import run_server
 from utils.context import AppContext
-from shared.log_linux import log, logpo
-from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION, ALLOWED_COMMANDS
+from shared.logging import log, logpo
 
-def signal_handler(sig, frame):
-    """Manejador de señales para capturar la terminación del servicio"""
-    log("Monnet Gateway server shuttdown...", "info")
+def signal_handler(sig: signal.Signals, frame: types.FrameType) -> None:
+    """
+    Manejador de señales para capturar la terminación del servicio
+    """
+    log(f"Monnet Gateway server shuttdown... signal receive {sig}", "info")
+    log(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}", "debug")
+    log(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}", "debug")
     stop_event.set()
     sys.exit(0)
 
-"""
-Run
-"""
 def run(ctx):
+    """
+    Start Server Thread
+    """
     server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
     server_thread.start()
     stop_event = ctx.get_var('stop_event')
@@ -54,20 +54,31 @@ def run(ctx):
         log("Stopping server...", "info")
         server_thread.join()
 
-"""
-    Main
-"""
-
 if __name__ == "__main__":
+    """
+    Main
+    """
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
     log("Iniciando el servicio Monnet Gateway...", "info")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-daemon", action="store_true", help="Run without daemonizing")
-    parser.add_argument("--working-dir", type=str, default="/opt/monnet-core", help="Working directory")
-    parser.add_argument("--test", action="store_true", help="Run the server on the test port.")
+    parser.add_argument(
+        "--no-daemon",
+        action="store_true",
+        help="Run without daemonizing"
+    )
+    parser.add_argument(
+        "--working-dir", type=str,
+        default="/opt/monnet-core",
+        help="Working directory"
+    )
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Run the server on the test port."
+    )
     args = parser.parse_args()
 
     workdir = args.working_dir

@@ -11,8 +11,10 @@ import json
 import os
 import subprocess
 
+from monnet_gateway.utils.context import AppContext
 
-def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, limit=None):
+
+def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=None, user=None, limit=None):
     """
         Run Ansible Playbook
 

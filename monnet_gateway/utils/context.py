@@ -15,7 +15,7 @@ class AppContext:
         self._database = None
         self._variables = {}
 
-    # Dynamic Vars
+    """ Dynamic Vars Getters/Setters"""
     def set_var(self, key: str, value):
         """ Setter """
         self._variables[key] = value

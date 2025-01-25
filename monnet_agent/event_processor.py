@@ -8,7 +8,7 @@ import time
 from typing import List, Dict, Any
 # Local
 import globals
-from shared.log_linux import log, logpo
+from shared.logging import log, logpo
 from constants import LogLevel
 from constants import EventType
 

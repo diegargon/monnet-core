@@ -10,11 +10,12 @@ Client Handle
 import json
 import traceback
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
-from shared.log_linux import log, logpo
-from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION, ALLOWED_COMMANDS
+from monnet_gateway.utils.context import AppContext
+from shared.logging import log, logpo
+from config import VERSION, MINOR_VERSION, ALLOWED_COMMANDS
 
 
-def handle_client(ctx, conn, addr):
+def handle_client(ctx: AppContext, conn, addr):
     """
         Manage server client
 

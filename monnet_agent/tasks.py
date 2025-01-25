@@ -10,10 +10,12 @@ import threading
 # Local
 import globals
 import info_linux
+from monnet_agent.datastore import Datastore
+
 #from shared.log_linux import log, logpo
 
 
-def check_listen_ports(datastore, notify_callback, startup=None):
+def check_listen_ports(datastore: Datastore, notify_callback, startup=None):
     """
 
         Send port changes. Startup force send update every agent start/restart
