@@ -15,6 +15,14 @@ from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION, ALLOWED_COMMAN
 
 
 def handle_client(ctx, conn, addr):
+    """
+        Manage server client
+
+        Args:
+            AppContext ctx: context
+            conn:
+            addr:
+    """
     try:
         log(f"Connection established from {addr}", "info")
 
@@ -94,6 +102,8 @@ def handle_client(ctx, conn, addr):
                 logpo("Response: ", response)
                 # Send the response back to the client in JSON format
                 conn.sendall(json.dumps(response).encode())
+                log("Closing client connection")
+                break
 
             except Exception as e:
                 tb = traceback.extract_tb(e.__traceback__)

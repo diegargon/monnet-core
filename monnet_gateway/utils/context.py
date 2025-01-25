@@ -3,10 +3,13 @@
 
 Monnet Gateway
 
-Class AppContext
+
 """
 
 class AppContext:
+    """
+    Class AppContext
+    """
     def __init__(self, workdir: str):
         self.workdir = workdir
         self._database = None

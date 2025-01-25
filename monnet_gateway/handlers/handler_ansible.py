@@ -13,6 +13,22 @@ import subprocess
 
 
 def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, limit=None):
+    """
+        Run Ansible Playbook
+
+        Flags:
+            --extra_vars -i ip --limit pattern -u user
+        Args:
+            AppContext ctx:
+            playbook string:
+            extra_vars : json
+            limit string: pattern
+            ip: x.x.x.x
+            user: user
+
+        Returns:
+            json: response or "status": error, "message": message
+    """
     # extra vars to json
     workdir = ctx.workdir
 
@@ -46,7 +62,6 @@ def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, lim
             raise Exception(
                 f"Error ejecutando ansible playbook: STDOUT: {stdout.decode()} STDERR: {stderr.decode()}"
             )
-
 
         return stdout.decode()
 
