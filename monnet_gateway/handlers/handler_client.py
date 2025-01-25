@@ -1,42 +1,29 @@
 """
-@copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
+@copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
 
-Monnet Ansible Gateway
-
-This code is just a basic/preliminary draft.
-
-
-"""
-import daemon
-import traceback
-import socket
-import subprocess
-import json
-import signal
-import sys
-import os
-import threading
-import argparse
-import sys
-from pathlib import Path
-from time import sleep
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
-
-# Local
-from utils.context import AppContext
-from shared.log_linux import log, logpo
-from config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION, ALLOWED_COMMANDS
-
-stop_event = threading.Event()
-
-"""
+Monnet Gateway
 
 Client Handle
 
 """
-def handle_client(ctx, conn, addr):
+
+import json
+import traceback
+from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
+from monnet_gateway.utils.context import AppContext
+from shared.logging import log, logpo
+from config import VERSION, MINOR_VERSION, ALLOWED_COMMANDS
+
+
+def handle_client(ctx: AppContext, conn, addr):
+    """
+        Manage server client
+
+        Args:
+            AppContext ctx: context
+            conn:
+            addr:
+    """
     try:
         log(f"Connection established from {addr}", "info")
 
@@ -116,6 +103,8 @@ def handle_client(ctx, conn, addr):
                 logpo("Response: ", response)
                 # Send the response back to the client in JSON format
                 conn.sendall(json.dumps(response).encode())
+                log("Closing client connection")
+                break
 
             except Exception as e:
                 tb = traceback.extract_tb(e.__traceback__)
@@ -138,125 +127,3 @@ def handle_client(ctx, conn, addr):
 
     except Exception as e:
         log(f"Error handling connection with {addr}: {str(e)}", "err")
-
-def run_ansible_playbook(ctx, playbook, extra_vars=None, ip=None, user=None, limit=None):
-    # extra vars to json
-    workdir = ctx.workdir
-
-    extra_vars_str = ""
-
-    if extra_vars:
-        extra_vars_str = json.dumps(extra_vars)
-
-    playbook_directory = os.path.join(workdir, 'monnet_gateway/playbooks')
-    playbook_path = os.path.join(playbook_directory, playbook)
-
-    command = ['ansible-playbook', playbook_path]
-
-    if extra_vars_str:
-        command.extend(['--extra-vars', extra_vars_str])
-
-    if ip:
-        command.insert(1, '-i')
-        command.insert(2, f"{ip},")
-
-    if limit:
-        command.extend(['--limit', limit])
-
-    if user:
-        command.extend(['-u', user])
-
-    try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        if stderr:
-            raise Exception(
-                f"Error ejecutando ansible playbook: STDOUT: {stdout.decode()} STDERR: {stderr.decode()}"
-            )
-
-
-        return stdout.decode()
-
-    except Exception as e:
-        error_message = {
-            "status": "error",
-            "message": str(e)
-        }
-        return json.dumps(error_message)
-
-def signal_handler(sig, frame):
-    """Manejador de señales para capturar la terminación del servicio"""
-    log("Monnet Gateway server shuttdown...", "info")
-    stop_event.set()
-    sys.exit(0)
-
-"""
-
-Server
-
-"""
-def run_server(ctx):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        if ctx.has_var('test'):
-            port = PORT_TEST
-        else:
-            port = PORT
-        try:
-            s.settimeout(1.0)
-            s.bind((HOST, port))
-            s.listen()
-            log(f"v{VERSION}.{MINOR_VERSION}: Esperando conexión en {HOST}:{port}...", "info")
-
-            while not stop_event.is_set():
-                try:
-                    conn, addr = s.accept()
-                    threading.Thread(target=handle_client, args=(ctx, conn, addr)).start()
-                except socket.timeout:
-                    continue
-        except Exception as e:
-            log(f"Error en el servidor: {str(e)}", "err")
-            error_message = {"status": "error", "message": f"Error en el servidor: {str(e)}"}
-            log(json.dumps(error_message))
-
-"""
-Run
-"""
-def run(ctx):
-    server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
-    server_thread.start()
-
-    try:
-        while not stop_event.is_set():
-            sleep(1)
-    except (KeyboardInterrupt, SystemExit):
-        log("Stopping server...", "info")
-        server_thread.join()
-
-"""
-    Main
-"""
-
-if __name__ == "__main__":
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-
-    log("Iniciando el servicio Monnet Gateway...", "info")
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--no-daemon", action="store_true", help="Run without daemonizing")
-    parser.add_argument("--working-dir", type=str, default="/opt/monnet-core", help="Working directory")
-    parser.add_argument("--test", action="store_true", help="Run the server on the test port.")
-    args = parser.parse_args()
-
-    workdir = args.working_dir
-
-    if not os.path.exists(workdir):
-        raise FileNotFoundError(f"Working direcotry not found: {workdir}")
-
-    ctx = AppContext(workdir)
-    ctx.set_var('test', 1)
-
-    if args.no_daemon:
-        run(ctx)
-    else:
-        with daemon.DaemonContext(working_directory=workdir):
-            run(ctx)
