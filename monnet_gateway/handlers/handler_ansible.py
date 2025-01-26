@@ -93,7 +93,7 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
     try:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        if process.returncode != 0:
+        if stderr:
             raise Exception(
                 f"Error ejecutando ansible playbook: STDOUT: {stdout.decode()} STDERR: {stderr.decode()}"
             )
