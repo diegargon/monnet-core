@@ -42,33 +42,11 @@ def handle_client(ctx: AppContext, conn, addr):
                 command = request.get('command')
                 if not command:
                     response = {"status": "error", "message": "Command not specified"}
-                    conn.sendall(json.dumps(response).encode())
-                    continue
-
-                # Validate the command
-                if command not in ALLOWED_COMMANDS:
+                elif command not in ALLOWED_COMMANDS:
+                    # Validate the command
                     response = {"status": "error", "message": f"Invalid command: {command}"}
-                    conn.sendall(json.dumps(response).encode())
-                    continue
-
-                # Extract 'data' content
-                data_content = request.get('data', {})
-
-                # Process command-specific logic
-                if command == "playbook":
-                    # Extract fields specific to the "playbook" command
-                    playbook = data_content.get('playbook')
-                    extra_vars = data_content.get('extra_vars', {})
-                    ip = data_content.get('ip', None)
-                    limit = data_content.get('limit', None)
-                    user = data_content.get('user', "ansible")
-
-                    # Ensure playbook is specified
-                    if not playbook:
-                        response = {"status": "error", "message": "Playbook not specified"}
-                    else:
-                        response = handle_ansible_command(ctx, command, request.get('data', {}))
-
+                elif command == "playbook":
+                    response = handle_ansible_command(ctx, command, request.get('data', {}))
                 # elif command == "another_command":
                 #     # Handle 'another_command' logic
                 #     pass
