@@ -95,6 +95,7 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
         stdout, stderr = process.communicate()
         if stderr:
             raise Exception(
+                # TODO to standard json error msg
                 f"Error ejecutando ansible playbook: STDOUT: {stdout.decode()} STDERR: {stderr.decode()}"
             )
 
