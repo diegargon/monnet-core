@@ -25,7 +25,7 @@ sys.path.append(str(BASE_DIR))
 # Local
 from monnet_gateway.server import run_server
 from monnet_gateway.utils.context import AppContext
-from shared.logging import log
+from shared.logger import log
 
 stop_event = threading.Event()
 

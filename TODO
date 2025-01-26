@@ -1,0 +1,16 @@
+1 Cuando da un port already use no sale deberia salir
+2 Un playbook con error no se esta imprime bien en el ui(test agent install con path mal)
+
+3 Esta poniendo los datos fuera de result, tiene que estar dentro y modificar el frontend para que coja
+    el resultado de dentro. El tpl  ansible-head-reports y ansible-report.tpl
+
+    {
+        "version": "0.4.22",
+        "status": "success",
+        "command": "playbook",
+        "result": {},
+        "custom_stats": {},
+        "global_custom_stats": {},
+        "plays": [
+            {
+

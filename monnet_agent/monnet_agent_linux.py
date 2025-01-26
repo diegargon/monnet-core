@@ -32,7 +32,7 @@ from datastore import Datastore
 from event_processor import EventProcessor
 from agent_config import load_config
 from constants import LogLevel, EventType
-from shared.logging import log, logpo
+from shared.logger import log, logpo
 
 
 # Config file

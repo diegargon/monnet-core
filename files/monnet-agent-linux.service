@@ -3,15 +3,15 @@ Description=Monnet Agent Linux Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/monnet-agent/monnet_agent_linux.py
-WorkingDirectory=/opt/monnet-agent
+ExecStart=/usr/bin/python3 /opt/monnet_agent/monnet_agent_linux.py
+WorkingDirectory=/opt/monnet_agent
 User=root
 Group=root
 Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=syslog
-SyslogIdentifier=monnet-agent
+SyslogIdentifier=monnet_agent
 
 [Install]
 WantedBy=multi-user.target

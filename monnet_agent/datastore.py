@@ -8,7 +8,7 @@ Monnet Agent
 
 import json
 from typing import Optional, Dict, Any
-from shared.logging import log
+from shared.logger import log
 
 class Datastore:
     """

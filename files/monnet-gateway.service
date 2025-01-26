@@ -3,14 +3,14 @@ Description=Monnet Gateway Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/monnet-core/monnet-gateway/mgateway.py
+ExecStart=/usr/bin/python3 /opt/monnet-core/monnet_gateway/mgateway.py
 WorkingDirectory=/opt/monnet-core
 Group=root
 Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=syslog
-SyslogIdentifier=monnet-gateway
+SyslogIdentifier=monnet_gateway
 
 [Install]
 WantedBy=multi-user.target

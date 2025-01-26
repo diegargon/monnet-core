@@ -48,23 +48,33 @@
           - agent_config is defined
         fail_msg: "The variable 'agent_config' is required and must be defined."
 
-    - name: Check if the /opt/monnet-agent directory exists
+    - name: Check if the /opt/monnet_agent directory exists
       stat:
-        path: /opt/monnet-agent
+        path: /opt/monnet_agent
       register: opt_monnet_dir
 
-    - name: Create the /opt/monnet-agent directory if it doesn't exist
+    - name: Create the /opt/monnet_agent directory if it doesn't exist
       file:
-        path: /opt/monnet-agent
+        path: /opt/monnet_agent
         state: directory
         mode: '0755'
       when: not opt_monnet_dir.stat.exists
 
-    - name: Copy the src/* content to /opt/monnet-agent
+    - name: Copy the monnet_agent/* content to /opt/monnet_agent
       copy:
-        src: ../src/
-        dest: /opt/monnet-agent/
+        src: "/opt/monnet-core/monnet_agent/"
+        dest: /opt/monnet_agent/
         mode: '0755'
+
+    - name: Copy constants module to remote
+      copy:
+        src: /opt/monnet-core/shared/
+        dest: /opt/monnet_agent/shared/
+
+    - name: Copy the shared module to remote
+      copy:
+        src: /opt/monnet-core/constants/
+        dest: /opt/monnet_agent/constants/
 
     - name: Check if the /etc/monnet directory exists
       stat:
@@ -86,7 +96,7 @@
 
     - name: Copy the monnet-agent-linux.service file to /etc/systemd/system
       copy:
-        src: ../files/monnet-agent-linux.service
+        src: "/opt/monnet-core/files/monnet-agent-linux.service"
         dest: /etc/systemd/system/monnet-agent-linux.service
         mode: '0644'
 
@@ -100,4 +110,5 @@
         name: monnet-agent-linux
         enabled: yes
         state: restarted
+        daemon_reload: yes
       when: systemd_service.stat.exists
