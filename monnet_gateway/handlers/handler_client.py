@@ -11,9 +11,9 @@ import json
 import traceback
 
 # Local
-from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
+from monnet_gateway.handlers.handler_ansible import handle_ansible_command, run_ansible_playbook
 from monnet_gateway.utils.context import AppContext
-from shared.logging import log, logpo
+from shared.logger import log, logpo
 from config import VERSION, MINOR_VERSION, ALLOWED_COMMANDS
 
 
@@ -67,47 +67,22 @@ def handle_client(ctx: AppContext, conn, addr):
                     if not playbook:
                         response = {"status": "error", "message": "Playbook not specified"}
                     else:
-                        try:
-                            # Execute the playbook and retrieve the result
-                            result = run_ansible_playbook(
-                                ctx,
-                                playbook, extra_vars,
-                                ip=ip,
-                                user=user,
-                                limit=limit
-                            )
-
-                            # Convert the result JSON to a dictionary
-                            result_data = json.loads(result)  # Expected valid JSON
-                            logpo("ResultData: ", result_data)
-                            response = {
-                                "version": str(VERSION) + '.' + str(MINOR_VERSION),
-                                "status": "success",
-                                "command": command,
-                                "result": {}
-                            }
-                            response.update(result_data)
-                        except json.JSONDecodeError as e:
-                            response = {
-                                "status": "error",
-                                "message": "Failed to decode JSON: " + str(e)
-                            }
-                        except Exception as e:
-                            response = {
-                                "status": "error",
-                                "message": "Error executing the playbook: " + str(e)
-                            }
+                        response = handle_ansible_command(ctx, command, request.get('data', {}))
 
                 # elif command == "another_command":
                 #     # Handle 'another_command' logic
                 #     pass
-
+                else:
+                    response = {"status": "error", "message": f"Invalid command: {command}"}
                 logpo("Response: ", response)
                 # Send the response back to the client in JSON format
                 conn.sendall(json.dumps(response).encode())
                 log("Closing client connection")
                 break
 
+            except json.JSONDecodeError:
+                response = {"status": "error", "message": "Invalid JSON format"}
+                conn.sendall(json.dumps(response).encode())
             except Exception as e:
                 tb = traceback.extract_tb(e.__traceback__)
                 relevant_trace = [frame for frame in tb if "monnet_gateway.py" in frame.filename]
@@ -123,9 +98,10 @@ def handle_client(ctx: AppContext, conn, addr):
                     "line": last_trace.lineno
                 }
                 conn.sendall(json.dumps(error_message).encode())
-
+                break
         log(f"Connection with {addr} closed", "info")
-        conn.close()
 
     except Exception as e:
         log(f"Error handling connection with {addr}: {str(e)}", "err")
+    finally:
+        conn.close()

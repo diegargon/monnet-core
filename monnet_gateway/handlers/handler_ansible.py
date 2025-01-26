@@ -13,7 +13,39 @@ import subprocess
 
 # Local
 from monnet_gateway.utils.context import AppContext
+from config import VERSION, MINOR_VERSION
+from shared.logger import log
 
+def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
+    playbook = data_content.get('playbook', None)
+    extra_vars = data_content.get('extra_vars', None)
+    ip = data_content.get('ip', None)
+    limit = data_content.get('limit', None)
+    user = data_content.get('user', "ansible")
+
+    if not playbook:
+        return {"status": "error", "message": "Playbook not specified"}
+    else:
+        try:
+            log("Running ansible playbook...", "info")
+            result = run_ansible_playbook(ctx, playbook, extra_vars, ip=ip, user=user, limit=limit)
+            result_data = json.loads(result)
+            # logpo("ResultData: ", result_data)
+            response = {
+                "version": str(VERSION) + '.' + str(MINOR_VERSION),
+                "status": "success",
+                "command": command,
+                "result": {}
+            }
+            # TODO  fix result must be in result (need ui reports fix)
+            response.update(result_data)
+            return response
+        except json.JSONDecodeError as e:
+            log("Failed to decode JSON: " + str(e), "err")
+            return {"status": "error", "message": "Failed to decode JSON: " + str(e)}
+        except Exception as e:
+            log("Error executing the playbook: " + str(e), "err")
+            return {"status": "error", "message": "Error executing the playbook: " + str(e)}
 
 def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=None, user=None, limit=None):
     """
@@ -30,7 +62,7 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
             user: user
 
         Returns:
-            json: response or "status": error, "message": message
+            json: response data or "status": error, "message": message
     """
     # extra vars to json
     workdir = ctx.workdir
