@@ -91,7 +91,9 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Working direcotry not found: {workdir}")
 
     ctx = AppContext(workdir)
-    ctx.set_var('test', 1)
+    if args.test:
+        ctx.set_var('test', 1)
+
     ctx.set_var('stop_event', stop_event)
 
     if args.no_daemon:
