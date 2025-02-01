@@ -10,7 +10,7 @@ Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=syslog
-SyslogIdentifier=monnet_gateway
+SyslogIdentifier=mgateway
 
 [Install]
 WantedBy=multi-user.target
