@@ -1,5 +1,5 @@
 """
-@copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
+@copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
 Monnet Gateway
 
@@ -11,10 +11,11 @@ import json
 import traceback
 
 # Local
-from monnet_gateway.handlers.handler_ansible import handle_ansible_command, run_ansible_playbook
+from monnet_gateway.handlers.handler_ansible import handle_ansible_command
 from monnet_gateway.utils.context import AppContext
+
 from shared.logger import log, logpo
-from config import VERSION, MINOR_VERSION, ALLOWED_COMMANDS
+from config import ALLOWED_COMMANDS
 
 
 def handle_client(ctx: AppContext, conn, addr):
