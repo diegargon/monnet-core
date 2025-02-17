@@ -1,9 +1,8 @@
 """
-@copyright CC BY-NC-ND 4.0 @ 2020 - 2024 Diego Garcia (diego/@/envigo.net)
+@copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
 Monnet Gateway
 
-Class AppContext
 """
 
 class AppContext:
