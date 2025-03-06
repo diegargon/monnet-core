@@ -58,13 +58,13 @@ def get_meta():
     _uuid = str(uuid.uuid4())
 
     return {
-        "timestamp": timestamp,                 # Timestamp  UTC
-        "timezone": str(local_timezone),        # Timezone
+        "timestamp": timestamp,                       # Timestamp  UTC
+        "timezone": str(local_timezone),              # Timezone
         "hostname": hostname,
         "nodename": nodename,
         "ip_address": ip_address,
         "agent_version": str(globals.AGENT_VERSION),
-        "uuid": _uuid                           # ID uniq
+        "uuid": _uuid                                 # ID uniq
     }
 
 def send_notification(name: str, data: dict):
