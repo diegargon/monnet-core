@@ -31,7 +31,8 @@ deploy_to_github:
     - git remote -v
     - git fetch github main
     - git checkout -b main || git checkout main
-    - git pull --rebase --strategy=recursive --strategy-option=theirs github main || true
+    - git reset --hard github/main
+#    - git pull --rebase --strategy=recursive --strategy-option=theirs github main || true
 #    - git merge github/main --strategy=recursive --strategy-option=ours --allow-unrelated-histories
     - git add .
     - git diff .gitlab-ci.yml
