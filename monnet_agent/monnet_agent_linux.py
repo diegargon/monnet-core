@@ -95,6 +95,7 @@ def send_notification(name: str, data: dict):
         "meta": meta
     }
 
+    connection = None
     try:
         if ignore_cert:
             context = ssl._create_unverified_context()
@@ -147,6 +148,7 @@ def send_request(cmd="ping", data=None):
         "meta": meta
     }
 
+    connection = None
     try:
         # Accept all certs
         if ignore_cert:
