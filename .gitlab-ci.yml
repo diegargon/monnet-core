@@ -36,7 +36,6 @@ deploy_to_github:
     # Verifica que estás en la rama correcta (main)
     - git checkout main
     # Forzar el push para sobrescribir GitHub
-    - git fetch --all
     - git push --force github main
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
