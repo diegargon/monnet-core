@@ -27,7 +27,7 @@ def check_listen_ports(datastore: Datastore, notify_callback, startup=None):
     current_listen_ports_info = info_linux.get_listen_ports_info()
     last_listen_ports_info = datastore.get_data("last_listen_ports_info")
 
-    if ( (current_listen_ports_info != last_listen_ports_info) or startup):
+    if ((current_listen_ports_info != last_listen_ports_info) or startup):
         datastore.update_data("last_listen_ports_info", current_listen_ports_info)
         notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
     #else : #debug
@@ -47,24 +47,27 @@ def send_stats(datastore, notify_callback):
     """
     if 'send_stats' in globals.timers :
         globals.timers['send_stats'].cancel()
+
+    data = {}
+
     # Load
     last_avg_stats = datastore.get_data("last_load_avg")
-    if last_avg_stats is None :
-        return
-    load_stats_5m = last_avg_stats['loadavg']['5min']
+    if last_avg_stats is not None :
+        data['load_avg'] = last_avg_stats['loadavg']
+
     # Io wait
-    iowait_last_stats = datastore.get_data("iowait_last_stat")
+    iowait_last_stats = datastore.get_data("iowait_last_stats")
     if not iowait_last_stats:
         iowait_last_stats = datastore.get_data("last_iowait")
     last_iowait = datastore.get_data("last_iowait")
     average_iowait =  (iowait_last_stats + last_iowait) / 2
     datastore.update_data("iowait_last_stats", last_iowait)
+    data['iowait_stats'] = average_iowait
 
-    data = {
-          'load_avg_stats': load_stats_5m,
-          'iowait_stats': average_iowait
-    }
+    # Send
     notify_callback('send_stats', data)
+
+    # Start again
     globals.timers['send_stats']  = threading.Timer(
         globals.TIMER_STATS_INTERVAL,
         send_stats,

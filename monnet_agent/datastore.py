@@ -27,6 +27,7 @@ class Datastore:
             "last_memory_info": None,
             "last_disk_info": None,
             "last_ports_info": None,
+            "iowait_last_stats": None,
             "last_iowait": 0,
         }
         self.load_data()

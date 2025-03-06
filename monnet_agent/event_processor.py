@@ -16,13 +16,12 @@ class EventProcessor:
     """
         Event Processor. Process and track the events avoid spamming
     """
-    def __init__(self, ):
+    def __init__(self):
         """
         Inicializa el procesador de eventos.
         """
-         # Dict  processed events with time stamp
+        # Dict  processed events with time stamp
         self.processed_events: Dict[str, float] = {}
-
         self.event_expiration = globals.EVENT_EXPIRATION
 
     def process_changes(self, datastore) -> List[Dict[str, Any]]:
