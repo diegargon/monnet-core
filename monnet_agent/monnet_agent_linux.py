@@ -115,7 +115,8 @@ def send_notification(name: str, data: dict):
         """
         if "name" in data:
             data.pop("name")
-        connection.close()
+        if connection:
+            connection.close()
 
 def send_request(cmd="ping", data=None):
     """
@@ -175,8 +176,8 @@ def send_request(cmd="ping", data=None):
     except Exception as e:
         log(f"Error on request: {e}", "err")
     finally:
-        # Close
-        connection.close()
+        if connection:
+            connection.close()
 
     return None
 
