@@ -6,7 +6,7 @@ Global Vars
 Monnet Agent
 """
 
-AGENT_VERSION = "0.139"
+AGENT_VERSION = "0.140"
 
 # Track timers
 timers = {}
