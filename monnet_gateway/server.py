@@ -35,7 +35,7 @@ def run_server(ctx: AppContext):
             s.settimeout(1.0)
             s.bind((HOST, port))
             s.listen()
-            log(f"v{VERSION}.{MINOR_VERSION}: Waiting connection {HOST}:{port}...", "info")
+            log(f"v{VERSION}.{MINOR_VERSION}: Waiting for connection on {HOST}:{port}...", "info")
 
             while not stop_event.is_set():
                 try:
@@ -47,3 +47,5 @@ def run_server(ctx: AppContext):
             log(f"Error en el servidor: {str(e)}", "err")
             error_message = {"status": "error", "message": f"Server error: {str(e)}"}
             log(json.dumps(error_message),"debug")
+        finally:
+            s.close()
