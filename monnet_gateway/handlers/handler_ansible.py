@@ -37,7 +37,7 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
                 "command": command,
                 "result": {}
             }
-            # TODO  fix result must be in result (need ui reports fix)
+            # TODO  fix result must be in result (need frontend reports fix)
             response.update(result_data)
             return response
         except json.JSONDecodeError as e:
@@ -54,15 +54,15 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
         Flags:
             --extra_vars -i ip --limit pattern -u user
         Args:
-            AppContext ctx:
-            playbook string:
-            extra_vars : json
-            limit string: pattern
-            ip: x.x.x.x
-            user: user
+            ctx (AppContext): context
+            playbook (str): playbook
+            extra_vars (dict): extra variables
+            ip (str): IP address
+            user (str): user
+            limit (str): limit
 
         Returns:
-            json: response data or "status": error, "message": message
+            str: json response data or "status": error, "message": message
     """
     # extra vars to json
     workdir = ctx.workdir
