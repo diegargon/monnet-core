@@ -23,9 +23,9 @@ def handle_client(ctx: AppContext, conn, addr):
         Manage server client
 
         Args:
-            AppContext ctx: context
-            conn:
-            addr:
+            ctx (AppContext): context
+            conn: connection object
+            addr: address of the client
     """
     try:
         log(f"Connection established from {addr}", "info")
