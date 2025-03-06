@@ -24,20 +24,33 @@ deploy_to_github:
   when: manual
   image: alpine/git
   script:
+    # Configura el usuario de Git
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
+
+    # Agrega el remote de GitHub
     - git remote remove github || true
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git remote -v
-    - git fetch github main
-    - git checkout -b main || git checkout main
-    - git diff origin/main github/main
-    - git reset --hard github/main
-#    - git pull --rebase --strategy=recursive --strategy-option=theirs github main || true
-#    - git merge github/main --strategy=recursive --strategy-option=ours --allow-unrelated-histories
-    - git add .
-    - git diff .gitlab-ci.yml
-    - git status
-    - git commit -m "Deploy changes from GitLab CI"  || echo "Nothing to commit"
-#    - git push -u github main
+
+    # Verifica que estás en la rama correcta (main)
+    - git checkout main
+
+    # Forzar el push para sobrescribir GitHub
     - git push --force github main
+#    - git config --global user.name "GitLabCI"
+#    - git config --global user.email "ci-bot@no.domain"
+#    - git remote remove github || true
+#    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+#    - git remote -v
+#    - git fetch github main
+#    - git checkout -b main || git checkout main
+#    - git diff origin/main github/main
+#    - git pull --rebase --strategy=recursive --strategy-option=theirs github main || true
+##    - git merge github/main --strategy=recursive --strategy-option=ours --allow-unrelated-histories
+#    - git add .
+#    - git diff .gitlab-ci.yml
+#    - git status
+#    - git commit -m "Deploy changes from GitLab CI"  || echo "Nothing to commit"
+##    - git push -u github main
+#    - git push --force github main
