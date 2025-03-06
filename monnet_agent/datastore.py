@@ -70,7 +70,7 @@ class Datastore:
         try:
             with open(self.filename, "w", encoding='utf-8') as file:
                 json.dump(self.data, file, indent=4)
-            log(f"Data saved successfully to {self.filename}")
+            # log(f"Data saved successfully to {self.filename}")
         except Exception as e:
             log(f"Error saving data to {self.filename}: {e}")
 
