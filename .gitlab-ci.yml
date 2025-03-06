@@ -4,16 +4,17 @@ stages:
   - test
   - deploy
 
+before_script:
+  - echo "nameserver 192.168.2.126" > /etc/resolv.conf
 test:
   stage: test
   image: python:3.9
   variables:
     PYTHONPATH: "/builds/diegargon/monnet-core:/builds/diegargon/monnet-core/monnet_gateway"
-  before_script:
-    - echo "nameserver 192.168.2.126" > /etc/resolv.conf
-    - pip install -r requirements.txt
+
 
   script:
+    - pip install -r requirements.txt
     - python -c "import sys; print('PYTHONPATH is:', sys.path)"
     - ls -al
     - pytest -v tests/test_monnet_gateway.py
@@ -23,7 +24,6 @@ deploy_to_github:
   when: manual
   image: alpine/git
   script:
-    - echo "nameserver 192.168.2.126" > /etc/resolv.conf
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git remote remove github || true
