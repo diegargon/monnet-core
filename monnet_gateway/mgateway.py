@@ -50,7 +50,6 @@ def run(ctx: AppContext):
     """
     server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
     server_thread.start()
-    stop_event = ctx.get_var('stop_event')
 
     try:
         while not stop_event.is_set():
