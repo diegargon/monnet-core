@@ -37,7 +37,7 @@ def signal_handler(sig: signal.Signals, frame: types.FrameType) -> None:
         sig (signal.Signals):
         frame (types.FrameType):
     """
-    log(f"Monnet Gateway server shuttdown... signal receive {sig}", "info")
+    log(f"Monnet Gateway server shutdown... signal received {sig}", "info")
     log(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}", "debug")
     log(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}", "debug")
     stop_event.set()
