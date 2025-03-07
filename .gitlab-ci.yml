@@ -49,14 +49,11 @@ deploy_to_github:
     # Hace un commit si hay archivos nuevos
     - git commit -m "Re-uploading the local code" || echo "No changes to commit"
 
+    - git fetch github
+    - git rebase github/main
+
     # Empuja los cambios a la rama 'main' en GitHub
     - git push --force github main
-
-    # Configura el upstream para la rama 'main'
-    - git push --set-upstream github main
-
-    # Verifica el estado de las referencias
-    - git show-ref
 
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
