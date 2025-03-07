@@ -37,8 +37,9 @@ deploy_to_github:
     - git checkout main
     - git fetch github
     - git branch -r
+    - git merge --allow-unrelated-histories github/main -X ours
     - git show-ref
-    - git merge -X ours github/main
+    #- git merge -X ours github/main
     - git gc 
     - git push --no-thin github main
      # Forzar el push para sobrescribir GitHub
