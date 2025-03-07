@@ -41,9 +41,11 @@ deploy_to_github:
     - git show-ref
     #- git merge -X ours github/main
     - git gc 
-    - git push --no-thin github main
+    - git fsck --full
+    - 
+    #- git push --no-thin github main
      # Forzar el push para sobrescribir GitHub
-    #- git push --force github main
+    - git push --force github main
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
 #    - git remote remove github || true
