@@ -29,7 +29,6 @@ deploy_to_github:
     - git config --global user.email "ci-bot@no.domain"
 
 
-    # Agrega el remote de GitHub
     - git remote remove github || true
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git remote -v
@@ -40,9 +39,15 @@ deploy_to_github:
     # Crea la rama 'main' si no existe
     - git checkout -b main
 
-    # Añade todos los cambios y hace un commit
-    - git add .
-    - git commit -m "Re-uploading the local code"
+    # Asegúrate de que hay archivos en el repositorio
+    - git status
+    - git add --all
+
+    # Verifica que los archivos están listos para commit
+    - git status
+
+    # Hace un commit si hay archivos nuevos
+    - git commit -m "Re-uploading the local code" || echo "No changes to commit"
 
     # Empuja los cambios a la rama 'main' en GitHub
     - git push --force github main
