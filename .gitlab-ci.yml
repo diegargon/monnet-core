@@ -42,7 +42,7 @@ deploy_to_github:
     #- git merge -X ours github/main
     - git gc 
     - git fsck --full
-    - 
+    - git repack -a -d
     #- git push --no-thin github main
      # Forzar el push para sobrescribir GitHub
     - git push --force github main
