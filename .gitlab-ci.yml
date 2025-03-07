@@ -37,14 +37,10 @@ deploy_to_github:
     - git checkout main
     - git fetch github
     - git branch -r
+    - git push --force --mirror --delete github main
     - git merge --allow-unrelated-histories github/main -X ours
     - git show-ref
-    #- git merge -X ours github/main
-    - git gc 
-    - git fsck --full
-    - git repack -a -d
-    #- git push --no-thin github main
-     # Forzar el push para sobrescribir GitHub
+
     - git push --force github main
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
