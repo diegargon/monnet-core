@@ -35,8 +35,9 @@ deploy_to_github:
 
     # Verifica que estás en la rama correcta (main)
     - git checkout main
+    - git merge -X ours github/main
     - git gc 
-    - git push -f --no-thin github main
+    - git push --no-thin github main
      # Forzar el push para sobrescribir GitHub
     #- git push --force github main
 #    - git config --global user.name "GitLabCI"
