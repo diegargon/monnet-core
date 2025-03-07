@@ -24,29 +24,33 @@ deploy_to_github:
   when: manual
   image: alpine/git
   script:
+    # Limpiar cualquier configuración de git previa
     - rm -rf .git
 
-# Inicializar el repositorio local nuevamente
+    # Inicializar un nuevo repositorio git
     - git init
 
-# Configurar los datos del usuario de Git
+    # Configurar el usuario de Git
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
 
-# Añadir el remote de GitHub (reemplaza 'your-username' y 'your-repo-name' con tus datos)
+    # Añadir el remote de GitHub (reemplaza con tu repositorio GitHub)
     - git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
 
-# Asegurarse de que los archivos estén preparados para el commit
+    # Traer todos los cambios del repositorio remoto
+    - git fetch origin main
+
+    # Cambiar a la rama principal, asegurando que existe
+    - git checkout main || git checkout -b main
+
+    # Añadir los cambios locales al repositorio
     - git add .
 
-# Realizar el primer commit
-    - git commit -m "Initial commit with all files"
+    # Realizar el commit con un mensaje adecuado
+    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
 
-# Cambiar a la rama 'main'
-    - git branch -M main
-
-# Empujar los archivos al nuevo repositorio en GitHub
-    - git push -u origin main
+    # Empujar los cambios al repositorio de GitHub
+    - git push origin main --force
 
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
