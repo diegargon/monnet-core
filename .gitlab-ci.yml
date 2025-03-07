@@ -28,20 +28,26 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
 
-    # Agrega el remote de GitHub
+   # Elimina el remote de GitHub si existe
     - git remote remove github || true
+    
+    # Agrega el remote de GitHub
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git remote -v
 
     # Verifica que estás en la rama correcta (main)
     - git checkout main
-    - git fetch github
-    - git branch -r
-    - git push --force --mirror --delete github main
-    - git merge --allow-unrelated-histories github/main -X ours
-    - git show-ref
-
+    
+    # Elimina todo el historial de GitHub (sin usar --mirror ni --delete juntos)
+    - rm -rf .git
+    - git init
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    
+    # Sube los archivos locales a GitHub (reemplaza el contenido actual de GitHub)
+    - git add .
+    - git commit -m "Re-uploading the local code"
     - git push --force github main
+    
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
 #    - git remote remove github || true
