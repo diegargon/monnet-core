@@ -28,7 +28,7 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
 
-   # Elimina el remote de GitHub si existe
+    # Elimina el remote de GitHub si existe
     - git remote remove github || true
     
     # Agrega el remote de GitHub
@@ -36,7 +36,7 @@ deploy_to_github:
     - git remote -v
 
     # Verifica que estás en la rama correcta (main)
-    - git checkout main
+    - git checkout -b main  # Crea la rama main si no existe
     
     # Elimina todo el historial de GitHub (sin usar --mirror ni --delete juntos)
     - rm -rf .git
@@ -47,7 +47,7 @@ deploy_to_github:
     - git add .
     - git commit -m "Re-uploading the local code"
     - git push --force github main
-    
+
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
 #    - git remote remove github || true
