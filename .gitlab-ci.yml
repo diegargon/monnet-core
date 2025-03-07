@@ -28,17 +28,17 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
 
+
     # Agrega el remote de GitHub
     - git remote remove github || true
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git remote -v
 
-    # Verifica que estás en la rama correcta (master) y cambia a 'main'
-    - git checkout master
-    - git branch -m master main
-
     # Inicializa el repositorio si no está correctamente inicializado
     - git init
+
+    # Crea la rama 'main' si no existe
+    - git checkout -b main
 
     # Añade todos los cambios y hace un commit
     - git add .
@@ -51,7 +51,7 @@ deploy_to_github:
     - git push --set-upstream github main
 
     # Verifica el estado de las referencias
-    - git show-ref    
+    - git show-ref
 
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
