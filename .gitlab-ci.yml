@@ -35,6 +35,9 @@ deploy_to_github:
 
     # Verifica que estás en la rama correcta (main)
     - git checkout main
+    - git fetch github
+    - git branch -r
+    - git show-ref
     - git merge -X ours github/main
     - git gc 
     - git push --no-thin github main
