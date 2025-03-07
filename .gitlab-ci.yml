@@ -27,17 +27,16 @@ deploy_to_github:
     # Configura el usuario de Git
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
-
-      # Elimina el remote de GitHub si existe
+    # Elimina el remote de GitHub si existe
     - git remote remove github || true
     
     # Agrega el remote de GitHub
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git remote -v
 
-    # Crea la rama main si no existe (en caso de que haya sido eliminada con git init)
-    - git checkout -b main  # Si la rama main no existe, la creamos
-    
+    # Crea la rama main si no existe (si estás en master, la cambiamos a main)
+    - git checkout -b main  # Esto crea la rama main si no existe
+
     # Elimina todo el historial de GitHub y reinicia el repositorio
     - rm -rf .git
     - git init
