@@ -43,6 +43,9 @@ deploy_to_github:
     # Cambiar a la rama principal, asegurando que existe
     - git checkout main || git checkout -b main
 
+    # Integrar los cambios remotos si es necesario
+    - git merge origin/main || git rebase origin/main
+
     # Añadir los cambios locales al repositorio
     - git add .
 
