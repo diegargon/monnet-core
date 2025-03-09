@@ -1,10 +1,10 @@
 # Monnet Gateway
 
-Mediates between web ui and the system
+Mediates between the web UI and the system.
 
-At this momment is optional only used for  ansible features.
+At this moment, it is optional and currently only used for Ansible features.
 
-Will be mandatory.
+It will be mandatory.
 
 
 ## Install
