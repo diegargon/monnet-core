@@ -60,3 +60,4 @@ def stop_server():
     global server_socket
     if server_socket:
         server_socket.close()
+        server_socket = None

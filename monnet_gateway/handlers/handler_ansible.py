@@ -10,8 +10,6 @@ Ansible
 import json
 import os
 import subprocess
-import sys
-from pathlib import Path
 
 # Local
 from monnet_gateway.config import VERSION, MINOR_VERSION
