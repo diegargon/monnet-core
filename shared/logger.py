@@ -25,7 +25,7 @@ def logpo(msg: str, data, priority: str = "info") -> None:
         message = msg + str(data)  # Convert the data to a string representation
         log(message, priority)  # Call the original log function
     except ValueError as e:
-        raise ValueError(f"Error in logging: {e}")
+        raise ValueError(f"Error in logging: {e}") from e
 
 def log(message: str, priority: str = "info") -> None:
     """

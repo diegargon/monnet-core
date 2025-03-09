@@ -67,7 +67,7 @@ def run(ctx: AppContext):
         stop_event.set()
         server_thread.join()
 
-if __name__ == "__main__":
+def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -107,3 +107,6 @@ if __name__ == "__main__":
     else:
         with daemon.DaemonContext(working_directory=workdir):
             run(ctx)
+
+if __name__ == "__main__":
+    main()

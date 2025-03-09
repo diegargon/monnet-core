@@ -13,8 +13,8 @@ import traceback
 # Local
 from monnet_gateway.handlers.handler_ansible import handle_ansible_command
 from monnet_gateway.utils.context import AppContext
-from shared.logger import log, logpo
 from monnet_gateway.config import ALLOWED_COMMANDS
+from shared.logger import log, logpo
 
 
 def handle_client(ctx: AppContext, conn, addr):

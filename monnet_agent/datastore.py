@@ -84,6 +84,6 @@ class Datastore:
                 self.data = json.load(file)
             log(f"Data loaded successfully from {self.filename}")
         except FileNotFoundError:
-            log(f"No existing data file found. Starting fresh.")
+            log("No existing data file found. Starting fresh.")
         except Exception as e:
             log(f"Error loading data from {self.filename}: {e}")
