@@ -13,11 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
-
 # Local
-from config import VERSION, MINOR_VERSION
+from monnet_gateway.config import VERSION, MINOR_VERSION
 from monnet_gateway.utils.context import AppContext
 from shared.logger import log
 

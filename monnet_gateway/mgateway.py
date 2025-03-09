@@ -23,11 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
-from monnet_gateway.server import run_server
+from monnet_gateway.server import run_server, stop_server
 from monnet_gateway.utils.context import AppContext
 from shared.logger import log
 
 stop_event = threading.Event()
+server_thread = None
 
 def signal_handler(sig: signal.Signals, frame: types.FrameType) -> None:
     """
@@ -41,6 +42,10 @@ def signal_handler(sig: signal.Signals, frame: types.FrameType) -> None:
     log(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}", "debug")
     log(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}", "debug")
     stop_event.set()
+    stop_server()
+
+    if server_thread is not None:
+        server_thread.join()
 
 def run(ctx: AppContext):
     """
@@ -48,6 +53,8 @@ def run(ctx: AppContext):
     Args:
         ctx (AppContext): context
     """
+    global server_thread
+
     server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
     server_thread.start()
 

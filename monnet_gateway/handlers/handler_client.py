@@ -18,9 +18,8 @@ sys.path.append(str(BASE_DIR))
 # Local
 from monnet_gateway.handlers.handler_ansible import handle_ansible_command
 from monnet_gateway.utils.context import AppContext
-
 from shared.logger import log, logpo
-from config import ALLOWED_COMMANDS
+from monnet_gateway.config import ALLOWED_COMMANDS
 
 
 def handle_client(ctx: AppContext, conn, addr):

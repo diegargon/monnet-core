@@ -8,8 +8,13 @@
 # W0718: Catching too general exception Exception (broad-exception-caught)
 # R0912: Too many branches
 # R0915: Too many statements
+# R0903: Too few public methods
+# W0511: TODO
+# R0913 Too many arguments
+# R0917 Too many positional arguments
+# R09903: Too few public methods
 
-disable=C0115,C0116,W0105,R1732,R0914,C0413,W0718,R0912,R0915
+disable=C0115,C0116,W0105,R1732,R0914,C0413,W0718,R0912,R0915,R0903,W0511,R0913,R0917,R0903
 
 [MASTER]
 max-line-length=120
