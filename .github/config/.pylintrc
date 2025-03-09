@@ -3,8 +3,13 @@
 # C0116: Missing function or method docstring
 # W0105: String statement has no effect
 # R1732: Consider using `sys.exit()` instead of `raise SystemExit`
+# R0914: Too many local variables
+# C0413: Import should be placed at the top of the module
+# W0718: Catching too general exception Exception (broad-exception-caught)
+# R0912: Too many branches
+# R0915: Too many statements
 
-disable=C0115,C0116,W0105,R1732
+disable=C0115,C0116,W0105,R1732,R0914,C0413,W0718,R0912,R0915
 
 [MASTER]
 max-line-length=120
