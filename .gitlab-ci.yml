@@ -28,25 +28,10 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
 
-    # Añadir el remote de GitHub (reemplaza con tu repositorio GitHub)
-    - git remote remove origin || echo "No se encontró un remoto 'origin' para eliminar."
-    - git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-
-    # Traer todos los cambios del repositorio remoto
-    - git fetch origin main
-
-    # Realizar un merge o rebase de los cambios de la rama principal
-    - git merge origin/main --allow-unrelated-histories
-
-    # Añadir los cambios al área de preparación (si los hay)
-    - git add .
-
-    # Hacer el commit de los cambios (si hay algo que commitear)
-    - git commit -m "CI Actualizar cambios de GitLab a GitHub" || echo "No hay cambios para hacer commit"
-
-    # Subir los cambios al repositorio remoto de GitHub
-    - git push origin main
-
+    # Añadir el remote de GitHub
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    - git push github main
+    - git remote -v
     ##
     ## Script que inicializa todo con el local
     ##
