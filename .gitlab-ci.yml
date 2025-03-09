@@ -24,12 +24,6 @@ deploy_to_github:
   when: manual
   image: alpine/git
   script:
-    # Limpiar cualquier configuración de git previa
-    - rm -rf .git
-
-    # Inicializar un nuevo repositorio git
-    - git init
-
     # Configurar el usuario de Git
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
@@ -40,28 +34,18 @@ deploy_to_github:
     # Traer todos los cambios del repositorio remoto
     - git fetch origin main
 
-    # Cambiar a la rama principal, asegurando que existe
-    - git checkout main || git checkout -b main
-
-    # Integrar los cambios remotos si es necesario
-    - git merge origin/main || git rebase origin/main
-
-    # Añadir los cambios locales al repositorio
+    # Añadir los cambios al área de preparación (si los hay)
     - git add .
 
-    # Verificar si hay cambios para hacer commit
-    - |
-      if ! git diff-index --quiet HEAD; then
-        git commit -m "Update code from GitLab CI"
-        git push origin main
-      else
-        echo "No changes to push"
-      fi
+    # Hacer el commit de los cambios (si hay algo que commitear)
+    - git commit -m "CI Actualizar cambios de GitLab a GitHub" || echo "No hay cambios para hacer commit"
 
+    # Subir los cambios al repositorio remoto de GitHub
+    - git push origin main
 
-
+    ##
     ## Script que inicializa todo con el local
-
+    ##
     ## Limpiar cualquier configuración de git previa
     #- rm -rf .git
 
