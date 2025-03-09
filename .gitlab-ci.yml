@@ -35,6 +35,9 @@ deploy_to_github:
     # Traer todos los cambios del repositorio remoto
     - git fetch origin main
 
+    # Realizar un merge o rebase de los cambios de la rama principal
+    - git merge origin/main
+
     # Añadir los cambios al área de preparación (si los hay)
     - git add .
 
