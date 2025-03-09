@@ -30,7 +30,7 @@ deploy_to_github:
     - git branch
     # Añadir el remote de GitHub
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git push github main
+    - git push github main --force
     - git remote -v
     ##
     ## Script que inicializa todo con el local
