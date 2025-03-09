@@ -31,6 +31,8 @@ deploy_to_github:
     - git add .
     - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
     - git gc
+    - whoami
+    - git fetch --unshallow
     - git push github main --no-thin
 
     ##
