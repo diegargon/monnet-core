@@ -28,7 +28,7 @@ deploy_to_github:
     - git config --global user.email "ci-bot@no.domain"
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git checkout main
-    - git pull origin main
+    - git fetch origin main
     - git branch
     - git status
     - git push github main --force
