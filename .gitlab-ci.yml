@@ -29,7 +29,7 @@ deploy_to_github:
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git remote -v
     - git checkout main || git checkout -b main
-    - git push github main --force
+    - git push github main --force-with-lease
     - git log --oneline --graph --decorate --all
 
     ##
