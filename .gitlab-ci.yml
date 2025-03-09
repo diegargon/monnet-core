@@ -26,12 +26,14 @@ deploy_to_github:
     # Configurar el usuario de Git
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
-    - git checkout main
-    - git branch
-    # Añadir el remote de GitHub
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    - git checkout main
+    - git pull origin main
+    - git pull github main
+    - git branch
+    - git status
     - git push github main --force
-    - git remote -v
+
     ##
     ## Script que inicializa todo con el local
     ##
