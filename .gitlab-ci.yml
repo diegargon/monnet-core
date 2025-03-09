@@ -29,7 +29,6 @@ deploy_to_github:
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git checkout main
     - git pull origin main
-    - git pull github main
     - git branch
     - git status
     - git push github main --force
