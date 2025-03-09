@@ -29,6 +29,7 @@ deploy_to_github:
     - git config --global user.email "ci-bot@no.domain"
 
     # Añadir el remote de GitHub (reemplaza con tu repositorio GitHub)
+    - git remote remove origin || echo "No se encontró un remoto 'origin' para eliminar."
     - git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
 
     # Traer todos los cambios del repositorio remoto
