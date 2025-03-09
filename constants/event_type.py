@@ -6,6 +6,30 @@ EventType Constants
 """
 
 class EventType:
+    """
+    Defines constants representing various event types for monitoring and logging purposes.
+
+    These constants are used to identify different system events such as high resource usage,
+    changes in system state, network port status updates, and host discovery events.
+
+    Event Types:
+        HIGH_IOWAIT: Event indicating high I/O wait.
+        HIGH_MEMORY_USAGE: Event indicating high memory usage.
+        HIGH_DISK_USAGE: Event indicating high disk usage.
+        HIGH_CPU_USAGE: Event indicating high CPU usage.
+        STARTING: Event indicating the system is starting.
+        APP_SHUTDOWN: Event indicating application shutdown.
+        SYSTEM_SHUTDOWN: Event indicating system shutdown.
+        PORT_UP: Event indicating a network port is up.
+        PORT_DOWN: Event indicating a network port is down.
+        PORT_NEW: Event indicating a new network port.
+        SEND_STATS: Event indicating that statistics are being sent.
+        SERVICE_NAME_CHANGE: Event indicating a change in service name.
+        HOST_INFO_CHANGE: Event indicating a change in host information.
+        HOST_BECOME_ON: Event indicating the host has become online.
+        HOST_BECOME_OFF: Event indicating the host has become offline.
+        NEW_HOST_DISCOVERY: Event indicating the discovery of a new host.
+    """
     HIGH_IOWAIT = 1
     HIGH_MEMORY_USAGE = 2
     HIGH_DISK_USAGE = 3

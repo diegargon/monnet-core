@@ -1,0 +1,13 @@
+[MESSAGES CONTROL]
+# C0115: Missing class docstring
+# C0116: Missing function or method docstring
+# W0105: String statement has no effect
+# R1732: Consider using `sys.exit()` instead of `raise SystemExit`
+
+disable=C0115,C0116,W0105,R1732
+
+[MASTER]
+max-line-length=120
+
+[IMPORTS]
+ignore=tests

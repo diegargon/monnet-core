@@ -1,10 +1,23 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-LogLevel Constants
+
 """
 
 class LogLevel:
+    """
+    Defines constants syslog style
+
+    Log Levels:
+        DEBUG: Log level for detailed debugging information.
+        INFO: Log level for informational messages.
+        NOTICE: Log level for important notifications.
+        WARNING: Log level for warning messages indicating potential issues.
+        ERROR: Log level for error messages indicating issues that need attention.
+        CRITICAL: Log level for critical messages indicating severe issues.
+        ALERT: Log level for alerts that require immediate action.
+        EMERGENCY: Log level for the most urgent messages indicating system failure.
+    """
     DEBUG = 7
     INFO = 6
     NOTICE = 5

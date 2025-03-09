@@ -24,13 +24,14 @@ def normalize(data):
 
     if isinstance(data, (str, int, float, bool)) or data is None:
         return data
-    else:
-        return str(data)
+
+    return str(data)
 
 def are_equal(obj1, obj2):
     """ NOT USED """
     json1 = json.dumps(obj1, sort_keys=True)
     json2 = json.dumps(obj2, sort_keys=True)
+
     return json1 == json2
 
 
@@ -44,4 +45,5 @@ def deep_compare(obj1, obj2):
         if len(obj1) != len(obj2):
             return False
         return all(deep_compare(i, j) for i, j in zip(obj1, obj2))
+
     return obj1 == obj2

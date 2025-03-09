@@ -6,14 +6,14 @@ Monnet Gateway
 Ansible
 
 """
-
+# Standard
 import json
 import os
 import subprocess
 
 # Local
-from monnet_gateway.utils.context import AppContext
 from config import VERSION, MINOR_VERSION
+from monnet_gateway.utils.context import AppContext
 from shared.logger import log
 
 def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
