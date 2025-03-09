@@ -27,10 +27,10 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git remote -v
     - git checkout main || git checkout -b main
-    - git push github main --force-with-lease
-    - git log --oneline --graph --decorate --all
+    - git add .
+    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
+    - git push github main
 
     ##
     ## Script que inicializa todo con el local
