@@ -36,7 +36,7 @@ deploy_to_github:
     - git fetch origin main
 
     # Realizar un merge o rebase de los cambios de la rama principal
-    - git merge origin/main
+    - git merge origin/main --allow-unrelated-histories
 
     # Añadir los cambios al área de preparación (si los hay)
     - git add .
