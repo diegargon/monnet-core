@@ -33,21 +33,21 @@ deploy_to_github:
     - git gc
     - git push github main --no-thin
 
-initial_deploy_to_github:
-  stage: deploy
-  image: alpine/git
-  when: manual
-  script:
+#initial_deploy_to_github:
+#  stage: deploy
+#  image: alpine/git
+#  when: manual
+#  script:
     # Configurar el usuario de Git
-    - git config --global user.name "GitLabCI"
-    - git config --global user.email "ci-bot@no.domain"
-    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git checkout main || git checkout -b main
-    - git add .
-    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
-    - git gc
-    - git fetch --unshallow
-    - git push github main --no-thin
+#    - git config --global user.name "GitLabCI"
+#    - git config --global user.email "ci-bot@no.domain"
+#    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+#    - git checkout main || git checkout -b main
+#    - git add .
+#    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
+#    - git gc
+#    - git fetch --unshallow
+#    - git push github main --no-thin
 
     ##
     ## Script que inicializa todo con el local
