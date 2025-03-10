@@ -24,7 +24,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
-import monnet_agent.agent_globals as agent_globals
 import info_linux
 import time_utils
 import tasks
@@ -33,7 +32,7 @@ from event_processor import EventProcessor
 from agent_config import load_config
 from constants import LogLevel, EventType
 from shared.logger import log, logpo
-
+from monnet_agent.agent_globals import agent_globals
 
 # Config file
 CONFIG_FILE_PATH = "/etc/monnet/agent-config"

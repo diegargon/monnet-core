@@ -8,7 +8,7 @@ Monnet Agent
 import threading
 
 # Local
-import monnet_agent.agent_globals as agent_globals
+from monnet_agent import agent_globals
 import info_linux
 from monnet_agent.datastore import Datastore
 
