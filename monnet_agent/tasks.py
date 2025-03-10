@@ -53,7 +53,7 @@ def send_stats(datastore, notify_callback):
     # Load
     last_avg_stats = datastore.get_data("last_load_avg")
     if last_avg_stats is not None :
-        data['load_avg'] = last_avg_stats['loadavg']
+        data['load_avg_stats'] = last_avg_stats['loadavg']
 
     # Io wait
     iowait_last_stats = datastore.get_data("iowait_last_stats")
