@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
-import globals
+import monnet_agent.agent_globals as agent_globals
 import info_linux
 import time_utils
 import tasks
@@ -63,7 +63,7 @@ def get_meta():
         "hostname": hostname,
         "nodename": nodename,
         "ip_address": ip_address,
-        "agent_version": str(globals.AGENT_VERSION),
+        "agent_version": str(agent_globals.AGENT_VERSION),
         "uuid": _uuid                                 # ID uniq
     }
 
@@ -90,7 +90,7 @@ def send_notification(name: str, data: dict):
         "id": idx,
         "cmd": "notification",
         "token": token,
-        "version": globals.AGENT_VERSION,
+        "version": agent_globals.AGENT_VERSION,
         "data":  data or {},
         "meta": meta
     }
@@ -144,7 +144,7 @@ def send_request(cmd="ping", data=None):
         "cmd": cmd,
         "token": token,
         "interval": interval,
-        "version": globals.AGENT_VERSION,
+        "version": agent_globals.AGENT_VERSION,
         "data": data or {},
         "meta": meta
     }
@@ -206,10 +206,10 @@ def handle_signal(signum, frame):
     signal_name = None
     msg = None
 
-    for name, timer in globals.timers.items():
+    for name, timer in agent_globals.timers.items():
         log(f"Cancelando timer: {name}")
         timer.cancel()
-    globals.timers.clear()
+    agent_globals.timers.clear()
 
     if signum == signal.SIGTERM:
         signal_name = 'SIGTERM'
@@ -337,7 +337,7 @@ def run():
             extra_data.update({'iowait': current_iowait})
         last_cpu_times = current_cpu_times
 
-        log("Sending ping to server. " + str(globals.AGENT_VERSION), "debug")
+        log("Sending ping to server. " + str(agent_globals.AGENT_VERSION), "debug")
         response = send_request(cmd="ping", data=extra_data)
 
         events = event_processor.process_changes(datastore)

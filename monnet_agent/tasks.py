@@ -8,7 +8,7 @@ Monnet Agent
 import threading
 
 # Local
-import globals
+import monnet_agent.agent_globals as agent_globals
 import info_linux
 from monnet_agent.datastore import Datastore
 
@@ -21,8 +21,8 @@ def check_listen_ports(datastore: Datastore, notify_callback, startup=None):
         Send port changes. Startup force send update every agent start/restart
 
     """
-    if 'check_ports' in globals.timers:
-        globals.timers['check_ports'].cancel()
+    if 'check_ports' in agent_globals.timers:
+        agent_globals.timers['check_ports'].cancel()
 
     current_listen_ports_info = info_linux.get_listen_ports_info()
     last_listen_ports_info = datastore.get_data("last_listen_ports_info")
@@ -33,20 +33,20 @@ def check_listen_ports(datastore: Datastore, notify_callback, startup=None):
     #else : #debug
     #    notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
 
-    globals.timers['check_ports']  = threading.Timer(
-        globals.TIMER_STATS_INTERVAL,
+    agent_globals.timers['check_ports']  = threading.Timer(
+        agent_globals.TIMER_STATS_INTERVAL,
         check_listen_ports,
         args=(datastore, notify_callback)
     )
-    globals.timers['check_ports'].start()
+    agent_globals.timers['check_ports'].start()
 
 
 def send_stats(datastore, notify_callback):
     """
         Send stats every TIME_STATS_INTERVAL
     """
-    if 'send_stats' in globals.timers :
-        globals.timers['send_stats'].cancel()
+    if 'send_stats' in agent_globals.timers :
+        agent_globals.timers['send_stats'].cancel()
 
     data = {}
 
@@ -68,9 +68,9 @@ def send_stats(datastore, notify_callback):
     notify_callback('send_stats', data)
 
     # Start again
-    globals.timers['send_stats']  = threading.Timer(
-        globals.TIMER_STATS_INTERVAL,
+    agent_globals.timers['send_stats']  = threading.Timer(
+        agent_globals.TIMER_STATS_INTERVAL,
         send_stats,
         args=(datastore, notify_callback)
     )
-    globals.timers['send_stats'].start()
+    agent_globals.timers['send_stats'].start()
