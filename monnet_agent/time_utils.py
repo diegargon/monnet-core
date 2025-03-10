@@ -6,7 +6,6 @@ Monnet Agent
 
 from datetime import datetime, timezone
 
-
 def get_datatime():
     """
     UTC Datetime

@@ -8,8 +8,8 @@ Monnet Agent
 import threading
 
 # Local
-from monnet_agent import agent_globals
 import info_linux
+import monnet_agent.agent_globals as agent_globals
 from monnet_agent.datastore import Datastore
 
 #from shared.log_linux import log, logpo
