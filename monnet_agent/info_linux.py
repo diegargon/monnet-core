@@ -9,6 +9,7 @@ import os
 import socket
 import subprocess
 import re
+import shutil
 #from collections import defaultdict
 
 # LOCAL
@@ -24,10 +25,17 @@ def bytes_to_mb(bytes_value):
     Returns:
         int:  megabytes (rounded).
     """
+    if bytes_value < 0:
+        log("Error: bytes_value cannot be negative")
+        return 0
     return round(bytes_value / (1024 ** 2))
 
 def get_load_avg():
-    load1, load5, load15 = os.getloadavg()
+    try:
+        load1, load5, load15 = os.getloadavg()
+    except OSError as e:
+        log(f"Error getting load average: {e}")
+        return {"loadavg": {}}
     current_cpu_usage = cpu_usage(load1)
 
     return {
@@ -47,10 +55,17 @@ def get_memory_info():
         dict: "meminfo" dict
     """
     meminfo = {}
-    with open("/proc/meminfo", "r", encoding='utf-8') as f:
-        for line in f:
-            key, value = line.split(":")
-            meminfo[key.strip()] = int(value.split()[0]) * 1024  # Convertir a bytes
+    if not os.path.exists("/proc/meminfo"):
+        log("Error: /proc/meminfo does not exist")
+        return {"meminfo": {}}
+    try:
+        with open("/proc/meminfo", "r", encoding='utf-8') as f:
+            for line in f:
+                key, value = line.split(":")
+                meminfo[key.strip()] = int(value.split()[0]) * 1024  # Convertir a bytes
+    except (OSError, ValueError) as e:
+        log(f"Error reading /proc/meminfo: {e}")
+        return {"meminfo": {}}
 
     total = meminfo.get("MemTotal", 0)
     available = meminfo.get("MemAvailable", 0)
@@ -95,6 +110,9 @@ def get_disks_info():
         dict: Disk partions info Key: disks
     """
     disks_info = []
+    if not os.path.exists("/proc/mounts"):
+        log("Error: /proc/mounts does not exist")
+        return {"disksinfo": []}
 
     real_filesystems = {
         "ext4", "ext3", "ext2", "xfs", "zfs", "btrfs", "reiserfs",
@@ -137,6 +155,9 @@ def get_cpus():
     return os.cpu_count()
 
 def get_uptime():
+    if not os.path.exists('/proc/uptime'):
+        log("Error: /proc/uptime does not exist")
+        return 0
     with open('/proc/uptime', 'r', encoding='utf-8') as f:
         uptime_seconds = float(f.readline().split()[0])
     return uptime_seconds
@@ -152,6 +173,9 @@ def cpu_usage(cpu_load):
 
 def read_cpu_stats():
     """ CPU Stats from /proc/stat."""
+    if not os.path.exists("/proc/stat"):
+        log("Error: /proc/stat does not exist")
+        return None
     with open("/proc/stat", "r", encoding='utf-8') as f:
         for line in f:
             if line.startswith("cpu "):
@@ -197,6 +221,9 @@ def get_listen_ports_info():
     seen_ports = set()  # Avoid duplicates
 
     try:
+        if not shutil.which("ss"):
+            log("Error: ss command not found")
+            return {"listen_ports_info": []}
         # Run `ss` command to list listening sockets (both TCP and UDP)
         output = subprocess.check_output(['ss', '-tulnp'], text=True).splitlines()
 
@@ -243,15 +270,18 @@ def get_listen_ports_info():
                     seen_ports.add(dedup_key)
 
     except subprocess.CalledProcessError as e:
-        print(f"Error executing ss command: {e}")
+        log(f"Error executing ss command: {e}")
     except Exception as ex:
-        print(f"An unexpected error occurred: {ex}")
+        log(f"An unexpected error occurred: {ex}")
 
     return {"listen_ports_info": ports_flattened}
 
 def is_system_shutting_down():
     """ Detecta si se esta apagando el sistema """
     try:
+        if not shutil.which("systemctl"):
+            log("Error: systemctl command not found")
+            return False
         result = subprocess.run(
             ["systemctl", "is-system-running"],
             capture_output=True,

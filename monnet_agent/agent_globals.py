@@ -6,7 +6,9 @@ Global Vars
 Monnet Agent
 """
 
-AGENT_VERSION = "0.141"
+AGENT_VERSION = "0.142"
+# Config file
+CONFIG_FILE_PATH = "/etc/monnet/agent-config"
 
 # Track timers
 timers = {}

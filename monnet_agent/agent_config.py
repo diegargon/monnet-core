@@ -46,3 +46,27 @@ def update_config(config: dict, key: str, value):
     except Exception as e:
         print(f"Error updating configuration: {e}")
         return False
+
+def validate_config(config: dict):
+    """
+    Validates that all required keys exist in the config and are not empty.
+
+    :param config: dict containing configuration values.
+    :return: True or Raises ValueError if validation fails.
+    """
+
+    required_keys = [
+        "token",
+        "id",
+        "default_interval",
+        "ignore_cert",
+        "server_host",
+        "server_endpoint"
+    ]
+
+    missing_keys = [key for key in required_keys if not config.get(key)]
+    if missing_keys:
+        raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
+    log("Configuration is valid", "debug")
+
+    return True

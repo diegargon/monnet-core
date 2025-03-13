@@ -15,7 +15,7 @@ from monnet_agent.datastore import Datastore
 #from shared.log_linux import log, logpo
 
 
-def check_listen_ports(datastore: Datastore, notify_callback, startup=None):
+def check_listen_ports(config: dict, datastore: Datastore, notify_callback, startup=None):
     """
 
         Send port changes. Startup force send update every agent start/restart
@@ -29,7 +29,7 @@ def check_listen_ports(datastore: Datastore, notify_callback, startup=None):
 
     if ((current_listen_ports_info != last_listen_ports_info) or startup):
         datastore.update_data("last_listen_ports_info", current_listen_ports_info)
-        notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
+        notify_callback(config, "listen_ports_info", current_listen_ports_info)  # Notificar
     #else : #debug
     #    notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
 
@@ -41,7 +41,7 @@ def check_listen_ports(datastore: Datastore, notify_callback, startup=None):
     agent_globals.timers['check_ports'].start()
 
 
-def send_stats(datastore, notify_callback):
+def send_stats(config, datastore, notify_callback):
     """
         Send stats every TIME_STATS_INTERVAL
     """
@@ -65,7 +65,7 @@ def send_stats(datastore, notify_callback):
     data['iowait_stats'] = average_iowait
 
     # Send
-    notify_callback('send_stats', data)
+    notify_callback(config, 'send_stats', data)
 
     # Start again
     agent_globals.timers['send_stats']  = threading.Timer(
