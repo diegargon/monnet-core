@@ -6,7 +6,7 @@ Global Vars
 Monnet Agent
 """
 
-AGENT_VERSION = "0.143"
+AGENT_VERSION = "0.144"
 # Config file
 CONFIG_FILE_PATH = "/etc/monnet/agent-config"
 

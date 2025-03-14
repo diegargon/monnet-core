@@ -46,7 +46,6 @@ def send_notification(config: dict, name: str, data: dict):
         None
     """
     try:
-        log("llego 1", "debug")
         token = config["token"]
         idx = config["id"]
         ignore_cert = config["ignore_cert"]
@@ -79,6 +78,8 @@ def send_notification(config: dict, name: str, data: dict):
         except Exception as e:
             log(f"Error sending notification: {e}", "err")
         finally:
+            if connection:
+                connection.close()
             """
                 We dont want keep that key due interference with dict comparison current/last
                 TODO: find a safe way
@@ -86,8 +87,7 @@ def send_notification(config: dict, name: str, data: dict):
             """
             if "name" in data:
                 data.pop("name")
-            if connection:
-                connection.close()
+
             log("Notification process completed", "debug")
     except Exception as e:
         log(f"Unexpected error in send_notification: {e}", "err")

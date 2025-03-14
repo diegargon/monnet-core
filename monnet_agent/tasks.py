@@ -36,7 +36,7 @@ def check_listen_ports(config: dict, datastore: Datastore, notify_callback, star
     agent_globals.timers['check_ports']  = threading.Timer(
         agent_globals.TIMER_STATS_INTERVAL,
         check_listen_ports,
-        args=(datastore, notify_callback)
+        args=(config, datastore, notify_callback)
     )
     agent_globals.timers['check_ports'].start()
 
@@ -71,6 +71,6 @@ def send_stats(config, datastore, notify_callback):
     agent_globals.timers['send_stats']  = threading.Timer(
         agent_globals.TIMER_STATS_INTERVAL,
         send_stats,
-        args=(datastore, notify_callback)
+        args=(config, datastore, notify_callback)
     )
     agent_globals.timers['send_stats'].start()
