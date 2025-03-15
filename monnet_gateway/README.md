@@ -1,10 +1,8 @@
 # Monnet Gateway
 
-Mediates between the web UI and the system.
+Mediates between the web UI (monnet)) and the system.
 
 At this moment, currently only it is used for Ansible features.
-
-
 
 ## Install
 
@@ -14,6 +12,7 @@ monnet-gateway its installed in the same machine as the monnet web/UI
 mkdir /opt/monnet-core
 
 cd /opt/monnet-core
+
 
 git clone https://github.com/diegargon/monnet-core.git
 
@@ -113,6 +112,39 @@ You can force Ansible to ignore the host fingerprint check.
 host_key_checking = False
 ```
 
+## Playbooks vars
+
+Playbooks may sometimes require variables, these variables are stored in the database, and the passwords must be stored encrypted.
+The current mechanism uses a public/private key pair; in the UI, it is encrypted with the public key, and monnet-gateway uses the
+private key when it needs to decrypt it. To achieve this, the keys must be generated.
+
+Generating the keys.
+
+```
+openssl genpkey -algorithm RSA -out monnet_private_key.pem -pkeyopt rsa_keygen_bits:2048
+openssl rsa -in monnet_private_key.pem -pubout -out monnet_public_key.pem
+mkdir -p /etc/monnet/certs-priv
+```
+
+Private key
+```
+mkdir -p /etc/monnet/certs-priv
+chown root:root /etc/monnet/certs-priv
+chmod 700 /etc/monnet/certs-priv
+chown root:root /etc/monnet/certs-priv
+mv monnet_private_key.pem /etc/monnet/certs-priv
+chmod 600 /etc/monnet/certs-priv/monnet_private_key.pem
+```
+
+Public key
+```
+mkdir -p /etc/monnet/certs-pub
+chown root:root /etc/monnet/certs-pub
+chmod 755 /etc/monnet/certs-pub
+mv monnet_public_key.pem /etc/monnet/certs-pub
+chmod 644 /etc/monnet/certs-pub/monnet_public_key.pem
+```
+Likewise, we must copy the contents of the public key file and insert it into the UI under Configuration -> Security -> Encrypt Public Key.
 
 ## Payload (probably outdated)
 
