@@ -12,7 +12,7 @@ Using the UI/Ansible is the easiest and fastest way.
 
 Python: The automatic process will install on the hosts some deps: psutils.
 
-For manual installation, check the Ansible playbook `playbooks/install-monnet-agent-systemd`.
+For manual installation, check the Ansible playbook `monnet-gateway/playbooks/install-monnet-agent-systemd`.
 
 ## Payload Structure Documentation (probably outdated)
 
