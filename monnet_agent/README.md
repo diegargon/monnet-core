@@ -1,6 +1,6 @@
 # Monnet Agent
 
-Agent client to be installed on other hosts to send stats and other data. It can be installed manually or via UI/Ansible.
+Agent client is installed on other hosts to send stats and other data. It can be installed manually or via UI/Ansible.
 
 Support: Linux
 
@@ -8,11 +8,13 @@ Planned Support: Windows, and possibly other non-POSIX systems.
 
 ## Install Monnet Agent Linux (systemd)
 
-Using the UI or Ansible is the easiest and fastest way.
+Using the UI/Ansible is the easiest and fastest way.
 
-For manual installation, check the Ansible playbook `install-agent-systemd`.
+Python: The automatic process will install on the hosts some deps: psutils.
 
-## Payload Structure Documentation
+For manual installation, check the Ansible playbook `playbooks/install-monnet-agent-systemd`.
+
+## Payload Structure Documentation (probably outdated)
 
 ```
 {
@@ -39,7 +41,7 @@ For manual installation, check the Ansible playbook `install-agent-systemd`.
     }
 }
 ```
-## Response Structure Documentation
+## Response Structure Documentation (probably outdated)
 
 ```
 {
