@@ -1,6 +1,6 @@
 # Monnet Agent
 
-Agent client is installed on other hosts to send stats and other data. It can be installed manually or via UI/Ansible.
+The agent client is installed on other hosts to send stats and other data. It can be installed manually or via UI/Ansible.
 
 Support: Linux
 
