@@ -16,7 +16,7 @@ class Datastore:
     Attributes:
          :param filename: File to save/load data.
     """
-    def __init__(self, filename: str = "datastore.json"):
+    def __init__(self, filename: str = "/tmp/datastore.json"):
         """
         Initialization
             :param filename: File to save/load data.
