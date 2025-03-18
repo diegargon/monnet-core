@@ -31,11 +31,16 @@ def bytes_to_mb(bytes_value):
     return round(bytes_value / (1024 ** 2))
 
 def get_load_avg():
+    """Returns the system load average from /proc/loadavg."""
     try:
-        load1, load5, load15 = os.getloadavg()
-    except OSError as e:
+        with open("/proc/loadavg", "r") as f:
+            values = f.readline().split()
+            load1, load5, load15 = map(float, values[:3])
+
+    except Exception as e:
         log(f"Error getting load average: {e}")
         return {"loadavg": {}}
+
     current_cpu_usage = cpu_usage(load1)
 
     return {
