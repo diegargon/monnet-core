@@ -16,12 +16,12 @@ cd /opt/monnet-core
 
 git clone https://github.com/diegargon/monnet-core.git
 
-cp files/monnet-gateway.service  /etc/systemd/system
+cd monnet-gatewall
+sh install.sh
 
-systemctl enable  monnet-gateway.service
-
-systemctl start  monnet-gateway.service
 ```
+The install script sets up a virtual Python environment for an application in a specific directory (/opt/monnet-core/monnet_gateway).
+it configures a systemd service by copying a configuration file and setting the proper permissions. Finally, it configures ansible to use JSON-formatted output by modifying its configuration file.
 
 ## Configure Ansible Support
 

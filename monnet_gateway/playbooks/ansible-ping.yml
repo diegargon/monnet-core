@@ -7,4 +7,4 @@
       register: ping_result
     - name: Ping response
       debug:
-        msg: "Ping response: {{ ping_result.ping }}"      
+        msg: "Ping response: {{ ping_result.ping }}"
