@@ -24,7 +24,7 @@ sudo chmod -R 755 $APP_DIR
 
 SERVICE_FILE="/etc/systemd/system/monnet-gateway.service"
 echo "Configuring systemd $SERVICE_FILE..."
-cp files/monnet-gateway.service  $SERVICE_FILE
+cp ../files/monnet-gateway.service  $SERVICE_FILE
 chmod 644 $SERVICE_FILE
 
 ANSIBLE_CFG="/etc/ansible/ansible.cfg"

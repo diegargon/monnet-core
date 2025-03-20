@@ -8,16 +8,16 @@ At this moment, currently only it is used for Ansible features.
 
 monnet-gateway its installed in the same machine as the monnet web/UI
 
+In this example we are using Debian 12
+
 ```
+apt install python3.11-venv
 mkdir /opt/monnet-core
-
-cd /opt/monnet-core
-
-
+cd /opt/
 git clone https://github.com/diegargon/monnet-core.git
-
-cd monnet-gatewall
-sh install.sh
+cd monnet-core/monnet_gateway
+chmod +x install.bash
+./install.bash
 
 ```
 The install script sets up a virtual Python environment for an application in a specific directory (/opt/monnet-core/monnet_gateway).
@@ -25,8 +25,7 @@ it configures a systemd service by copying a configuration file and setting the 
 
 ## Configure Ansible Support
 
-Ansible server listens on localhost only; it is a testing feature without security.
-You must install ansible on the same system
+Ansible server listens on localhost only; You must install ansible on the same system
 
 ```
 apt install ansible
@@ -114,9 +113,8 @@ host_key_checking = False
 
 ## Playbooks vars
 
-Playbooks may sometimes require variables, these variables are stored in the database, and the passwords must be stored encrypted.
-The current mechanism uses a public/private key pair; in the UI, it is encrypted with the public key, and monnet-gateway uses the
-private key when it needs to decrypt it. To achieve this, the keys must be generated.
+Playbooks may sometimes require variables, these variables are stored in the database, and the passwords or any critical information
+must be stored encrypted. The current mechanism uses a public/private key pair; in the UI, it is encrypted with the public key, and monnet-gateway uses the private key when it needs to decrypt it. To achieve this, the keys must be generated.
 
 Generating the keys.
 
@@ -144,6 +142,7 @@ chmod 755 /etc/monnet/certs-pub
 mv monnet_public_key.pem /etc/monnet/certs-pub
 chmod 644 /etc/monnet/certs-pub/monnet_public_key.pem
 ```
+
 Likewise, we must copy the contents of the public key file and insert it into the UI under Configuration -> Security -> Encrypt Public Key.
 
 ## Payload (probably outdated)
