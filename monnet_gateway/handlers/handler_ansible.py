@@ -37,8 +37,7 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
             "command": command,
             "result": result_data
         }
-        # TODO  remove this duplication after fix on the frontend (use result)
-        response.update(result_data)
+
         return response
     except json.JSONDecodeError as e:
         log("Failed to decode JSON: " + str(e), "err")
