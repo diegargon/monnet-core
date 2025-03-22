@@ -35,9 +35,9 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
             "version": str(VERSION) + '.' + str(MINOR_VERSION),
             "status": "success",
             "command": command,
-            "result": {}
+            "result": result_data
         }
-        # TODO  fix result must be in result (need frontend reports fix)
+        # TODO  remove this duplication after fix on the frontend (use result)
         response.update(result_data)
         return response
     except json.JSONDecodeError as e:
