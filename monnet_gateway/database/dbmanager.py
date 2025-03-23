@@ -9,7 +9,7 @@ if __name__ == "__main__":
     config = DBConfig(host="localhost", user="usuario", password="password", database="monnet", driver="mysql-connector")
 
     try:
-        with MySQLWrapper(config) as db:
+        with DBManager(config) as db:
             # Fetch all users
             users = db.fetchall("SELECT * FROM users")
             print(users)
@@ -36,7 +36,7 @@ class DBConfig:
     database: str
     driver: str = "mysql-connector"  # Default driver
 
-class MySQLWrapper:
+class DBManager:
     """
     MySQL database wrapper with optional dependencies and improved error handling.
     """

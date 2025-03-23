@@ -26,7 +26,7 @@ import tasks
 import monnet_agent.agent_globals as agent_globals
 from datastore import Datastore
 from event_processor import EventProcessor
-from agent_config import load_config, validate_config
+from shared.mconfig import load_config, validate_config
 from constants import LogLevel, EventType
 from shared.logger import log, logpo
 from monnet_agent.notifications import send_notification, validate_response, send_request

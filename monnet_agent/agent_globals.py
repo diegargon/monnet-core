@@ -6,7 +6,7 @@ Global Vars
 Monnet Agent
 """
 
-AGENT_VERSION = "0.148"
+AGENT_VERSION = "0.149"
 # Config file
 CONFIG_FILE_PATH = "/etc/monnet/agent-config"
 DATASTORE_FILE_PATH = "/tmp/datastore.json"

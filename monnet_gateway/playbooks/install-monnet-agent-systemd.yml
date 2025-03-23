@@ -66,12 +66,12 @@
         dest: /opt/monnet_agent/
         mode: '0755'
 
-    - name: Copy constants module to remote
+    - name: Copy shared dir
       copy:
         src: /opt/monnet-core/shared/
         dest: /opt/monnet_agent/shared/
 
-    - name: Copy the shared module to remote
+    - name: Copy constants dir
       copy:
         src: /opt/monnet-core/constants/
         dest: /opt/monnet_agent/constants/
@@ -88,7 +88,7 @@
         mode: '0755'
       when: not etc_monnet_dir.stat.exists
 
-    - name: Create the agent-config file with pretty JSON configuration
+    - name: Create the agent-config file
       copy:
         dest: /etc/monnet/agent-config
         content: "{{ agent_config }}"
