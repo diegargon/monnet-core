@@ -6,7 +6,7 @@ Monnet Agent
 
 import syslog
 
-MAX_LOG_LEVEL = "debug"
+MAX_LOG_PRIORITY = "debug"
 
 def logpo(msg: str, data, priority: str = "info") -> None:
     """
@@ -52,17 +52,35 @@ def log(message: str, priority: str = "info") -> None:
     }
 
     if priority not in syslog_level:
-        raise ValueError(
+        log_error(
             f"Invalid priority level: {priority}. "
             f"Valid options are {list(syslog_level.keys())}"
         )
-    if MAX_LOG_LEVEL not in syslog_level:
-        raise ValueError(
-            f"Invalid MIN_LOG_LEVEL: {MAX_LOG_LEVEL}. "
+
+    if MAX_LOG_PRIORITY not in syslog_level:
+        log_error(
+            f"Invalid MAX_LOG_PRIORITY: {MAX_LOG_PRIORITY}. "
             f"Valid options are {list(syslog_level.keys())}"
         )
 
-    if syslog_level[priority] <= syslog_level[MAX_LOG_LEVEL]:
+    if syslog_level[priority] <= syslog_level[MAX_LOG_PRIORITY]:
         syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
         syslog.syslog(syslog_level[priority], message)
-        syslog.closelog()
+        closelog()
+
+def log_error(error_message: str) -> None:
+    """
+    Logs error messages related to invalid log levels or other critical issues.
+
+    Args:
+        error_message (str): The error message to log.
+    """
+    syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
+    syslog.syslog(syslog.LOG_ERR, error_message)
+    closelog()
+
+def closelog() -> None:
+    """
+    Close the syslog connection when the daemon shuts down.
+    """
+    syslog.closelog()

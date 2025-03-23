@@ -23,12 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
+from monnet_gateway.config import TASK_INTERVAL
 from monnet_gateway.server import run_server, stop_server
 from monnet_gateway.utils.context import AppContext
+from monnet_gateway.services.tasks import TaskSched
 from shared.logger import log
 
 stop_event = threading.Event()
 server_thread = None
+task_thread = None
 
 def signal_handler(sig: signal.Signals, frame: types.FrameType) -> None:
     """
@@ -53,10 +56,13 @@ def run(ctx: AppContext):
     Args:
         ctx (AppContext): context
     """
-    global server_thread
+    global server_thread, task_thread
 
     server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
     server_thread.start()
+
+    task_thread = TaskSched(ctx)
+    task_thread.start()
 
     try:
         while not stop_event.is_set():
@@ -66,6 +72,7 @@ def run(ctx: AppContext):
     finally:
         stop_event.set()
         server_thread.join()
+        task_thread.stop()
 
 def main():
     signal.signal(signal.SIGTERM, signal_handler)
@@ -94,13 +101,14 @@ def main():
     workdir = args.working_dir
 
     if not os.path.exists(workdir):
-        raise FileNotFoundError(f"Working direcotry not found: {workdir}")
+        raise FileNotFoundError(f"Working directory not found: {workdir}")
 
     ctx = AppContext(workdir)
     if args.test:
         ctx.set_var('test', 1)
 
     ctx.set_var('stop_event', stop_event)
+    ctx.set_var('task_interval', TASK_INTERVAL)
 
     if args.no_daemon:
         run(ctx)
