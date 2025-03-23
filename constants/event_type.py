@@ -18,7 +18,7 @@ class EventType:
         HIGH_DISK_USAGE: Event indicating high disk usage.
         HIGH_CPU_USAGE: Event indicating high CPU usage.
         STARTING: Event indicating the system is starting.
-        APP_SHUTDOWN: Event indicating application shutdown.
+        AGENT_SHUTDOWN: Event indicating agent shutdown.
         SYSTEM_SHUTDOWN: Event indicating system shutdown.
         PORT_UP: Event indicating a network port is up.
         PORT_DOWN: Event indicating a network port is down.
@@ -35,7 +35,7 @@ class EventType:
     HIGH_DISK_USAGE = 3
     HIGH_CPU_USAGE = 4
     STARTING = 5
-    APP_SHUTDOWN = 6
+    AGENT_SHUTDOWN = 6
     SYSTEM_SHUTDOWN = 7
     PORT_UP= 8
     PORT_DOWN = 9
