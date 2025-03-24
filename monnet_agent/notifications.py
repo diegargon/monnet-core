@@ -61,6 +61,7 @@ def send_notification(config: dict, name: str, data: dict):
             "cmd": "notification",
             "token": token,
             "version": agent_globals.AGENT_VERSION,
+            "name": name,
             "data":  data or {},
             "meta": meta
         }
@@ -119,6 +120,7 @@ def send_request(config, cmd="ping", data=None):
         "token": token,
         "interval": interval,
         "version": agent_globals.AGENT_VERSION,
+        "name": cmd,
         "data": data or {},
         "meta": meta
     }
