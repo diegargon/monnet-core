@@ -47,9 +47,9 @@ def update_config(config: dict, key: str, value):
         print(f"Error updating configuration: {e}")
         return False
 
-def validate_config(config: dict):
+def validate_agent_config(config: dict):
     """
-    Validates that all required keys exist in the config and are not empty.
+    Basic validation: exist  and are not empty.
 
     :param config: dict containing configuration values.
     :return: True or Raises ValueError if validation fails.
@@ -69,4 +69,21 @@ def validate_config(config: dict):
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
     log("Configuration is valid", "debug")
 
+    return True
+
+def validate_db_config(config: dict):
+    """
+    Basic validation: exist and are not empty.
+
+    :param config: dict containing database configuration values.
+    :return: True or Raises ValueError if validation fails.
+    """
+
+    required_keys = ["host", "port", "database", "user", "password", "python_driver"]
+
+    missing_keys = [key for key in required_keys if not config.get(key)]
+    if missing_keys:
+        raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
+
+    log("Database configuration is valid", "debug")
     return True

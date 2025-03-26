@@ -26,7 +26,7 @@ import tasks
 import monnet_agent.agent_globals as agent_globals
 from datastore import Datastore
 from event_processor import EventProcessor
-from shared.mconfig import load_config, validate_config
+from shared.mconfig import load_config, validate_agent_config
 from constants import LogLevel, EventType
 from shared.logger import log, logpo
 from monnet_agent.notifications import send_notification, validate_response, send_request
@@ -54,7 +54,7 @@ def run():
         return
 
     try:
-        validate_config(config)
+        validate_agent_config(config)
     except ValueError as e:
         log(str(e), "err")
         return

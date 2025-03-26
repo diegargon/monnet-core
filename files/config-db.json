@@ -1,0 +1,8 @@
+{
+    "host": "localhost",
+    "port": 3306,
+    "database": "monnet",
+    "user": "",
+    "password": "",
+    "python_driver": "mysql-connector"
+}

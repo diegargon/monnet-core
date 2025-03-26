@@ -25,23 +25,14 @@ if __name__ == "__main__":
 
 from typing import Any, List, Tuple, Union, Optional, Dict
 from contextlib import contextmanager
-from dataclasses import dataclass
 import importlib
-
-@dataclass
-class DBConfig:
-    host: str
-    user: str
-    password: str
-    database: str
-    driver: str = "mysql-connector"  # Default driver
 
 class DBManager:
     """
     MySQL database wrapper with optional dependencies and improved error handling.
     """
 
-    def __init__(self, config: DBConfig):
+    def __init__(self, config: dict):
         """
         Initialize the database connection.
 
@@ -54,10 +45,12 @@ class DBManager:
 
     def _connect(self):
         """Establish the database connection based on the selected driver."""
+
+
         try:
-            if self.config.driver == "mysql-connector":
+            if self.config['python_driver'] == "mysql-connector":
                 self._connect_mysql_connector()
-            elif self.config.driver == "pymysql":
+            elif self.config['python_driver'] == "pymysql":
                 self._connect_pymysql()
             else:
                 raise ValueError("Unsupported driver. Use 'mysql-connector' or 'pymysql'.")
@@ -69,8 +62,11 @@ class DBManager:
         try:
             mysql_connector = importlib.import_module("mysql.connector")
             self.conn = mysql_connector.connect(
-                host=self.config.host, user=self.config.user,
-                password=self.config.password, database=self.config.database
+                host=self.config['host'],
+                port=self.config['port'],
+                user=self.config['user'],
+                password=self.config['password'],
+                database=self.config['database']
             )
             self.cursor = self.conn.cursor(dictionary=True)  # Return results as dictionaries
         except ImportError:
@@ -83,8 +79,11 @@ class DBManager:
         try:
             pymysql = importlib.import_module("pymysql")
             self.conn = pymysql.connect(
-                host=self.config.host, user=self.config.user,
-                password=self.config.password, database=self.config.database
+                host=self.config['host'],
+                port=self.config['port'],
+                user=self.config['user'],
+                password=self.config['password'],
+                database=self.config['database']
             )
             self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)  # Return results as dictionaries
         except ImportError:
