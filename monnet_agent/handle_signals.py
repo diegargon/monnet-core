@@ -16,16 +16,11 @@ def handle_signal(signum, frame, config):
     Signal Handler
 
     Returns:
-    None
+        None
     """
 
     signal_name = None
     msg = None
-
-    for name, timer in agent_globals.timers.items():
-        log(f"Cancelando timer: {name}")
-        timer.cancel()
-    agent_globals.timers.clear()
 
     if signum == signal.SIGTERM:
         signal_name = 'SIGTERM'
@@ -33,6 +28,13 @@ def handle_signal(signum, frame, config):
         signal_name = 'SIGHUP'
     else:
         signal_name = signum
+
+    log(f"Receive Signal {signal_name}  Stopping app...", "notice")
+
+    for name, timer in agent_globals.timers.items():
+        log(f"Clearing timer: {name}")
+        timer.cancel()
+    agent_globals.timers.clear()
 
     if info_linux.is_system_shutting_down():
         notification_type = "system_shutdown"
@@ -45,10 +47,7 @@ def handle_signal(signum, frame, config):
         log_level = LogLevel.ALERT
         event_type = EventType.AGENT_SHUTDOWN
 
-    log(f"Receive Signal {signal_name}  Stopping app...", "notice")
-
     data = {"msg": msg, "log_level": log_level, "event_type": event_type}
     send_notification(config, notification_type, data)
     running = False
     sys.exit(0)
-

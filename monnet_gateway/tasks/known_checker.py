@@ -14,13 +14,15 @@ class HostCheckerTask:
     #    self.hosts = ctx.get_var("known_hosts", [])
 
     def run(self):
-        log("Verifying known hosts ...", "debug")
+        pass
+        #log("Verifying known hosts ...", "debug")
         #for host in self.hosts:
         #    self.check_host(host)
 
     def ping_host(self, host):
         """ Ping check """
-        log(f"Ping {host}...", "debug")
+        pass
+        #log(f"Ping {host}...", "debug")
         """
         try:
             result = subprocess.run(["ping", "-c", "2", host], capture_output=True, text=True)

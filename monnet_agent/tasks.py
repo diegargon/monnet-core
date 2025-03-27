@@ -35,7 +35,7 @@ def check_listen_ports(config: dict, datastore: Datastore, notify_callback, star
         #else : #debug
         #    notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
     except Exception as e:
-        log(f"Error in check_listen_ports: {e}", "ERROR")
+        log(f"Error in check_listen_ports: {e}", "err")
     finally:
         agent_globals.timers['check_ports']  = threading.Timer(
             agent_globals.TIMER_STATS_INTERVAL,
@@ -74,14 +74,16 @@ def send_stats(config, datastore, notify_callback):
         if not last_memory_stats:
             last_memory_stats = datastore.get_data("last_memory_info")
         last_memory_info = datastore.get_data("last_memory_info")
-        average_memory_percent = (last_memory_stats['memory_percent'] + last_memory_info['memory_percent']) / 2
+        average_memory_percent = (
+            last_memory_stats['meminfo']['percent'] +
+            last_memory_info['meminfo']['percent']) / 2
         datastore.update_data("last_memory_stats", last_memory_stats)
-        data['memory_stats'] = average_memory_percent
+        data['memory_stats'] = round(average_memory_percent)
 
         # Send
         notify_callback(config, 'send_stats', data)
     except Exception as e:
-        log(f"Error in check_listen_ports: {e}", "err")
+        log(f"Error in send_status: {e}", "err")
     finally:
         # Start again
         agent_globals.timers['send_stats']  = threading.Timer(

@@ -13,7 +13,8 @@ class DiscoveryTask:
         # self.network_range = ctx.get_var("network_range", "192.168.1.0/24")
 
     def run(self):
-        log("Exec discovery network hosts...", "debug")
+        pass
+        #log("Exec discovery network hosts...", "debug")
         """
         try:
             result = subprocess.run(["monnet-cli", "--discover", self.network_range], capture_output=True, text=True)
@@ -21,4 +22,4 @@ class DiscoveryTask:
         except Exception as e:
             log(f"Error en DiscoveryTask: {e}", "err")
         """
-        log("Descubrimiento de hosts finalizado.", "debug")
+        #log("Descubrimiento de hosts finalizado.", "debug")
