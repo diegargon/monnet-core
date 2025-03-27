@@ -134,7 +134,7 @@ class EventProcessor:
                             })
                             self._mark_event(event_id, current_time)
         else:
-            log(f"Unexpected structure in disk info: {type(disk_info)} -> {disk_info}", "error")
+            log(f"Unexpected structure in disk info: {type(disk_info)} -> {disk_info}", "err")
         # Cleanup processed_events
         self._cleanup_events(current_time)
 

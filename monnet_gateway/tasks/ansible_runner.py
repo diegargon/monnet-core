@@ -12,7 +12,7 @@ class AnsibleTask:
         #self.ansible_runner = AnsibleRunner()
 
     def run(self):
-        log("Executien ansible task...", "debug")
+        log("Execution ansible task...", "debug")
         #tasks = self.db.get_ansible_tasks()
         #for task in tasks:
         #    self.ansible_runner.run_task(task)

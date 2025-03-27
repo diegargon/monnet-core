@@ -19,6 +19,6 @@ class DiscoveryTask:
             result = subprocess.run(["monnet-cli", "--discover", self.network_range], capture_output=True, text=True)
             log(f"Resultado del descubrimiento: {result.stdout}")
         except Exception as e:
-            log(f"Error en DiscoveryTask: {e}", "error")
+            log(f"Error en DiscoveryTask: {e}", "err")
         """
         log("Descubrimiento de hosts finalizado.", "debug")

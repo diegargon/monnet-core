@@ -43,7 +43,7 @@ def handle_signal(signum, frame, config):
         notification_type = "agent_shutdown"
         msg = f"Signal receive: {signal_name}. Closing application."
         log_level = LogLevel.ALERT
-        event_type = EventType.agent_SHUTDOWN
+        event_type = EventType.AGENT_SHUTDOWN
 
     log(f"Receive Signal {signal_name}  Stopping app...", "notice")
 

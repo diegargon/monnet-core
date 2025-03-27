@@ -29,5 +29,5 @@ class HostCheckerTask:
             else:
                 log(f"{host} no responde.", "warning")
         except Exception as e:
-            log(f"Error al comprobar {host}: {e}", "error")
+            log(f"Error al comprobar {host}: {e}", "err")
         """

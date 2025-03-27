@@ -78,7 +78,7 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
-    log("Iniciando el servicio Monnet Gateway...", "info")
+    log("Starting Monnet Gateway...", "info")
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

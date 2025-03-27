@@ -69,10 +69,19 @@ def send_stats(config, datastore, notify_callback):
         datastore.update_data("iowait_last_stats", last_iowait)
         data['iowait_stats'] = average_iowait
 
+        # Memory
+        last_memory_stats = datastore.get_data("last_memory_stats")
+        if not last_memory_stats:
+            last_memory_stats = datastore.get_data("last_memory_info")
+        last_memory_info = datastore.get_data("last_memory_info")
+        average_memory_percent = (last_memory_stats['memory_percent'] + last_memory_info['memory_percent']) / 2
+        datastore.update_data("last_memory_stats", last_memory_stats)
+        data['memory_stats'] = average_memory_percent
+
         # Send
         notify_callback(config, 'send_stats', data)
     except Exception as e:
-        log(f"Error in check_listen_ports: {e}", "ERROR")
+        log(f"Error in check_listen_ports: {e}", "err")
     finally:
         # Start again
         agent_globals.timers['send_stats']  = threading.Timer(
