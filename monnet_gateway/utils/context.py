@@ -49,19 +49,26 @@ class AppContext:
         """
         return key in self._variables
 
-"""
-    @property
-    def database(self) -> Database:
-        if self._database is None:
-            raise ValueError("Database is not initialized.")
+    def set_database(self, db_manager) -> None:
+        """
+        Set database manager
+        Args:
+            db_manager: Database manager instance
+        """
+        self._database = db_manager
+
+    def get_database(self):
+        """
+        Get database manager
+        Returns:
+            Database manager instance or None
+        """
         return self._database
 
-    @database.setter
-    def database(self, database: Database) -> None:
-        self._database = database
-
-    def __repr__(self) -> str:
-        return (f"AppContext(workdir={self.workdir}, "
-                f"logger={'set' if self._logger else 'not set'}, "
-                f"database={'set' if self._database else 'not set'})")
-"""
+    def has_database(self) -> bool:
+        """
+        Check if database manager is set
+        Returns:
+            bool: True if database is set, False otherwise
+        """
+        return self._database is not None

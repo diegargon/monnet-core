@@ -16,7 +16,7 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import config
 from shared.logger import log
 from shared.mconfig import load_config, validate_db_config
-
+from utils.context import AppContext;
 
 
 if __name__ == "__main__":
@@ -32,15 +32,23 @@ if __name__ == "__main__":
         log(str(e), "err")
         exit(1)
 
-    try:
-        with DBManager(config) as db:
-            # Fetch all users
-            users = db.fetchall("SELECT * FROM users")
-            print(users)
+    ctx = AppContext("/opt/monnet-core")
 
-            # Insert a new user within a transaction
-            #with db.transaction():
-            #    rows_affected = db.execute("INSERT INTO users (username, password) VALUES (%s, %s)", ("John Doe", "test"))
-            #    print(f"Rows inserted: {rows_affected}")
+    # Iniciar la conexión solo una vez y almacenarla en el contexto
+    try:
+        db_instance = DBManager(config)  # Crear instancia sin 'with'
+        ctx.set_database(db_instance)
     except RuntimeError as e:
-        print(e)
+        print(f"Database connection error: {e}")
+
+    # Example obtain and use instance
+    db_instance = ctx.get_database()
+
+    if db_instance:
+        try:
+            users = db_instance.fetchall("SELECT * FROM users")
+            print(users)
+        except RuntimeError as e:
+            print(f"Database query error: {e}")
+    else:
+        print("Database connection is not available")

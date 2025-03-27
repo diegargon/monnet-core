@@ -14,4 +14,3 @@ class HostModel:
     def get_all(self) -> list[dict]:
         """ List all hosts """
         return self.db.execute_query("SELECT * FROM hosts")
-
