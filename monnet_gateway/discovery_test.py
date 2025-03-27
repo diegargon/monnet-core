@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     # Iniciar la conexión solo una vez y almacenarla en el contexto
     try:
-        db_instance = DBManager(config)  # Crear instancia sin 'with'
+        db_instance = DBManager(config)
         ctx.set_database(db_instance)
     except RuntimeError as e:
         print(f"Database connection error: {e}")

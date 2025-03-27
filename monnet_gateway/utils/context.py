@@ -20,6 +20,7 @@ class AppContext:
         """
         self.workdir = workdir
         self._database = None
+        self._config = None
         self._variables = {}
 
     def set_var(self, key: str, value)-> None:
@@ -72,3 +73,27 @@ class AppContext:
             bool: True if database is set, False otherwise
         """
         return self._database is not None
+
+    def set_config(self, config) -> None:
+        """
+        Set config
+        Args:
+            db_manager: Database manager instance
+        """
+        self._config = config
+
+    def get_config(self):
+        """
+        Get config
+        Returns:
+            Config instance or None
+        """
+        return self._config
+
+    def has_config(self) -> bool:
+        """
+        Check if config is set
+        Returns:
+            bool: True if config is set, False otherwise
+        """
+        return self._config is not None
