@@ -26,13 +26,6 @@ deploy_to_github:
     # Configurar el usuario de Git
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
-    - git for-each-ref --format='delete %(refname)' refs/pipelines/ refs/merge-requests/ | git update-ref --stdin
-    - git fsck --full
-    - git repack -a -d -f --depth=250 --window=250  # Reempaqueta objetos
-    - git gc --prune=now  # Limpieza
-    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git push github --mirror --force
-
 
     #- git checkout main 2>/dev/null || git checkout -b main
     #- git checkout main || git checkout -b main
@@ -92,41 +85,10 @@ deploy_to_github:
     # Configurar el usuario de Git
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
-#    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-#    - git checkout main || git checkout -b main
-#    - git add .
-#    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
-#    - git gc
-#    - git fetch --unshallow
-#    - git push github main --no-thin
-
-    ##
-    ## Script que inicializa todo con el local
-    ##
-    ## Limpiar cualquier configuración de git previa
-    #- rm -rf .git
-
-    ## Inicializar un nuevo repositorio git
-    #- git init
-
-    ## Configurar el usuario de Git
-    #- git config --global user.name "GitLabCI"
-    #- git config --global user.email "ci-bot@no.domain"
-
-    ## Añadir el remote de GitHub (reemplaza con tu repositorio GitHub)
-    #- git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-
-    ## Traer todos los cambios del repositorio remoto
-    #- git fetch origin main
-
-    ## Cambiar a la rama principal, asegurando que existe
-    #- git checkout main || git checkout -b main
-
-    ## Añadir los cambios locales al repositorio
-    #- git add .
-
-    ## Realizar el commit con un mensaje adecuado
-    #- git commit -m "Update code from GitLab CI" || echo "No changes to commit"
-
-    ## Empujar los cambios al repositorio de GitHub
-    #- git push origin main --force
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    - git checkout main || git checkout -b main
+    - git add .
+    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
+    - git gc
+    - git fetch --unshallow
+    - git push github main --no-thin
