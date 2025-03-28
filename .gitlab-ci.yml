@@ -24,39 +24,39 @@ deploy_to_github:
   when: manual
   script:
     # Configurar el usuario de Git
-    #- git config --global user.name "GitLabCI"
-    #- git config --global user.email "ci-bot@no.domain"
-    #- git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    #- git checkout main || git checkout -b main
-    #- git fetch github
-    #- git merge github/main || echo "No changes to merge"
-    #- git add .
-    #- git commit -m "Update code from GitLab CI" || echo "No changes to commit"
-    #- git gc
-    #- git push github main --no-thin
+    - git config --global user.name "GitLabCI"
+    - git config --global user.email "ci-bot@no.domain"
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    - git checkout main || git checkout -b main
+    - git fetch github
+    - git merge github/main || echo "No changes to merge"
+    - git add .
+    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
+    - git gc
+    - git push github main --no-thin
 
     ##
     ## Script que inicializa todo con el local
     ##
     ## Limpiar cualquier configuración de git previa
-    - rm -rf .git
+    #- rm -rf .git
     ## Inicializar un nuevo repositorio git
-    - git init
+    #- git init
     ## Configurar el usuario de Git
-    - git config --global user.name "GitLabCI"
-    - git config --global user.email "ci-bot@no.domain"
+    #- git config --global user.name "GitLabCI"
+    #- git config --global user.email "ci-bot@no.domain"
     ## Añadir el remote de GitHub (reemplaza con tu repositorio GitHub)
-    - git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    #- git remote add origin https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     ## Traer todos los cambios del repositorio remoto
-    - git fetch origin main
+    #- git fetch origin main
     ## Cambiar a la rama principal, asegurando que existe
-    - git checkout main || git checkout -b main
+    #- git checkout main || git checkout -b main
     ## Añadir los cambios locales al repositorio
-    - git add .
+    #- git add .
     ## Realizar el commit con un mensaje adecuado
-    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
+    #- git commit -m "Update code from GitLab CI" || echo "No changes to commit"
     ## Empujar los cambios al repositorio de GitHub
-    - git push origin main --force
+    #- git push origin main --force
 
 #initial_deploy_to_github:
 #  stage: deploy
