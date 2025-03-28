@@ -38,7 +38,8 @@ deploy_to_github:
     - git gc --aggressive
     #- git gc
     #- git push github main --no-thin
-    - git push github main --force
+    - git fsck --full
+    - git push github main --force --no-verify
 
     ##
     ## Script que inicializa todo con el local
