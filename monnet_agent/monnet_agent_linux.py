@@ -148,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-daemon', action='store_true', help='Run without daemonizing')
     args = parser.parse_args()
 
-    log("Iniciando el servicio Monnet Agent...", "info")
+    log("Init Monnet Agent service...", "info")
     if args.no_daemon:
         run()
     else:

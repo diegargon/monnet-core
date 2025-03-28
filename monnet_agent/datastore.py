@@ -7,7 +7,10 @@ Monnet Agent
 """
 
 import json
+import time
 from typing import Optional, Dict, Any
+
+# Local
 from shared.logger import log
 
 class Datastore:
@@ -21,6 +24,8 @@ class Datastore:
         Initialization
             :param filename: File to save/load data.
         """
+        self.save_interval = 10 * 60
+        self.last_save = time.time()
         self.filename = filename
         self.data: Dict[str, Optional[Dict[str, Any]]] = {
             "last_load_avg": None,
@@ -45,8 +50,9 @@ class Datastore:
         if key not in self.data:
             log(f"New data set added: {key}")
         self.data[key] = data
-        # TODO save on exit or each X time
-        self.save_data()
+
+        if time.time() - self.last_save >= self.save_interval:
+            self.save_data()
 
     def get_data(self, key: str) -> Optional[Dict[str, Any]]:
         """
@@ -72,7 +78,8 @@ class Datastore:
         try:
             with open(self.filename, "w", encoding='utf-8') as file:
                 json.dump(self.data, file, indent=4)
-            # log(f"Data saved successfully to {self.filename}")
+            self.last_save = time.time()
+            log(f"Data saved successfully to {self.filename}")
         except Exception as e:
             log(f"Error saving data to {self.filename}: {e}")
 

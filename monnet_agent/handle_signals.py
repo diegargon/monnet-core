@@ -31,11 +31,13 @@ def handle_signal(signum, frame, config):
 
     log(f"Receive Signal {signal_name}  Stopping app...", "notice")
 
+    # Cancel all timers
     for name, timer in agent_globals.timers.items():
         log(f"Clearing timer: {name}")
         timer.cancel()
     agent_globals.timers.clear()
 
+    # Build notification if detect agent or system shutdown
     if info_linux.is_system_shutting_down():
         notification_type = "system_shutdown"
         msg = "System shutdown or reboot"
@@ -47,6 +49,7 @@ def handle_signal(signum, frame, config):
         log_level = LogLevel.ALERT
         event_type = EventType.AGENT_SHUTDOWN
 
+    # Send
     data = {"msg": msg, "log_level": log_level, "event_type": event_type}
     send_notification(config, notification_type, data)
     running = False
