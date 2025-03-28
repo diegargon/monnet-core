@@ -27,10 +27,14 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     # 3. Purga de referencias problemáticas ANTES del push
-    - git for-each-ref --format='delete %(refname)' refs/pipelines/ refs/merge-requests/ refs/keep-around/ | git update-ref --stdin
+    - git for-each-ref --format='delete %(refname)' refs/pipelines/ refs/merge-requests/ refs/keep-around/ origin/ HEAD | git update-ref --stdin
+    - git tag -d $(git tag -l) 2>/dev/null || true
+
+    - git fsck --full
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git push github --mirror --no-verify --atomic
-    - git push github --prune
+    - git push github HEAD:main --force-with-lease
+    - git push github --all --force-with-lease
+    - git push github --tags --force
 
     #- git checkout main 2>/dev/null || git checkout -b main
     #- git checkout main || git checkout -b main
