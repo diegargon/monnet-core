@@ -27,12 +27,18 @@ deploy_to_github:
     - git config --global user.email "ci-bot@no.domain"
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git checkout main || git checkout -b main
+    # Sincronizar con el remoto
     - git fetch github
-    - git merge github/main || echo "No changes to merge"
+    - echo "Cambios en el remoto:"
+    - git log HEAD..github/main --oneline --no-decorate || echo "No hay cambios remotos"
+    # Intentar merge (si falla, hacer rebase)
+    - git merge github/main --no-edit || git rebase github/main || echo "No se pudieron aplicar los cambios remotos"
+
+    #- git merge github/main || echo "No changes to merge"
     - git add .
     - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
     - git gc
-    - git push github main --force-with-lease
+    - git push github main --no-thin
 
 #initial_deploy_to_github:
 #  stage: deploy
