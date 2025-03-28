@@ -48,7 +48,7 @@ def get_meta():
         "agent_version": str(agent_globals.AGENT_VERSION),
         "uuid": _uuid                                 # ID uniq
     }
-    log(f"Metadata: {meta}", "debug")
+    # log(f"Metadata: {meta}", "debug")
     return meta
 
 def send_notification(config: dict, name: str, data: dict):

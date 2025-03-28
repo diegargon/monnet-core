@@ -9,15 +9,11 @@ Main agent loop
 
 # Standard
 import sys
-import time
-import signal
-from datetime import datetime
 from pathlib import Path
 import argparse
 
 # Third Party
 from shared.clogger import Logger
-import psutil
 import daemon
 
 from shared.app_context import AppContext
@@ -26,131 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
-import info_linux
-import tasks
-import monnet_agent.agent_globals as agent_globals
-from datastore import Datastore
-from event_processor import EventProcessor
-from constants import LogLevel, EventType
-from shared.mconfig import load_config, validate_agent_config
-from monnet_agent.notifications import send_notification, validate_response, send_request
-from monnet_agent.handle_signals import handle_signal
+from monnet_agent.core.agent import MonnetAgent
 
-global running
-
-def run(ctx: AppContext):
-    global running
-
-    running = True
-    config = None
-
-    logger = ctx.get_logger()
-
-    datastore = Datastore(ctx)
-    event_processor = EventProcessor(ctx)
-
-    # Used for iowait
-    last_cpu_times = psutil.cpu_times()
-
-    logger.log("Init monnet linux agent", "info")
-    # Cargar la configuracion desde el archivo
-    # Load config from file
-    config = load_config(agent_globals.CONFIG_FILE_PATH)
-    if not config:
-        logger.log("Cant load config. Finishing", "err")
-        return
-
-    try:
-        validate_agent_config(config)
-    except ValueError as e:
-        logger.log(str(e), "err")
-        return
-
-    token = config["token"]
-    config["interval"] = config["default_interval"]
-
-    # Signal Handle
-    signal.signal(signal.SIGINT, lambda signum, frame: handle_signal(signum, frame, config))
-    signal.signal(signal.SIGTERM, lambda signum, frame: handle_signal(signum, frame, config))
-
-    starting_data = {
-        'msg': datetime.now().time(),
-        'ncpu': info_linux.get_cpus(),
-        'uptime': info_linux.get_uptime(),
-        'log_level': LogLevel.NOTICE,
-        'event_type': EventType.STARTING
-    }
-
-    send_notification(config, 'starting', starting_data)
-
-    # Timer functions
-    tasks.check_listen_ports(config, datastore, send_notification, startup=1)
-    tasks.send_stats(config, datastore, send_notification)
-
-    while running:
-        extra_data = {}
-        current_load_avg = info_linux.get_load_avg()
-        current_memory_info = info_linux.get_memory_info()
-        current_disk_info = info_linux.get_disks_info()
-
-        current_time = time.time()
-
-        # Check and update load average
-        if current_load_avg != datastore.get_data("last_load_avg"):
-            datastore.update_data("last_load_avg", current_load_avg)
-            extra_data.update(current_load_avg)
-
-        # Check and update memory info
-        if current_memory_info != datastore.get_data("last_memory_info"):
-            datastore.update_data("last_memory_info", current_memory_info)
-            extra_data.update(current_memory_info)
-
-        # Check and update disk info
-        if current_disk_info != datastore.get_data("last_disk_info"):
-            datastore.update_data("last_disk_info", current_disk_info)
-            extra_data.update(current_disk_info)
-
-        # Get IOwait
-        current_cpu_times = psutil.cpu_times()
-        current_iowait = info_linux.get_iowait(last_cpu_times, current_cpu_times)
-        current_iowait = round(current_iowait, 2)
-        if current_iowait != datastore.get_data("last_iowait"):
-            datastore.update_data("last_iowait", current_iowait)
-            extra_data.update({'iowait': current_iowait})
-        last_cpu_times = current_cpu_times
-
-        logger.log("Sending ping to server. " + str(agent_globals.AGENT_VERSION), "debug")
-        response = send_request(config, cmd="ping", data=extra_data)
-
-        events = event_processor.process_changes(datastore)
-        for event in events:
-            logger.logpo("Sending event:", event, "debug")
-            send_notification(config, event["name"], event["data"])
-
-        if response:
-            logger.log("Response receive... validating", "debug")
-            valid_response = validate_response(response, token)
-            if valid_response:
-                data = valid_response.get("data", {})
-                new_interval = valid_response.get("refresh")
-                if new_interval and config['interval'] != int(new_interval):
-                    config["interval"] = new_interval
-                    logger.log(f"Interval update to {config['interval']} seconds", "info")
-                if isinstance(data, dict) and "something" in data:
-                    # example
-                    try:
-                        pass
-                    except ValueError:
-                        logger.log("invalid", "warning")
-            else:
-                logger.log("Invalid response receive", "warning")
-
-        end_time = time.time()
-        duration = end_time - current_time
-        logger.log(f"Tiempo bucle {duration:.2f} + Sleeping {config['interval']} (segundos).", "debug")
-        time.sleep(config["interval"])
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Monnet Agent")
     parser.add_argument('--no-daemon', action='store_true', help='Run without daemonizing')
     parser.add_argument(
@@ -167,8 +41,23 @@ if __name__ == "__main__":
     ctx.set_logger(logger)
 
     logger.log("Init Monnet Agent service...", "info")
+
+    agent = MonnetAgent(ctx)
+
     if args.no_daemon:
-        run(ctx)
+        logger.log("Running in foreground mode", "info")
+        with daemon.DaemonContext(
+            detach_process=False,   # Avoid background
+            stdout=sys.stdout,      # Redirect stdout to the console
+            stderr=sys.stderr,      # Redirect stderr to the console
+            stdin=sys.stdin,        # Terminal input
+            files_preserve=[sys.stdout.fileno(), sys.stderr.fileno()]
+        ):
+            agent.run()
     else:
         with daemon.DaemonContext():
-            run(ctx)
+            logger.log("Running in daemon mode", "info")
+            agent.run()
+
+if __name__ == "__main__":
+    main()

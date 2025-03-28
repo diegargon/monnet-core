@@ -6,17 +6,18 @@ Monnet Agent
 
 # Std
 import signal
+import subprocess
 import sys
 
 # Local
 import info_linux
-from shared.logger import log
+from shared.app_context import AppContext
 from monnet_agent import agent_globals
 from monnet_agent.notifications import send_notification
 from constants import LogLevel, EventType
 
 
-def handle_signal(signum, frame, config):
+def handle_signal(signum, frame, ctx: AppContext, config):
     """
     Signal Handler
 
@@ -28,6 +29,8 @@ def handle_signal(signum, frame, config):
     signal_name = None
     msg = None
 
+    logger = ctx.get_logger()
+
     if signum == signal.SIGTERM:
         signal_name = 'SIGTERM'
     elif signum == signal.SIGHUP:
@@ -35,21 +38,33 @@ def handle_signal(signum, frame, config):
     else:
         signal_name = signum
 
-    log(f"Receive Signal {signal_name}  Stopping app...", "notice")
+    logger.log(f"Receive Signal {signal_name}  Stopping app...", "notice")
 
     # Cancel all timers
     for name, timer in agent_globals.timers.items():
-        log(f"Clearing timer: {name}")
+        logger.log(f"Clearing timer: {name}")
         timer.cancel()
     agent_globals.timers.clear()
 
     # Build notification if detect agent or system shutdown
-    if info_linux.is_system_shutting_down():
+
+    try:
+        _is_system_shutdown = info_linux.is_system_shutting_down()
+    except FileNotFoundError:
+        logger.log("Systemd not available - skipping shutdown check", "notice")
+        _is_system_shutdown = False
+    except subprocess.CalledProcessError as e:
+        logger.log(f"Failed to check system status: {e.stderr}", "err")
+        _is_system_shutdown = False
+
+    if _is_system_shutdown:
+        logger.log("System shutdown detected", "notice")
         notification_type = "system_shutdown"
         msg = "System shutdown or reboot"
         log_level = LogLevel.ALERT
         event_type = EventType.SYSTEM_SHUTDOWN
     else:
+        logger.log("Agent shutdown detected", "notice")
         notification_type = "agent_shutdown"
         msg = f"Signal receive: {signal_name}. Closing application."
         log_level = LogLevel.ALERT

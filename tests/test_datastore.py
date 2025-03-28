@@ -1,3 +1,9 @@
+"""
+@copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
+
+Just initial Near do nothing test
+"""
+
 import pytest
 import json
 import time

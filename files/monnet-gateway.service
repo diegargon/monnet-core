@@ -5,6 +5,7 @@ After=network.target
 [Service]
 ExecStart=/opt/monnet-core/monnet_gateway/venv/bin/python3 /opt/monnet-core/monnet_gateway/mgateway.py
 WorkingDirectory=/opt/monnet-core
+Environment="PYTHONPATH=/opt/monnet-core"
 Group=root
 Restart=always
 RestartSec=5
