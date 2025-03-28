@@ -4,7 +4,14 @@ stages:
 
 before_script:
   - echo "nameserver 192.168.2.126" > /etc/resolv.conf
-  - ping -c 1 gitlab.com
+  - |
+    python -c "
+    import socket;
+    try:
+        print(socket.gethostbyname('gitlab.com'));
+    except socket.error as e:
+        print('DNS resolution failed:', e)
+    "
 test:
   stage: test
   image: python:3.9
