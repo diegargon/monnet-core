@@ -24,13 +24,10 @@ deploy_to_github:
   when: manual
   script:
     # Configurar el usuario de Git
-    - git config --global user.name "GitLabCI"
-    - git config --global user.email "ci-bot@no.domain"
-    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    # 4. Limpieza de referencias problemáticas
-    - git show-ref | grep -E "pipelines|origin" | cut -d' ' -f2 | xargs -I{} git update-ref -d {}
-    - git push --mirror github
-    - git push github --prune
+    #- git config --global user.name "GitLabCI"
+    #- git config --global user.email "ci-bot@no.domain"
+    #- git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+
 
     #- git checkout main 2>/dev/null || git checkout -b main
     #- git checkout main || git checkout -b main
@@ -47,16 +44,16 @@ deploy_to_github:
     #
     # Este ruta parece que solvento el problema de sincronizacion
     #
-    #- git config --global user.name "GitLabCI"
-    #- git config --global user.email "ci-bot@no.domain"
-    #- git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    #- git gc --prune=now --aggressive
-    #- git repack -a -d -f --depth=250 --window=250
-    #- git fetch github main --depth=1
-    #- git checkout -B main github/main --force
-    #- git add .
-    #- git commit -m "Deploy from GitLab" || true
-    #- git push github main --force-with-lease
+    - git config --global user.name "GitLabCI"
+    - git config --global user.email "ci-bot@no.domain"
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    - git gc --prune=now --aggressive
+    - git repack -a -d -f --depth=250 --window=250
+    - git fetch github main --depth=1
+    - git checkout -B main github/main --force
+    - git add .
+    - git commit -m "Deploy from GitLab" || true
+    - git push github main --force-with-lease
 
 
     ##
