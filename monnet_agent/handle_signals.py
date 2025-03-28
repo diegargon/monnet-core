@@ -1,4 +1,10 @@
-# Standard
+"""
+@copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
+
+Monnet Agent
+"""
+
+# Std
 import signal
 import sys
 
@@ -11,13 +17,13 @@ from constants import LogLevel, EventType
 
 
 def handle_signal(signum, frame, config):
-    global running
     """
     Signal Handler
 
     Returns:
         None
     """
+    global running
 
     signal_name = None
     msg = None

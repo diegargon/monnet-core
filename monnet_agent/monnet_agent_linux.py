@@ -3,6 +3,8 @@
 
 Monnet Agent
 
+Main agent loop
+
 """
 
 # Standard
@@ -26,8 +28,8 @@ import tasks
 import monnet_agent.agent_globals as agent_globals
 from datastore import Datastore
 from event_processor import EventProcessor
-from shared.mconfig import load_config, validate_agent_config
 from constants import LogLevel, EventType
+from shared.mconfig import load_config, validate_agent_config
 from shared.logger import log, logpo
 from monnet_agent.notifications import send_notification, validate_response, send_request
 from monnet_agent.handle_signals import handle_signal

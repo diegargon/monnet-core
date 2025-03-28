@@ -1,10 +1,23 @@
+"""
+@copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
+
+Monnet Agent
+
+Notifications
+    send_notification
+    send_request
+    validate_response
+    get_meta
+"""
+
 import ssl
 import http.client
 import json
 import time_utils
-import info_linux
 import uuid
+
 # Local
+import info_linux
 from shared.logger import log
 from monnet_agent import agent_globals
 
@@ -19,7 +32,7 @@ def get_meta():
     local_timezone = time_utils.get_local_timezone()
     hostname = info_linux.get_hostname()
     nodename = info_linux.get_nodename()
-    if (hostname):
+    if hostname:
         ip_address = info_linux.get_ip_address(hostname)
     else:
         ip_address = None

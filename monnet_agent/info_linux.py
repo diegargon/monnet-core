@@ -33,7 +33,7 @@ def bytes_to_mb(bytes_value):
 def get_load_avg():
     """Returns the system load average from /proc/loadavg."""
     try:
-        with open("/proc/loadavg", "r") as f:
+        with open("/proc/loadavg", "r", encoding='utf-8') as f:
             values = f.readline().split()
             load1, load5, load15 = map(float, values[:3])
 

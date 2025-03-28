@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 import subprocess
+
 #import socket
 import sys
 import os
@@ -110,7 +111,9 @@ class TestMonnetGateway(unittest.TestCase):
         # Simular un resultado exitoso de Ansible
         mock_process = MagicMock()  # Creamos el mock del proceso
         mock_process.returncode = 0  # El código de salida es 0 (éxito)
-        mock_process.communicate.return_value = (b'{"status": "success", "result": {"custom_stats": {}, "global_custom_stats": {}}}', b"")
+        mock_process.communicate.return_value = (
+            b'{"status": "success", "result": {"custom_stats": {}, "global_custom_stats": {}}}',
+            b"")
 
         # Cuando se llame a subprocess.Popen, devolveremos nuestro mock del proceso
         mock_subprocess.return_value = mock_process

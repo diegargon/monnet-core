@@ -68,9 +68,11 @@ class DBManager:
                 password=self.config['password'],
                 database=self.config['database']
             )
-            self.cursor = self.conn.cursor(dictionary=True)  # Return results as dictionaries
+            # Return results as dictionaries
+            self.cursor = self.conn.cursor(dictionary=True)
         except ImportError:
-            raise RuntimeError("mysql-connector-python is not installed. Install it with `pip install mysql-connector-python`.")
+            raise RuntimeError("mysql-connector-python is not installed. \
+                Install it with `pip install mysql-connector-python`.")
         except mysql_connector.Error as e:
             raise RuntimeError(f"mysql-connector connection failed: {e}")
 
@@ -85,7 +87,8 @@ class DBManager:
                 password=self.config['password'],
                 database=self.config['database']
             )
-            self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)  # Return results as dictionaries
+            # Return results as dictionaries
+            self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
         except ImportError:
             raise RuntimeError("PyMySQL is not installed. Install it with `pip install pymysql`.")
         except pymysql.Error as e:
