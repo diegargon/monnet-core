@@ -13,6 +13,8 @@ class TestDatastoreCRUD:
         assert datastore.data["last_load_avg"]["1m"] == 0.75
 
     def test_update_new_key(self, datastore, mock_logger):
+        print("Logger actual:", datastore.log)
+        assert datastore.log is mock_logger
         assert datastore.update_data("new_metric", {"value": 100}) is True
         print("logger calls:", mock_logger.method_calls)
         mock_logger.assert_called_with("New data set added: new_metric")
