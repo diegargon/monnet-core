@@ -26,6 +26,8 @@ deploy_to_github:
     # Configurar el usuario de Git
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
+    - git for-each-ref --format='delete %(refname)' refs/pipelines/ refs/merge-requests/ | git update-ref --stdin
+    - git push github --mirror --force --no-verify --atomic
 
     #- git checkout main 2>/dev/null || git checkout -b main
     #- git checkout main || git checkout -b main
@@ -85,10 +87,10 @@ deploy_to_github:
     # Configurar el usuario de Git
 #    - git config --global user.name "GitLabCI"
 #    - git config --global user.email "ci-bot@no.domain"
-    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git checkout main || git checkout -b main
-    - git add .
-    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
-    - git gc
-    - git fetch --unshallow
-    - git push github main --no-thin
+#    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+#    - git checkout main || git checkout -b main
+#    - git add .
+#    - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
+#    - git gc
+#    - git fetch --unshallow
+#    - git push github main --no-thin
