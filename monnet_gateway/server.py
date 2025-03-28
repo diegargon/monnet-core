@@ -15,7 +15,7 @@ import threading
 # Local
 from monnet_gateway.config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
 from monnet_gateway.handlers.handler_client import handle_client
-from monnet_gateway.utils.context import AppContext
+from monnet_gateway.utils.app_context import AppContext
 from shared.logger import log
 
 server_socket = None

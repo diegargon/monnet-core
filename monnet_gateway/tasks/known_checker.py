@@ -4,7 +4,7 @@
 """
 
 import subprocess
-from monnet_gateway.utils.context import AppContext
+from monnet_gateway.utils.app_context import AppContext
 from shared.logger import log
 
 class HostCheckerTask:

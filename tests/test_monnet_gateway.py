@@ -19,7 +19,7 @@ from pathlib import Path
 
 # Local
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
-from monnet_gateway.utils.context import AppContext
+from monnet_gateway.utils.app_context import AppContext
 # Modificar sys.path para incluir el directorio monnet_gateway
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

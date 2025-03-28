@@ -25,7 +25,7 @@ sys.path.append(str(BASE_DIR))
 # Local
 from monnet_gateway.config import TASK_INTERVAL
 from monnet_gateway.server import run_server, stop_server
-from monnet_gateway.utils.context import AppContext
+from monnet_gateway.utils.app_context import AppContext
 from monnet_gateway.tasks.tasks import TaskSched
 from shared.logger import log
 

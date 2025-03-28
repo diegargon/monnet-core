@@ -4,7 +4,7 @@
 """
 
 from database.dbmanager import DBManager
-from monnet_gateway.utils.context import AppContext
+from monnet_gateway.utils.app_context import AppContext
 from shared.logger import log
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 
