@@ -32,6 +32,7 @@ class TestDatastoreCRUD:
 class TestDatastorePersistence:
     def test_auto_save(self, datastore, temp_json_file, mock_logger):
         datastore.save_interval = 0.10  # Forzamos guardado rápido
+        datastore.last_save = time.time() - 0.11 # Caducamos
         assert datastore.update_data("test", {"value": 1}) is True
         time.sleep(0.20)  # Esperar a que se guarde
         with open(temp_json_file, "r", encoding="utf-8") as f:
