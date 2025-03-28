@@ -23,7 +23,8 @@ test:
     - python -c "import sys; print('PYTHONPATH is:', sys.path)"
     - ls -al
     - pytest -v tests/test_monnet_gateway.py
-
+    - sleep 3
+    - pytest -v tests/test_monnet_agent.py
 deploy_to_github:
   stage: deploy
   image: alpine/git
