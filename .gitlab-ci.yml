@@ -29,6 +29,7 @@ deploy_to_github:
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git checkout main || git checkout -b main
     - git fetch github
+    - git log HEAD..github/main --oneline --no-decorate || echo "No hay cambios remotos"
     - git merge github/main || echo "No changes to merge"
     - git add .
     - git commit -m "Update code from GitLab CI" || echo "No changes to commit"
