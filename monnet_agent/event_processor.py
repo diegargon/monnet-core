@@ -8,6 +8,7 @@ import time
 from typing import List, Dict, Any
 # Local
 import monnet_agent.agent_globals as agent_globals
+from shared.app_context import AppContext
 from shared.logger import log
 from constants import LogLevel
 from constants import EventType
@@ -16,10 +17,11 @@ class EventProcessor:
     """
         Event Processor. Process and track the events avoid spamming
     """
-    def __init__(self):
+    def __init__(self, ctx: AppContext):
         """
         Inicializa el procesador de eventos.
         """
+        self.ctx = ctx
         # Dict  processed events with time stamp
         self.processed_events: Dict[str, float] = {}
         self.event_expiration = agent_globals.EVENT_EXPIRATION

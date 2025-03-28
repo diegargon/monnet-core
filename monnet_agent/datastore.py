@@ -11,6 +11,7 @@ import time
 from typing import Optional, Dict, Any
 
 # Local
+from shared.app_context import AppContext
 from shared.logger import log
 
 class Datastore:
@@ -19,11 +20,12 @@ class Datastore:
     Attributes:
          :param filename: File to save/load data.
     """
-    def __init__(self, filename: str = "/tmp/datastore.json"):
+    def __init__(self, ctx: AppContext, filename: str = "/tmp/datastore.json"):
         """
         Initialization
             :param filename: File to save/load data.
         """
+        self.ctx = ctx
         self.save_interval = 10 * 60
         self.last_save = time.time()
         self.filename = filename

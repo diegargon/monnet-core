@@ -19,6 +19,8 @@ import argparse
 import psutil
 import daemon
 
+from shared.app_context import AppContext
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
@@ -36,20 +38,21 @@ from monnet_agent.handle_signals import handle_signal
 
 global running
 
-def run():
+def run(ctx: AppContext):
     global running
 
     running = True
     config = None
 
-    datastore = Datastore()
-    event_processor = EventProcessor()
+    datastore = Datastore(ctx)
+    event_processor = EventProcessor(ctx)
 
     # Used for iowait
     last_cpu_times = psutil.cpu_times()
 
     log("Init monnet linux agent", "info")
     # Cargar la configuracion desde el archivo
+    # Load config from file
     config = load_config(agent_globals.CONFIG_FILE_PATH)
     if not config:
         log("Cant load config. Finishing", "err")
@@ -148,11 +151,20 @@ def run():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Monnet Agent")
     parser.add_argument('--no-daemon', action='store_true', help='Run without daemonizing')
+    parser.add_argument(
+        "--working-dir", type=str,
+        default="/opt/monnet-core",
+        help="Working directory"
+    )
     args = parser.parse_args()
+
+    workdir = args.working_dir
+
+    ctx = AppContext(workdir)
 
     log("Init Monnet Agent service...", "info")
     if args.no_daemon:
-        run()
+        run(ctx)
     else:
         with daemon.DaemonContext():
-            run()
+            run(ctx)

@@ -20,6 +20,7 @@ class AppContext:
         """
         self.workdir = workdir
         self._database = None
+        self._logger = None
         self._config = None
         self._variables = {}
 
@@ -97,3 +98,19 @@ class AppContext:
             bool: True if config is set, False otherwise
         """
         return self._config is not None
+
+    def set_logger(self, logger) -> None:
+        """
+        Set logger
+        Args:
+            logger: Logger instance
+        """
+        self._logger = logger
+
+    def get_config(self):
+        """
+        Get Logger
+        Returns:
+            Logger instance
+        """
+        return self._logger
