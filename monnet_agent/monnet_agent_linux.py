@@ -16,6 +16,7 @@ from pathlib import Path
 import argparse
 
 # Third Party
+from shared.clogger import Logger
 import psutil
 import daemon
 
@@ -32,7 +33,6 @@ from datastore import Datastore
 from event_processor import EventProcessor
 from constants import LogLevel, EventType
 from shared.mconfig import load_config, validate_agent_config
-from shared.logger import log, logpo
 from monnet_agent.notifications import send_notification, validate_response, send_request
 from monnet_agent.handle_signals import handle_signal
 
@@ -44,24 +44,26 @@ def run(ctx: AppContext):
     running = True
     config = None
 
+    logger = ctx.get_logger()
+
     datastore = Datastore(ctx)
     event_processor = EventProcessor(ctx)
 
     # Used for iowait
     last_cpu_times = psutil.cpu_times()
 
-    log("Init monnet linux agent", "info")
+    logger.log("Init monnet linux agent", "info")
     # Cargar la configuracion desde el archivo
     # Load config from file
     config = load_config(agent_globals.CONFIG_FILE_PATH)
     if not config:
-        log("Cant load config. Finishing", "err")
+        logger.log("Cant load config. Finishing", "err")
         return
 
     try:
         validate_agent_config(config)
     except ValueError as e:
-        log(str(e), "err")
+        logger.log(str(e), "err")
         return
 
     token = config["token"]
@@ -117,35 +119,35 @@ def run(ctx: AppContext):
             extra_data.update({'iowait': current_iowait})
         last_cpu_times = current_cpu_times
 
-        log("Sending ping to server. " + str(agent_globals.AGENT_VERSION), "debug")
+        logger.log("Sending ping to server. " + str(agent_globals.AGENT_VERSION), "debug")
         response = send_request(config, cmd="ping", data=extra_data)
 
         events = event_processor.process_changes(datastore)
         for event in events:
-            logpo("Sending event:", event, "debug")
+            logger.logpo("Sending event:", event, "debug")
             send_notification(config, event["name"], event["data"])
 
         if response:
-            log("Response receive... validating", "debug")
+            logger.log("Response receive... validating", "debug")
             valid_response = validate_response(response, token)
             if valid_response:
                 data = valid_response.get("data", {})
                 new_interval = valid_response.get("refresh")
                 if new_interval and config['interval'] != int(new_interval):
                     config["interval"] = new_interval
-                    log(f"Interval update to {config['interval']} seconds", "info")
+                    logger.log(f"Interval update to {config['interval']} seconds", "info")
                 if isinstance(data, dict) and "something" in data:
                     # example
                     try:
                         pass
                     except ValueError:
-                        log("invalid", "warning")
+                        logger.log("invalid", "warning")
             else:
-                log("Invalid response receive", "warning")
+                logger.log("Invalid response receive", "warning")
 
         end_time = time.time()
         duration = end_time - current_time
-        log(f"Tiempo bucle {duration:.2f} + Sleeping {config['interval']} (segundos).", "debug")
+        logger.log(f"Tiempo bucle {duration:.2f} + Sleeping {config['interval']} (segundos).", "debug")
         time.sleep(config["interval"])
 
 if __name__ == "__main__":
@@ -161,8 +163,10 @@ if __name__ == "__main__":
     workdir = args.working_dir
 
     ctx = AppContext(workdir)
+    logger = Logger()
+    ctx.set_logger(logger)
 
-    log("Init Monnet Agent service...", "info")
+    logger.log("Init Monnet Agent service...", "info")
     if args.no_daemon:
         run(ctx)
     else:

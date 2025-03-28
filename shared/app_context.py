@@ -107,7 +107,7 @@ class AppContext:
         """
         self._logger = logger
 
-    def get_config(self):
+    def get_logger(self):
         """
         Get Logger
         Returns:

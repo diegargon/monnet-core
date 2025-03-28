@@ -1,12 +1,15 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2026 Diego Garcia (diego/@/envigo.net)
 
-Monnet Agent
+Monnet Logger
 """
 
 import syslog
 
 class Logger:
+    def __init__(self):
+        self.max_log_priority = "debug" # Set the maximum log priority level
+
     def logpo(self, msg: str, data, priority: str = "info") -> None:
         """
         Converts any Python data type to a string and logs it with a specified priority.
@@ -20,7 +23,6 @@ class Logger:
         Raises:
             ValueError: If the priority level is invalid in the underlying `log` function.
         """
-        self.max_log_priority = "debug" # Set the maximum log priority level
         try:
             message = msg + str(data)  # Convert the data to a string representation
             self.log(message, priority)  # Call the original log function
@@ -79,7 +81,7 @@ class Logger:
         syslog.syslog(syslog.LOG_ERR, error_message)
         self.closelog()
 
-    def closelog() -> None:
+    def closelog(self) -> None:
         """
         Close the syslog connection when the daemon shuts down.
         """

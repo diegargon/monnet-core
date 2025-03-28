@@ -22,6 +22,7 @@ class EventProcessor:
         Inicializa el procesador de eventos.
         """
         self.ctx = ctx
+        self.logger = ctx.get_logger()
         # Dict  processed events with time stamp
         self.processed_events: Dict[str, float] = {}
         self.event_expiration = agent_globals.EVENT_EXPIRATION
@@ -136,7 +137,7 @@ class EventProcessor:
                             })
                             self._mark_event(event_id, current_time)
         else:
-            log(f"Unexpected structure in disk info: {type(disk_info)} -> {disk_info}", "err")
+            self.logger.log(f"Unexpected structure in disk info: {type(disk_info)} -> {disk_info}", "err")
         # Cleanup processed_events
         self._cleanup_events(current_time)
 
