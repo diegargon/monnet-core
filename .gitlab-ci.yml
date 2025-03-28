@@ -27,7 +27,7 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-     - git checkout main 2>/dev/null || git checkout -b main
+    - git checkout main 2>/dev/null || git checkout -b main
     #- git checkout main || git checkout -b main
     #- git fetch github
     #- git merge github/main || echo "No changes to merge"
