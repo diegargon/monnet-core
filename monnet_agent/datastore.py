@@ -38,7 +38,7 @@ class Datastore:
         }
         self.load_data()
 
-    def update_data(self, key: str, data: Dict[str, Any]):
+    def update_data(self, key: str, data: Dict[str, Any]) -> bool:
         """
         Updates the specified data set.
         If the key does not exist, it is automatically added to allow future expansion.
@@ -52,7 +52,8 @@ class Datastore:
         self.data[key] = data
 
         if time.time() - self.last_save >= self.save_interval:
-            self.save_data()
+            return self.save_data()
+        return True
 
     def get_data(self, key: str) -> Optional[Dict[str, Any]]:
         """
@@ -71,19 +72,22 @@ class Datastore:
         """
         return list(self.data.keys())
 
-    def save_data(self):
+    def save_data(self)-> bool:
         """
         Saves the current data to a JSON file.
         """
         try:
-            with open(self.filename, "w", encoding='utf-8') as file:
+            with open(self.filename,
+                      "w", encoding='utf-8') as file:
                 json.dump(self.data, file, indent=4)
             self.last_save = time.time()
             log(f"Data saved successfully to {self.filename}")
+            return True
         except Exception as e:
             log(f"Error saving data to {self.filename}: {e}")
+            return False
 
-    def load_data(self):
+    def load_data(self)-> bool:
         """
         Loads data from a JSON file.
         """
@@ -91,7 +95,10 @@ class Datastore:
             with open(self.filename, "r", encoding='utf-8') as file:
                 self.data = json.load(file)
             log(f"Data loaded successfully from {self.filename}")
+            return True
         except FileNotFoundError:
             log("No existing data file found. Starting fresh.")
+            return False
         except Exception as e:
             log(f"Error loading data from {self.filename}: {e}")
+            return False
