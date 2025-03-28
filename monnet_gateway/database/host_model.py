@@ -6,7 +6,7 @@ Monnet
 """
 
 from monnet_gateway.database.dbmanager import DBManager
-from monnet_gateway.utils.app_context import AppContext
+from shared.app_context import AppContext
 
 
 class HostModel:

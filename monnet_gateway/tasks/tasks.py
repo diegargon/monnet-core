@@ -9,7 +9,7 @@ from time import sleep
 DEFAULT_INTERVAL = 60
 
 # Local
-from monnet_gateway.utils.app_context import AppContext
+from shared.app_context import AppContext
 from monnet_gateway.tasks.discovery import DiscoveryTask
 from monnet_gateway.tasks.known_checker import HostCheckerTask
 from monnet_gateway.tasks.ansible_runner import AnsibleTask

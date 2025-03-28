@@ -12,7 +12,7 @@ import traceback
 
 # Local
 from monnet_gateway.handlers.handler_ansible import handle_ansible_command
-from monnet_gateway.utils.app_context import AppContext
+from shared.app_context import AppContext
 from monnet_gateway.config import ALLOWED_COMMANDS
 from shared.logger import log, logpo
 
