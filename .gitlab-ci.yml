@@ -34,6 +34,8 @@ deploy_to_github:
     - git add .
     #- git commit -m "Update code from GitLab CI" || echo "No changes to commit"
     - git diff --cached --quiet || git commit -m "Deploy from GitLab"
+    - git repack -a -d --window=250 --depth=250  # Reempaqueta objetos Git
+    - git gc --aggressive
     #- git gc
     #- git push github main --no-thin
     - git push github main --force
