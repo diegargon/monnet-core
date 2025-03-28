@@ -27,8 +27,15 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git push github HEAD:main --force
-    - git push github --tags --force
+    - git gc --prune=now --aggressive
+    - git repack -a -d -f --depth=250 --window=250
+    - git fetch github main
+    - git checkout -B main github/main --force
+    - git add .
+    - git commit -m "Deploy from GitLab" || true
+    - git push github main --force-with-lease
+
+
 
     #- git checkout main 2>/dev/null || git checkout -b main
     #- git checkout main || git checkout -b main
