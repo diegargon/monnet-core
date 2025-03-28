@@ -27,6 +27,8 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
+    # 4. Limpieza de referencias problemáticas
+    - git show-ref | grep -E "pipelines|origin" | cut -d' ' -f2 | xargs -I{} git update-ref -d {}
     - git push --mirror github
     - git push github --prune
 
