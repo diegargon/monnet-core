@@ -32,6 +32,11 @@ def sample_data():
 def datastore(temp_json_file, mock_logger):
     """Instancia limpia de Datastore con mock logger"""
     from monnet_agent.datastore import Datastore
-    ds = Datastore(filename=temp_json_file)
+    from shared.app_context import AppContext
+
+    mock_ctx = MagicMock()
+    mock_ctx.get_logger.return_value = mock_logger
+
+    ds = Datastore(ctx=mock_ctx, filename=temp_json_file)
     ds.log = mock_logger  # Inyección de dependencia
     return ds
