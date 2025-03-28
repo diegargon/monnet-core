@@ -4,6 +4,7 @@ stages:
 
 before_script:
   - echo "nameserver 192.168.2.126" > /etc/resolv.conf
+  - ping -c 1 gitlab.com
 test:
   stage: test
   image: python:3.9
