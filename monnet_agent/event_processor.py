@@ -8,7 +8,7 @@ Monnet Agent
 import time
 from typing import List, Dict, Any
 # Local
-import monnet_agent.agent_globals as agent_globals
+import monnet_agent.agent_config as agent_config
 from shared.app_context import AppContext
 from constants import LogLevel
 from constants import EventType
@@ -25,7 +25,7 @@ class EventProcessor:
         self.logger = ctx.get_logger()
         # Dict  processed events with time stamp
         self.processed_events: Dict[str, float] = {}
-        self.event_expiration = agent_globals.EVENT_EXPIRATION
+        self.event_expiration = agent_config.EVENT_EXPIRATION
 
     def process_changes(self, datastore) -> List[Dict[str, Any]]:
         """
@@ -36,9 +36,9 @@ class EventProcessor:
         current_time = time.time()
         # Event > Iowait threshold
         iowait = datastore.get_data("last_iowait")
-        if iowait  > agent_globals.WARN_THRESHOLD:
+        if iowait  > agent_config.WARN_THRESHOLD:
             event_id = "high_io_delay"
-            if iowait > agent_globals.ALERT_THRESHOLD :
+            if iowait > agent_config.ALERT_THRESHOLD :
                 log_level = LogLevel.ALERT# globals.LT_EVENT_ALERT
             else:
                 log_level = LogLevel.WARNING
@@ -63,10 +63,10 @@ class EventProcessor:
             loadavg_data = load_avg["loadavg"]
             if (
                 loadavg_data.get("usage") is not None
-                and loadavg_data.get("usage") > agent_globals.WARN_THRESHOLD
+                and loadavg_data.get("usage") > agent_config.WARN_THRESHOLD
             ):
 
-                if loadavg_data.get("usage") > agent_globals.ALERT_THRESHOLD :
+                if loadavg_data.get("usage") > agent_config.ALERT_THRESHOLD :
                     log_level = LogLevel.ALERT
                 else:
                     log_level = LogLevel.WARNING
@@ -90,9 +90,9 @@ class EventProcessor:
         # logpo("Memory info", memory_info, "debug")
         if memory_info and "meminfo" in memory_info:
             meminfo_data = memory_info["meminfo"]
-            if meminfo_data["percent"] > agent_globals.WARN_THRESHOLD :
+            if meminfo_data["percent"] > agent_config.WARN_THRESHOLD :
                 event_id = "high_memory_usage"
-                if meminfo_data["percent"] > agent_globals.ALERT_THRESHOLD :
+                if meminfo_data["percent"] > agent_config.ALERT_THRESHOLD :
                     log_level = LogLevel.ALERT
                 else:
                     log_level = LogLevel.WARNING
@@ -116,8 +116,8 @@ class EventProcessor:
         if isinstance(disk_info, dict) and "disksinfo" in disk_info:
             for stats in disk_info["disksinfo"]:
                 if isinstance(stats, dict):
-                    if stats.get("percent")  and stats["percent"] > agent_globals.WARN_THRESHOLD :
-                        if stats["percent"] > agent_globals.ALERT_THRESHOLD :
+                    if stats.get("percent")  and stats["percent"] > agent_config.WARN_THRESHOLD :
+                        if stats["percent"] > agent_config.ALERT_THRESHOLD :
                             log_level = LogLevel.ALERT
                         else:
                             log_level = LogLevel.WARNING

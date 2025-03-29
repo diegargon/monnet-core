@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 from monnet_gateway.database.dbmanager import DBManager
-from monnet_gateway import config
+from monnet_gateway import mgateway_config
 from shared.mconfig import load_config, validate_db_config
 from shared.app_context import AppContext
 
@@ -21,17 +21,17 @@ if __name__ == "__main__":
     print("Loading Configuration")
     try:
         # Cargar la configuracion desde el archivo
-        config = load_config(config.CONFIG_DB_PATH)
+        mgateway_config = load_config(mgateway_config.CONFIG_DB_PATH)
     except RuntimeError as e:
         print(f"Error loading configuration: {e}")
         sys.exit(1)
 
-    if not config:
+    if not mgateway_config:
         print("Cant load config. Finishing")
         sys.exit(1)
 
     try:
-        validate_db_config(config)
+        validate_db_config(mgateway_config)
     except ValueError as e:
         print(f"Configuration validation error: {e}")
         sys.exit(1)
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Iniciar la conexión solo una vez y almacenarla en el contexto
     try:
-        db = DBManager(config)
+        db = DBManager(mgateway_config)
         ctx.set_database(db)
     except RuntimeError as e:
         print(f"Database connection error: {e}")

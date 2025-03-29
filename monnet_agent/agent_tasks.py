@@ -14,7 +14,7 @@ import threading
 
 # Local
 import info_linux
-import monnet_agent.agent_globals as agent_globals
+import monnet_agent.agent_config as agent_config
 from monnet_agent.datastore import Datastore
 from shared.app_context import AppContext
 
@@ -27,8 +27,8 @@ def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, s
     logger = ctx.get_logger()
     logger.debug("Checking listen ports triggered")
     try:
-        if 'check_ports' in agent_globals.timers:
-            agent_globals.timers['check_ports'].cancel()
+        if 'check_ports' in agent_config.timers:
+            agent_config.timers['check_ports'].cancel()
 
         current_listen_ports_info = info_linux.get_listen_ports_info()
         last_listen_ports_info = datastore.get_data("last_listen_ports_info")
@@ -41,12 +41,12 @@ def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, s
     except Exception as e:
         logger.error(f"Error in check_listen_ports: {e}")  # Log error instead of raising
     finally:
-        agent_globals.timers['check_ports'] = threading.Timer(
-            agent_globals.TIMER_STATS_INTERVAL,
+        agent_config.timers['check_ports'] = threading.Timer(
+            agent_config.TIMER_STATS_INTERVAL,
             check_listen_ports,
             args=(ctx, datastore, notify_callback, startup)  # Ensure ctx is passed here
         )
-        agent_globals.timers['check_ports'].start()
+        agent_config.timers['check_ports'].start()
 
 
 def send_stats(ctx: AppContext, datastore, notify_callback):
@@ -57,8 +57,8 @@ def send_stats(ctx: AppContext, datastore, notify_callback):
     logger.debug("Sending stats triggered")
 
     try:
-        if 'send_stats' in agent_globals.timers:
-            agent_globals.timers['send_stats'].cancel()
+        if 'send_stats' in agent_config.timers:
+            agent_config.timers['send_stats'].cancel()
 
         data = {}
 
@@ -106,9 +106,9 @@ def send_stats(ctx: AppContext, datastore, notify_callback):
         logger.error(f"Error in send_stats: {e}")  # Log error instead of raising
     finally:
         # Start again
-        agent_globals.timers['send_stats'] = threading.Timer(
-            agent_globals.TIMER_STATS_INTERVAL,
+        agent_config.timers['send_stats'] = threading.Timer(
+            agent_config.TIMER_STATS_INTERVAL,
             send_stats,
             args=(ctx, datastore, notify_callback)  # Ensure ctx is passed here
         )
-        agent_globals.timers['send_stats'].start()
+        agent_config.timers['send_stats'].start()

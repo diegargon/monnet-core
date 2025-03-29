@@ -13,7 +13,7 @@ import sys
 # Local
 import info_linux
 from shared.app_context import AppContext
-from monnet_agent import agent_globals
+from monnet_agent import agent_config
 from monnet_agent.notifications import send_notification
 from constants import LogLevel, EventType
 
@@ -41,10 +41,10 @@ def handle_signal(signum, frame, ctx: AppContext):
     logger.log(f"Receive Signal {signal_name}  Stopping app...", "notice")
 
     # Cancel all timers
-    for name, timer in agent_globals.timers.items():
+    for name, timer in agent_config.timers.items():
         logger.log(f"Clearing timer: {name}")
         timer.cancel()
-    agent_globals.timers.clear()
+    agent_config.timers.clear()
 
     # Build notification if detect agent or system shutdown
 

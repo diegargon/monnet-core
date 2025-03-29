@@ -18,7 +18,7 @@ import psutil
 from constants.log_level import LogLevel
 from constants.event_type import EventType
 import monnet_agent.agent_tasks as agent_tasks
-from monnet_agent import agent_globals, info_linux
+from monnet_agent import agent_config, info_linux
 from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
@@ -44,7 +44,7 @@ class MonnetAgent:
 
         # Load config from file
         try:
-            self.config = load_config(agent_globals.CONFIG_FILE_PATH)
+            self.config = load_config(agent_config.CONFIG_AGENT_PATH)
         except RuntimeError as e:
             self.logger.log(f"Error loading config: {e}", "err")
             return False
@@ -223,7 +223,7 @@ class MonnetAgent:
         self.ctx.set_var("running", False)
 
         # Cancel all active timers
-        for timer_name, timer in agent_globals.timers.items():
+        for timer_name, timer in agent_config.timers.items():
             if timer:
                 timer.cancel()
         self.logger.log("Agent stopped and timers cleaned up.", "info")

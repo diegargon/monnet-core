@@ -13,7 +13,7 @@ import socket
 import threading
 
 # Local
-from monnet_gateway.config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
+from monnet_gateway.mgateway_config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
 from monnet_gateway.handlers.handler_client import handle_client
 from shared.app_context import AppContext
 

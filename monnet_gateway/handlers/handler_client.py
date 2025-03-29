@@ -12,7 +12,7 @@ import traceback
 
 # Local
 from monnet_gateway.handlers.handler_ansible import handle_ansible_command
-from monnet_gateway.config import ALLOWED_COMMANDS
+from monnet_gateway.mgateway_config import ALLOWED_COMMANDS
 from shared.app_context import AppContext
 
 def handle_client(ctx: AppContext, conn, addr):

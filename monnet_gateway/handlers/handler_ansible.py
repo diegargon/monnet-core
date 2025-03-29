@@ -12,7 +12,7 @@ import os
 import subprocess
 
 # Local
-from monnet_gateway.config import VERSION, MINOR_VERSION
+from monnet_gateway.mgateway_config import VERSION, MINOR_VERSION
 from shared.app_context import AppContext
 
 def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):

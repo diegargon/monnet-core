@@ -19,7 +19,7 @@ import uuid
 
 # Local
 import info_linux
-from monnet_agent import agent_globals
+from monnet_agent import agent_config
 
 def get_meta(ctx: AppContext):
     """
@@ -48,7 +48,7 @@ def get_meta(ctx: AppContext):
         "hostname": hostname,
         "nodename": nodename,
         "ip_address": ip_address,
-        "agent_version": str(agent_globals.AGENT_VERSION),
+        "agent_version": str(agent_config.AGENT_VERSION),
         "uuid": _uuid                                 # ID uniq
     }
     # log(f"Metadata: {meta}", "debug")
@@ -82,7 +82,7 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             "id": idx,
             "cmd": "notification",
             "token": token,
-            "version": agent_globals.AGENT_VERSION,
+            "version": agent_config.AGENT_VERSION,
             "name": name,
             "data": data or {},
             "meta": meta
@@ -146,7 +146,7 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
         "cmd": cmd,
         "token": token,
         "interval": interval,
-        "version": agent_globals.AGENT_VERSION,
+        "version": agent_config.AGENT_VERSION,
         "name": cmd,
         "data": data or {},
         "meta": meta

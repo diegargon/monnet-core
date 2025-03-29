@@ -8,7 +8,7 @@ Monnet Gateway
 import sys
 
 from monnet_gateway.database.dbmanager import DBManager
-from monnet_gateway import config
+from monnet_gateway import mgateway_config
 from shared.mconfig import load_config, validate_db_config
 from shared.app_context import AppContext
 
@@ -18,7 +18,7 @@ def init_context(base_dir):
     """
     try:
         # Load configuration
-        config_data = load_config(config.CONFIG_DB_PATH)
+        config_data = load_config(mgateway_config.CONFIG_DB_PATH)
         validate_db_config(config_data)
     except (RuntimeError, ValueError) as e:
         print(f"Configuration error: {e}")

@@ -7,11 +7,11 @@ Config file
 """
 
 VERSION = "0.4"
-MINOR_VERSION = 46
+MINOR_VERSION = 47
 HOST = 'localhost'
 PORT = 65432
 PORT_TEST = 65433
-CONFIG_PATH = "/etc/monnet/monnet-gateway-config.json"
+CONFIG_MGATEWAY_PATH = "/etc/monnet/mgateway-config"
 CONFIG_DB_PATH = "/etc/monnet/config-db.json"
 
 TASK_INTERVAL = 10  # Seconds
