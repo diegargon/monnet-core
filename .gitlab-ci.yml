@@ -27,7 +27,6 @@ deploy_to_github:
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git for-each-ref --format='delete %(refname)' refs/pipelines/ refs/merge-requests/ | git update-ref --stdin
-    - git pull
 
     - git reflog expire --expire=now --all
     - git gc --prune=now --aggressive
@@ -35,6 +34,7 @@ deploy_to_github:
 
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git checkout -B main
+    - git pull
     - git push github --mirror --force
 
     #- git checkout main 2>/dev/null || git checkout -b main
