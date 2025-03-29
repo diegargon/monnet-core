@@ -7,8 +7,8 @@ Monnet Logger
 import syslog
 
 class Logger:
-    def __init__(self):
-        self.max_log_priority = "debug" # Set the maximum log priority level
+    def __init__(self, max_allowed_log_level: str = "debug") -> None:
+        self.max_allowed_log_level = max_allowed_log_level
 
     def logpo(self, msg: str, data, priority: str = "info") -> None:
         """
@@ -59,13 +59,13 @@ class Logger:
                 f"Valid options are {list(syslog_level.keys())}"
             )
 
-        if self.max_log_priority not in syslog_level:
+        if self.max_allowed_log_level not in syslog_level:
             self.log_error(
-                f"Invalid MAX_LOG_PRIORITY: {self.max_log_priority}. "
+                f"Invalid MAX_LOG_PRIORITY: {self.max_allowed_log_level}. "
                 f"Valid options are {list(syslog_level.keys())}"
             )
 
-        if syslog_level[priority] <= syslog_level[self.max_log_priority]:
+        if syslog_level[priority] <= syslog_level[self.max_allowed_log_level]:
             syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
             syslog.syslog(syslog_level[priority], message)
             self.closelog()
@@ -86,3 +86,33 @@ class Logger:
         Close the syslog connection when the daemon shuts down.
         """
         syslog.closelog()
+
+    def info(self, message: object) -> None:
+        """
+        Logs an informational message.
+        """
+        self.logpo("", message, "info")
+
+    def error(self, message: object) -> None:
+        """
+        Logs an error message.
+        """
+        self.logpo("", message, "err")
+
+    def err(self, message: object) -> None:
+        """
+        Logs an error message.
+        """
+        self.logpo("", message, "err")
+
+    def debug(self, message: object) -> None:
+        """
+        Logs a debug message.
+        """
+        self.logpo("", message, "debug")
+
+    def warning(self, message: object) -> None:
+        """
+        Logs a warning message.
+        """
+        self.logpo("", message, "warning")

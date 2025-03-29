@@ -24,15 +24,21 @@ from shared.app_context import AppContext
 
 if __name__ == "__main__":
     print("Loading Configuration")
-    # Cargar la configuracion desde el archivo
-    config = load_config(config.CONFIG_DB_PATH)
+    try:
+        # Cargar la configuracion desde el archivo
+        config = load_config(config.CONFIG_DB_PATH)
+    except RuntimeError as e:
+        print(f"Error loading configuration: {e}")
+        sys.exit(1)
+
     if not config:
         print("Cant load config. Finishing")
         sys.exit(1)
+
     try:
         validate_db_config(config)
     except ValueError as e:
-        print(str(e))
+        print(f"Configuration validation error: {e}")
         sys.exit(1)
 
     ctx = AppContext("/opt/monnet-core")

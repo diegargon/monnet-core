@@ -42,7 +42,12 @@ class MonnetAgent:
         self.logger.log("Init monnet linux agent", "info")
 
         # Load config from file
-        self.config = load_config(agent_globals.CONFIG_FILE_PATH)
+        try:
+            self.config = load_config(agent_globals.CONFIG_FILE_PATH)
+        except RuntimeError as e:
+            self.logger.log(f"Error loading config: {e}", "err")
+            return False
+
         if not self.config:
             self.logger.log("Cant load config. Finishing", "err")
             return False
@@ -50,7 +55,10 @@ class MonnetAgent:
         try:
             validate_agent_config(self.config)
         except ValueError as e:
-            self.logger.log(str(e), "err")
+            self.logger.log(f"Validation error: {e}", "err")
+            return False
+        except RuntimeError as e:
+            self.logger.log(f"Unexpected error during validation: {e}", "err")
             return False
 
         self.config["interval"] = self.config["default_interval"]

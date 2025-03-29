@@ -5,8 +5,6 @@ Monnet Agent
 """
 
 import json
-# Local
-from shared.logger import log
 
 def load_config(file_path):
     """Load JSON config"""
@@ -16,8 +14,7 @@ def load_config(file_path):
             config['_config_path'] = file_path
             return config
     except Exception as e:
-        log(f"Error loading configuration: {e}", "err")
-        return None
+        raise RuntimeError(f"Error loading configuration: {e}")
 
 def update_config(config: dict, key: str, value):
     """
@@ -44,12 +41,11 @@ def update_config(config: dict, key: str, value):
 
         return True
     except Exception as e:
-        print(f"Error updating configuration: {e}")
-        return False
+        raise RuntimeError(f"Error updating configuration: {e}")
 
 def validate_agent_config(config: dict):
     """
-    Basic validation: exist  and are not empty.
+    Basic validation: exist and are not empty.
 
     :param config: dict containing configuration values.
     :return: True or Raises ValueError if validation fails.
@@ -67,7 +63,6 @@ def validate_agent_config(config: dict):
     missing_keys = [key for key in required_keys if not config.get(key)]
     if missing_keys:
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
-    log("Configuration is valid", "debug")
 
     return True
 
@@ -85,5 +80,4 @@ def validate_db_config(config: dict):
     if missing_keys:
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
 
-    log("Database configuration is valid", "debug")
     return True

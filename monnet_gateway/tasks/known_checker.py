@@ -3,20 +3,19 @@
 
 """
 
-import subprocess
 from shared.app_context import AppContext
-from shared.logger import log
 
 class HostCheckerTask:
     """ Verify known hosts """
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
-        self.log = ctx.get_logger()
+        self.logger = ctx.get_logger()
     #    self.hosts = ctx.get_var("known_hosts", [])
 
     def run(self):
-        log("Verifying known hosts ...", "debug")
+        self.logger.debug("Verifying known hosts ...")
 
     def ping_host(self, host):
         """ Ping check """
-        log(f"Ping {host}...", "debug")
+        self.logger.debug(f"Ping {host}...")
+

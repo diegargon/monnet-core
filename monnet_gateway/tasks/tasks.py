@@ -10,7 +10,6 @@ DEFAULT_INTERVAL = 60
 
 # Local
 from shared.app_context import AppContext
-from shared.logger import log
 from monnet_gateway.tasks.discovery import DiscoveryTask
 from monnet_gateway.tasks.known_checker import HostCheckerTask
 from monnet_gateway.tasks.ansible_runner import AnsibleTask
@@ -18,13 +17,13 @@ from monnet_gateway.tasks.ansible_runner import AnsibleTask
 class TaskSched:
     """Clase para ejecutar una tarea periódica."""
     def __init__(self, ctx: AppContext):
+        self.logger = ctx.get_logger()
         try:
-            log("Initialice TaskSched...")
+            self.logger.info("Initialice TaskSched...")
             if not ctx.has_var("task_interval"):
                 ctx.set_var("task_interval", DEFAULT_INTERVAL)
-                log(
-                    f"TaskSched interval not set. Using default: {DEFAULT_INTERVAL}",
-                    "warning"
+                self.logger.warning(
+                    f"TaskSched interval not set. Using default: {DEFAULT_INTERVAL}"
                 )
             self.interval = ctx.get_var("task_interval")
             self.stop_event = ctx.get_var("stop_event")
@@ -35,13 +34,13 @@ class TaskSched:
 
             # Launch Thread
             self.thread = threading.Thread(target=self.run_task, daemon=True)
-            log("TaskSched thread created.", "debug")
+            self.logger.debug("TaskSched thread created.")
         except Exception as e:
-            log(f"Error initialice TaskSched: {e}", "err")
+            self.logger.error(f"Error initialice TaskSched: {e}")
 
     def start(self):
         """Inicia el hilo de la tarea periódica."""
-        log("Starting TaskSched...", "debug")
+        self.logger.debug("Starting TaskSched...")
         self.thread.start()
 
     def run_task(self):
@@ -53,10 +52,8 @@ class TaskSched:
             monnet-discovery
             Ansible Tasks
         """
-
-
         while not self.stop_event.is_set():
-            log(f"TaskSched: Running... interval: {self.interval}", "debug")
+            self.logger.debug(f"TaskSched: Running... interval: {self.interval}")
             self.discovery.run()
             self.checker.run()
             self.ansible.run()
@@ -66,4 +63,4 @@ class TaskSched:
         """Detiene la tarea periódica."""
         self.stop_event.set()
         self.thread.join()
-        log("TaskSched stopped.")
+        self.logger.info("TaskSched stopped.")

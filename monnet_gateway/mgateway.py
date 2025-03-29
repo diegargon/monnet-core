@@ -46,8 +46,9 @@ def signal_handler(sig: signal.Signals, frame: types.FrameType, ctx: AppContext)
     logger.log(f"Monnet Gateway server shutdown... signal received {sig}", "info")
     logger.log(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}", "debug")
     logger.log(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}", "debug")
-    stop_event.set()
-    stop_server()
+    if not stop_event.is_set():
+        stop_event.set()
+        stop_server()
 
     if server_thread is not None:
         server_thread.join()

@@ -26,14 +26,11 @@ from shared.app_context import AppContext
 if __name__ == "__main__":
     print("Init monnet linux agent")
     # Cargar la configuracion desde el archivo
-    config = load_config(config.CONFIG_DB_PATH)
-    if not config:
-        print("Cant load config. Finishing")
-        sys.exit(1)
     try:
+        config = load_config(config.CONFIG_DB_PATH)
         validate_db_config(config)
-    except ValueError as e:
-        print(str(e))
+    except (RuntimeError, ValueError) as e:
+        print(f"Configuration error: {e}")
         sys.exit(1)
 
     ctx = AppContext("/opt/monnet-core")

@@ -48,12 +48,18 @@ def run_server(ctx: AppContext):
                 threading.Thread(target=handle_client, args=(ctx, conn, addr)).start()
             except socket.timeout:
                 continue
+            except OSError as e:
+                if stop_event.is_set():
+                    break  # Exit loop if the server is stopping
+                raise e
     except Exception as e:
         logger.log(f"Error in the server: {str(e)}", "err")
         error_message = {"status": "error", "message": f"Server error: {str(e)}"}
-        logger.log(json.dumps(error_message),"debug")
+        logger.log(json.dumps(error_message), "debug")
     finally:
-        server_socket.close()
+        if server_socket:
+            server_socket.close()
+            server_socket = None  # Ensure the socket is set to None after closing
 
 def stop_server():
     """
@@ -61,5 +67,9 @@ def stop_server():
     """
     global server_socket
     if server_socket:
-        server_socket.close()
-        server_socket = None
+        try:
+            server_socket.close()
+        except OSError as e:
+            pass  # Ignore errors if the socket is already closed
+        finally:
+            server_socket = None

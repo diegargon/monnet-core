@@ -13,7 +13,6 @@ import traceback
 # Local
 from monnet_gateway.handlers.handler_ansible import handle_ansible_command
 from monnet_gateway.config import ALLOWED_COMMANDS
-from shared.logger import log, logpo
 from shared.app_context import AppContext
 
 def handle_client(ctx: AppContext, conn, addr):
@@ -25,14 +24,16 @@ def handle_client(ctx: AppContext, conn, addr):
             conn: connection object
             addr: address of the client
     """
+    logger = ctx.get_logger()
+
     try:
-        log(f"Connection established from {addr}", "info")
+        logger.info(f"Connection established from {addr}")
 
         while True:
             data = conn.recv(1024)
             if not data:
                 break
-            logpo("Data: ", data)
+            logger.debug(f"Data received: {data}")
             try:
                 # Convert received data to JSON
                 request = json.loads(data.decode())
@@ -51,10 +52,25 @@ def handle_client(ctx: AppContext, conn, addr):
                 #     pass
                 else:
                     response = {"status": "error", "message": f"Invalid command: {command}"}
-                logpo("Response: ", response)
+                logger.debug(f"Response: {response}")
                 # Send the response back to the client in JSON format
-                conn.sendall(json.dumps(response).encode())
-                log("Closing client connection")
+                try:
+                    encoded_response = json.dumps(response).encode()
+                except (TypeError, ValueError) as encode_error:
+                    logger.error(f"Failed to encode response: {str(encode_error)}")
+                    encoded_response = json.dumps(
+                        {"status": "error", "message": "Internal server error: encoding response"}
+                        ).encode()
+
+                try:
+                    conn.sendall(encoded_response)
+                except (BrokenPipeError, ConnectionResetError) as conn_error:
+                    logger.error(f"Failed to send response to {addr}: {str(conn_error)}")
+                    break
+                except Exception as send_error:
+                    logger.error(f"Unexpected error while sending response: {str(send_error)}")
+                    break
+                logger.info("Closing client connection")
                 break
 
             except json.JSONDecodeError:
@@ -76,9 +92,9 @@ def handle_client(ctx: AppContext, conn, addr):
                 }
                 conn.sendall(json.dumps(error_message).encode())
                 break
-        log(f"Connection with {addr} closed", "info")
+        logger.info(f"Connection with {addr} closed")
 
     except Exception as e:
-        log(f"Error handling connection with {addr}: {str(e)}", "err")
+        logger.error(f"Error handling connection with {addr}: {str(e)}")
     finally:
         conn.close()

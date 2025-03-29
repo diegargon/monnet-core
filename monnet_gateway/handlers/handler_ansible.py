@@ -14,7 +14,6 @@ import subprocess
 # Local
 from monnet_gateway.config import VERSION, MINOR_VERSION
 from shared.app_context import AppContext
-from shared.logger import log
 
 def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
     playbook = data_content.get('playbook', None)
@@ -22,12 +21,13 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
     ip = data_content.get('ip', None)
     limit = data_content.get('limit', None)
     user = data_content.get('user', "ansible")
+    logger = ctx.get_logger()
 
     if not playbook:
         return {"status": "error", "message": "Playbook not specified"}
 
     try:
-        log("Running ansible playbook...", "info")
+        logger.info("Running ansible playbook...")
         result = run_ansible_playbook(ctx, playbook, extra_vars, ip=ip, user=user, limit=limit)
         result_data = json.loads(result)
         # logpo("ResultData: ", result_data)
@@ -40,10 +40,10 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
 
         return response
     except json.JSONDecodeError as e:
-        log("Failed to decode JSON: " + str(e), "err")
+        logger.error("Failed to decode JSON: " + str(e))
         return {"status": "error", "message": "Failed to decode JSON: " + str(e)}
     except Exception as e:
-        log("Error executing the playbook: " + str(e), "err")
+        logger.error("Error executing the playbook: " + str(e))
         return {"status": "error", "message": "Error executing the playbook: " + str(e)}
 
 def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=None, user=None, limit=None):

@@ -19,7 +19,6 @@ import uuid
 
 # Local
 import info_linux
-from shared.logger import log
 from monnet_agent import agent_globals
 
 def get_meta(ctx: AppContext):
