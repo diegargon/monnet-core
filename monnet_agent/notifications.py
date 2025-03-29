@@ -84,7 +84,7 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             "token": token,
             "version": agent_globals.AGENT_VERSION,
             "name": name,
-            "data":  data or {},
+            "data": data or {},
             "meta": meta
         }
         logger.log(f"Notification payload: {payload}", "debug")
@@ -95,8 +95,10 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             headers = {"Content-Type": "application/json"}
             connection.request("POST", server_endpoint, body=json.dumps(payload), headers=headers)
             logger.log(f"Notification sent: {payload}", "debug")
+            response = connection.getresponse()
+            logger.log(f"Notification response: {response.status} {response.reason}", "debug")
         except Exception as e:
-            logger.log(f"Error sending notification: {e}", "err")
+            logger.log(f"Error sending notification to {server_host}: {e}", "err")
         finally:
             if connection:
                 connection.close()

@@ -17,6 +17,7 @@ import psutil
 # Local
 from constants.log_level import LogLevel
 from constants.event_type import EventType
+import monnet_agent.agent_tasks as agent_tasks
 from monnet_agent import agent_globals, info_linux
 from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
@@ -63,7 +64,8 @@ class MonnetAgent:
 
         self.config["interval"] = self.config["default_interval"]
         self.ctx.set_config(self.config)
-        self.setup_handlers()
+        self._setup_handlers()
+        self._setup_tasksched()
         self._send_starting_notification()
 
         return True
@@ -137,12 +139,12 @@ class MonnetAgent:
             extra_data.update(current_load_avg)
 
         # Check and update memory info
-        if current_load_avg is not None and current_memory_info != self.datastore.get_data("last_memory_info"):
+        if current_memory_info is not None and current_memory_info != self.datastore.get_data("last_memory_info"):
             self.datastore.update_data("last_memory_info", current_memory_info)
             extra_data.update(current_memory_info)
 
         # Check and update disk info
-        if current_load_avg is not None and current_disk_info != self.datastore.get_data("last_disk_info"):
+        if current_disk_info is not None and current_disk_info != self.datastore.get_data("last_disk_info"):
             self.datastore.update_data("last_disk_info", current_disk_info)
             extra_data.update(current_disk_info)
 
@@ -193,7 +195,7 @@ class MonnetAgent:
             self.logger.logpo(f"Sending event: {event}", "debug")
             send_notification(self.ctx, event["name"], event["data"])
 
-    def setup_handlers(self):
+    def _setup_handlers(self):
         """Setup signal handlers"""
         # TODO borra self.config
         signal.signal(signal.SIGINT, lambda signum, frame: handle_signal(signum, frame, self.ctx, self.config))
@@ -210,7 +212,19 @@ class MonnetAgent:
         )
         time.sleep(sleep_time)
 
+    def _setup_tasksched(self):
+        """Setup Task Scheduler"""
+
+        agent_tasks.check_listen_ports(self.ctx, self.datastore, send_notification, startup=1)
+        agent_tasks.send_stats(self.ctx, self.datastore, send_notification)
+
     def stop(self):
         """Stop the agent gracefully"""
         self.running = False
         self.ctx.set_var("running", False)
+
+        # Cancel all active timers
+        for timer_name, timer in agent_globals.timers.items():
+            if timer:
+                timer.cancel()
+        self.logger.log("Agent stopped and timers cleaned up.", "info")

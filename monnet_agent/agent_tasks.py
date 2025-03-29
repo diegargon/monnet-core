@@ -16,13 +16,15 @@ import threading
 import info_linux
 import monnet_agent.agent_globals as agent_globals
 from monnet_agent.datastore import Datastore
+from shared.app_context import AppContext
 
-def check_listen_ports(config: dict, datastore: Datastore, notify_callback, startup=None):
+def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, startup=None):
     """
 
         Send port changes. Startup force send update every agent start/restart
 
     """
+    logger = ctx.get_logger()
 
     try:
         if 'check_ports' in agent_globals.timers:
@@ -33,33 +35,35 @@ def check_listen_ports(config: dict, datastore: Datastore, notify_callback, star
 
         if ((current_listen_ports_info != last_listen_ports_info) or startup):
             datastore.update_data("last_listen_ports_info", current_listen_ports_info)
-            notify_callback(config, "listen_ports_info", current_listen_ports_info)  # Notificar
+            notify_callback(ctx, "listen_ports_info", current_listen_ports_info)  # Pass ctx to callback
         #else : #debug
         #    notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
     except Exception as e:
-        raise RuntimeError(f"Error in check_listen_ports: {e}")  # Reemplazar log con raise
+        logger.error(f"Error in check_listen_ports: {e}")  # Log error instead of raising
     finally:
-        agent_globals.timers['check_ports']  = threading.Timer(
+        agent_globals.timers['check_ports'] = threading.Timer(
             agent_globals.TIMER_STATS_INTERVAL,
             check_listen_ports,
-            args=(config, datastore, notify_callback)
+            args=(ctx, datastore, notify_callback, startup)  # Ensure ctx is passed here
         )
         agent_globals.timers['check_ports'].start()
 
 
-def send_stats(config, datastore, notify_callback):
+def send_stats(ctx: AppContext, datastore, notify_callback):
     """
         Send stats every TIME_STATS_INTERVAL
     """
+    logger = ctx.get_logger()
+
     try:
-        if 'send_stats' in agent_globals.timers :
+        if 'send_stats' in agent_globals.timers:
             agent_globals.timers['send_stats'].cancel()
 
         data = {}
 
         # Load
         last_avg_stats = datastore.get_data("last_load_avg")
-        if last_avg_stats is not None and 'loadavg' in last_avg_stats:
+        if last_avg_stats and 'loadavg' in last_avg_stats:
             data['load_avg_stats'] = last_avg_stats['loadavg']
 
         # Io wait
@@ -78,19 +82,20 @@ def send_stats(config, datastore, notify_callback):
         last_memory_info = datastore.get_data("last_memory_info")
         average_memory_percent = (
             last_memory_stats['meminfo']['percent'] +
-            last_memory_info['meminfo']['percent']) / 2
+            last_memory_info['meminfo']['percent']
+            ) / 2
         datastore.update_data("last_memory_stats", last_memory_stats)
         data['memory_stats'] = round(average_memory_percent)
 
         # Send
-        notify_callback(config, 'send_stats', data)
+        notify_callback(ctx, 'send_stats', data)
     except Exception as e:
-        raise RuntimeError(f"Error in send_status: {e}")  # Reemplazar log con raise
+        logger.error(f"Error in send_stats: {e}")  # Log error instead of raising
     finally:
         # Start again
-        agent_globals.timers['send_stats']  = threading.Timer(
+        agent_globals.timers['send_stats'] = threading.Timer(
             agent_globals.TIMER_STATS_INTERVAL,
             send_stats,
-            args=(config, datastore, notify_callback)
+            args=(ctx, datastore, notify_callback)  # Ensure ctx is passed here
         )
         agent_globals.timers['send_stats'].start()
