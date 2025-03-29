@@ -17,11 +17,6 @@ from monnet_gateway.utils.myutils import pprint_table
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
-# Local
-from monnet_gateway.database.dbmanager import DBManager
-from shared.app_context import AppContext
-
-
 if __name__ == "__main__":
     print("Init monnet linux agent")
     ctx = init_context("/opt/monnet-core")

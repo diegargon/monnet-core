@@ -4,11 +4,13 @@
 Monnet Gateway
 
 """
+
+import sys
+
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import config
 from shared.mconfig import load_config, validate_db_config
 from shared.app_context import AppContext
-import sys
 
 def init_context(base_dir):
     """
@@ -34,4 +36,3 @@ def init_context(base_dir):
         sys.exit(1)
 
     return ctx
-

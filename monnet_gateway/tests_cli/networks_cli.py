@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 from monnet_gateway.utils.myutils import pprint_table
-from monnet_gateway.tests_cli.common_cli import init_context, init_database, initialize_context, initialize_database
+from monnet_gateway.tests_cli.common_cli import init_context
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))

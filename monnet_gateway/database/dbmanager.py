@@ -6,7 +6,13 @@ Monnet Gateway
 
 # Example usage
 if __name__ == "__main__":
-    config = DBConfig(host="localhost", user="usuario", password="password", database="monnet", driver="mysql-connector")
+    config = DBConfig(
+        host="localhost",
+        user="usuario",
+        password="password",
+        database="monnet",
+        driver="mysql-connector"
+    )
 
     try:
         with DBManager(config) as db:
@@ -16,7 +22,9 @@ if __name__ == "__main__":
 
             # Insert a new user within a transaction
             with db.transaction():
-                rows_affected = db.execute("INSERT INTO users (username, password) VALUES (%s, %s)", ("John Doe", "test"))
+                rows_affected = db.execute(
+                    "INSERT INTO users (username, password) VALUES (%s, %s)", ("John Doe", "test")
+                )
                 print(f"Rows inserted: {rows_affected}")
     except RuntimeError as e:
         print(e)

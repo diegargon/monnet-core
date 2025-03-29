@@ -16,8 +16,6 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import config
 from shared.mconfig import load_config, validate_db_config
 from shared.app_context import AppContext
-from monnet_gateway.tests_cli.common_cli import initialize_context
-
 
 if __name__ == "__main__":
     print("Loading Configuration")
