@@ -94,7 +94,6 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             connection = http.client.HTTPSConnection(server_host, context=context)
             headers = {"Content-Type": "application/json"}
             connection.request("POST", server_endpoint, body=json.dumps(payload), headers=headers)
-            logger.log(f"Notification sent: {payload}", "debug")
             response = connection.getresponse()
             logger.log(f"Notification response: {response.status} {response.reason}", "debug")
         except Exception as e:
