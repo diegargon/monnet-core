@@ -25,7 +25,7 @@ def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, s
 
     """
     logger = ctx.get_logger()
-
+    logger.debug("Checking listen ports triggered")
     try:
         if 'check_ports' in agent_globals.timers:
             agent_globals.timers['check_ports'].cancel()
@@ -54,6 +54,7 @@ def send_stats(ctx: AppContext, datastore, notify_callback):
         Send stats every TIME_STATS_INTERVAL
     """
     logger = ctx.get_logger()
+    logger.debug("Sending stats triggered")
 
     try:
         if 'send_stats' in agent_globals.timers:
@@ -71,21 +72,33 @@ def send_stats(ctx: AppContext, datastore, notify_callback):
         if not iowait_last_stats:
             iowait_last_stats = datastore.get_data("last_iowait")
         last_iowait = datastore.get_data("last_iowait")
-        average_iowait =  (iowait_last_stats + last_iowait) / 2
-        datastore.update_data("iowait_last_stats", last_iowait)
-        data['iowait_stats'] = average_iowait
+
+        if iowait_last_stats is not None and last_iowait is not None:
+            average_iowait = (iowait_last_stats + last_iowait) / 2
+            datastore.update_data("iowait_last_stats", last_iowait)
+            data['iowait_stats'] = average_iowait
+        else:
+            logger.warning("Missing iowait stats data for calculation")
 
         # Memory
         last_memory_stats = datastore.get_data("last_memory_stats")
         if not last_memory_stats:
             last_memory_stats = datastore.get_data("last_memory_info")
         last_memory_info = datastore.get_data("last_memory_info")
-        average_memory_percent = (
-            last_memory_stats['meminfo']['percent'] +
-            last_memory_info['meminfo']['percent']
+
+        if (
+            last_memory_stats and last_memory_info and
+            last_memory_stats.get('meminfo', {}).get('percent') is not None and
+            last_memory_info.get('meminfo', {}).get('percent') is not None
+        ):
+            average_memory_percent = (
+                last_memory_stats['meminfo']['percent'] +
+                last_memory_info['meminfo']['percent']
             ) / 2
-        datastore.update_data("last_memory_stats", last_memory_stats)
-        data['memory_stats'] = round(average_memory_percent)
+            datastore.update_data("last_memory_stats", last_memory_stats)
+            data['memory_stats'] = round(average_memory_percent)
+        else:
+            logger.warning("Missing memory stats data for calculation")
 
         # Send
         notify_callback(ctx, 'send_stats', data)
