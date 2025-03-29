@@ -15,5 +15,5 @@ class NetworksModel:
         self.db = db
 
     def get_all(self,) -> list[dict]:
-        """ List all networks """
-        return self.db.execute_query("SELECT * FROM hosts")
+        """ Get all networks """
+        return self.db.fetchall("SELECT * FROM networks")

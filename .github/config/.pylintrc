@@ -18,6 +18,4 @@ disable=C0115,C0116,W0105,R1732,R0914,C0413,W0718,R0912,R0915,R0903,W0511,R0913,
 
 [MASTER]
 max-line-length=120
-
-[IMPORTS]
-ignore=tests
+ignore-paths=tests,files
