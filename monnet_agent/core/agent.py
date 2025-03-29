@@ -197,9 +197,8 @@ class MonnetAgent:
 
     def _setup_handlers(self):
         """Setup signal handlers"""
-        # TODO borra self.config
-        signal.signal(signal.SIGINT, lambda signum, frame: handle_signal(signum, frame, self.ctx, self.config))
-        signal.signal(signal.SIGTERM, lambda signum, frame: handle_signal(signum, frame, self.ctx, self.config))
+        signal.signal(signal.SIGINT, lambda signum, frame: handle_signal(signum, frame, self.ctx))
+        signal.signal(signal.SIGTERM, lambda signum, frame: handle_signal(signum, frame, self.ctx))
 
     def _sleep_interval(self, start_time: float):
         """Sleep for remaining interval time"""

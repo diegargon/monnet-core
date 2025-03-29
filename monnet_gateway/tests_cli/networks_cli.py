@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet
+Monnet Gateway
 
 """
 
@@ -30,5 +30,3 @@ if __name__ == "__main__":
         pprint_table(all_networks)
     except RuntimeError as e:
         print(f"Database query error: {e}")
-
-

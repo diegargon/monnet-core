@@ -2,6 +2,7 @@
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
 Monnet Agent
+
 """
 
 # Std
@@ -17,7 +18,7 @@ from monnet_agent.notifications import send_notification
 from constants import LogLevel, EventType
 
 
-def handle_signal(signum, frame, ctx: AppContext, config):
+def handle_signal(signum, frame, ctx: AppContext):
     """
     Signal Handler
 

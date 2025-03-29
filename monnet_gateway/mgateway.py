@@ -124,13 +124,13 @@ def main():
     if args.no_daemon:
         logger.log("Running in foreground mode", "info")
         with daemon.DaemonContext(
-                    detach_process=False,   # Avoid background
-                    stdout=sys.stdout,      # Redirect stdout to the console
-                    stderr=sys.stderr,      # Redirect stderr to the console
-                    stdin=sys.stdin,        # Terminal input
-                    files_preserve=[sys.stdout.fileno(), sys.stderr.fileno()]
-                ):
-                run(ctx)
+            detach_process=False,   # Avoid background
+            stdout=sys.stdout,      # Redirect stdout to the console
+            stderr=sys.stderr,      # Redirect stderr to the console
+            stdin=sys.stdin,        # Terminal input
+            files_preserve=[sys.stdout.fileno(), sys.stderr.fileno()]
+        ):
+            run(ctx)
     else:
         with daemon.DaemonContext(working_directory=workdir):
             logger.log("Running in daemon mode", "info")

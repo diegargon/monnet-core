@@ -1,12 +1,13 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
+Monnet Agent
+
 Global Vars
 
-Monnet Agent
 """
 
-AGENT_VERSION = "0.160"
+AGENT_VERSION = "0.161"
 # Config file
 CONFIG_FILE_PATH = "/etc/monnet/agent-config"
 DATASTORE_FILE_PATH = "/tmp/datastore.json"

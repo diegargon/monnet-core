@@ -1,6 +1,8 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
+Monnet Gateway
+
 """
 def pprint_table(rows, header_interval=50):
     """ Format and print a table with headers and rows."""

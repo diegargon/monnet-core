@@ -18,4 +18,3 @@ class HostCheckerTask:
     def ping_host(self, host):
         """ Ping check """
         self.logger.debug(f"Ping {host}...")
-

@@ -1,13 +1,11 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet
+Monnet Gateway
 
 """
 
 from monnet_gateway.database.dbmanager import DBManager
-from shared.app_context import AppContext
-
 
 class HostsModel:
     """DB Operations to manage hosts """
