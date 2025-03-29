@@ -86,4 +86,3 @@ class Logger:
         Close the syslog connection when the daemon shuts down.
         """
         syslog.closelog()
-

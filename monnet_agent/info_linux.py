@@ -187,14 +187,12 @@ def get_disks_info():
                     })
 
                 except (OSError, ValueError, IndexError) as e:
-                    # Continuamos con el siguiente mountpoint si hay error en uno
-                    continue
+                    continue # Skip this mount
 
     except OSError as e:
         raise OSError(f"Error reading /proc/mounts: {e}") from e
 
     return {"disksinfo": disks_info}
-
 
 
 def get_uptime():

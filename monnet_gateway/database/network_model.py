@@ -5,10 +5,13 @@ Monnet
 
 """
 
+from monnet_gateway.database.dbmanager import DBManager
+
+
 class NetworksModel:
     """DB Operations to manage networks"""
 
-    def __init__(self, db: Database):
+    def __init__(self, db: DBManager):
         self.db = db
 
     def get_all(self,) -> list[dict]:

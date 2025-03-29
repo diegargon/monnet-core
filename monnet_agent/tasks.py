@@ -17,8 +17,7 @@ import info_linux
 import monnet_agent.agent_globals as agent_globals
 from monnet_agent.datastore import Datastore
 
-from shared.logger import log, logpo
-
+from shared.logger import log
 
 def check_listen_ports(config: dict, datastore: Datastore, notify_callback, startup=None):
     """

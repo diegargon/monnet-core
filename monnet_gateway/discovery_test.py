@@ -16,7 +16,7 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import config
 from shared.logger import log
 from shared.mconfig import load_config, validate_db_config
-from shared.app_context import AppContext;
+from shared.app_context import AppContext
 
 
 if __name__ == "__main__":

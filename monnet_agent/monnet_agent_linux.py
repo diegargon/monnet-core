@@ -13,15 +13,14 @@ from pathlib import Path
 import argparse
 
 # Third Party
-from shared.clogger import Logger
 import daemon
-
-from shared.app_context import AppContext
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
+from shared.clogger import Logger
+from shared.app_context import AppContext
 from monnet_agent.core.agent import MonnetAgent
 
 def main():

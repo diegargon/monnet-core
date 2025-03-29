@@ -10,10 +10,10 @@ DEFAULT_INTERVAL = 60
 
 # Local
 from shared.app_context import AppContext
+from shared.logger import log
 from monnet_gateway.tasks.discovery import DiscoveryTask
 from monnet_gateway.tasks.known_checker import HostCheckerTask
 from monnet_gateway.tasks.ansible_runner import AnsibleTask
-from shared.logger import log
 
 class TaskSched:
     """Clase para ejecutar una tarea periódica."""

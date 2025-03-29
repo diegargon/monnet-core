@@ -30,6 +30,7 @@ class MonnetAgent:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.running = True
+        ctx.set_var("running", True)
         self.config = None
         self.datastore = Datastore(ctx)
         self.event_processor = EventProcessor(ctx)
@@ -72,7 +73,10 @@ class MonnetAgent:
             self._send_ping(extra_data)
             self._process_events()
 
+            self.running = self.ctx.get_var("running")
             self._sleep_interval(current_time)
+
+        return True
 
     def _send_starting_notification(self):
         """Send initial notification with system info"""
@@ -200,3 +204,4 @@ class MonnetAgent:
     def stop(self):
         """Stop the agent gracefully"""
         self.running = False
+        self.ctx.set_var("running", False)

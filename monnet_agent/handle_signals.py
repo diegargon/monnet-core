@@ -24,7 +24,6 @@ def handle_signal(signum, frame, ctx: AppContext, config):
     Returns:
         None
     """
-    global running
 
     signal_name = None
     msg = None
@@ -73,5 +72,5 @@ def handle_signal(signum, frame, ctx: AppContext, config):
     # Send
     data = {"msg": msg, "log_level": log_level, "event_type": event_type}
     send_notification(config, notification_type, data)
-    running = False
+    ctx.set_var("running", False)
     sys.exit(0)

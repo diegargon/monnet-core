@@ -16,7 +16,7 @@ class HostModel:
         if ctx.has_database():
             self.db = ctx.get_database()
         else:
-            if(ctx.get_config()):
+            if ctx.get_config():
                 self.db = DBManager(ctx.get_config())
                 ctx.set_database(self.db)
             else:
