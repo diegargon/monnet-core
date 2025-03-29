@@ -24,17 +24,13 @@ deploy_to_github:
   #when: manual
   script:
     # Configurar el usuario de Git
+    # Se cambio en Gitlab->CI a estragia clone depth 0 si no fallaba el deploy
     - git config --global user.name "GitLabCI"
     - git config --global user.email "ci-bot@no.domain"
     - git for-each-ref --format='delete %(refname)' refs/pipelines/ refs/merge-requests/ | git update-ref --stdin
-
-    #- git reflog expire --expire=now --all
-    #- git gc --prune=now --aggressive
-    #- git repack -a -d -f --window=250 --depth=250
-
+    - git fsck --full
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
     - git checkout -B main
-
     - git push github --mirror --force
 
     #- git checkout main 2>/dev/null || git checkout -b main
