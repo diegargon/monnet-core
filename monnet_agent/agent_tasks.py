@@ -17,8 +17,6 @@ import info_linux
 import monnet_agent.agent_globals as agent_globals
 from monnet_agent.datastore import Datastore
 
-from shared.logger import log
-
 def check_listen_ports(config: dict, datastore: Datastore, notify_callback, startup=None):
     """
 
@@ -39,7 +37,7 @@ def check_listen_ports(config: dict, datastore: Datastore, notify_callback, star
         #else : #debug
         #    notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
     except Exception as e:
-        log(f"Error in check_listen_ports: {e}", "err")
+        raise RuntimeError(f"Error in check_listen_ports: {e}")  # Reemplazar log con raise
     finally:
         agent_globals.timers['check_ports']  = threading.Timer(
             agent_globals.TIMER_STATS_INTERVAL,
@@ -87,7 +85,7 @@ def send_stats(config, datastore, notify_callback):
         # Send
         notify_callback(config, 'send_stats', data)
     except Exception as e:
-        log(f"Error in send_status: {e}", "err")
+        raise RuntimeError(f"Error in send_status: {e}")  # Reemplazar log con raise
     finally:
         # Start again
         agent_globals.timers['send_stats']  = threading.Timer(

@@ -195,6 +195,7 @@ class MonnetAgent:
 
     def setup_handlers(self):
         """Setup signal handlers"""
+        # TODO borra self.config
         signal.signal(signal.SIGINT, lambda signum, frame: handle_signal(signum, frame, self.ctx, self.config))
         signal.signal(signal.SIGTERM, lambda signum, frame: handle_signal(signum, frame, self.ctx, self.config))
 
