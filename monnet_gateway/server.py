@@ -16,7 +16,6 @@ import threading
 from monnet_gateway.config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
 from monnet_gateway.handlers.handler_client import handle_client
 from shared.app_context import AppContext
-from shared.logger import log
 
 server_socket = None
 
@@ -28,8 +27,11 @@ def run_server(ctx: AppContext):
             ctx (Appcontext): context
     """
     global server_socket
+
+    logger = ctx.get_logger()
+
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if ctx.has_var('test'):
+    if ctx.has_var('test-port'):
         port = PORT_TEST
     else:
         port = PORT
@@ -38,7 +40,7 @@ def run_server(ctx: AppContext):
         server_socket.settimeout(1.0)
         server_socket.bind((HOST, port))
         server_socket.listen()
-        log(f"v{VERSION}.{MINOR_VERSION}: Waiting for connection on {HOST}:{port}...", "info")
+        logger.log(f"v{VERSION}.{MINOR_VERSION}: Waiting for connection on {HOST}:{port}...", "info")
 
         while not stop_event.is_set():
             try:
@@ -47,9 +49,9 @@ def run_server(ctx: AppContext):
             except socket.timeout:
                 continue
     except Exception as e:
-        log(f"Error en el servidor: {str(e)}", "err")
+        logger.log(f"Error in the server: {str(e)}", "err")
         error_message = {"status": "error", "message": f"Server error: {str(e)}"}
-        log(json.dumps(error_message),"debug")
+        logger.log(json.dumps(error_message),"debug")
     finally:
         server_socket.close()
 
