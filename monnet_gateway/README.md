@@ -1,6 +1,6 @@
 # Monnet Gateway
 
-Mediates between the web UI (monnet)) and the system.
+Mediates between the web UI (monnet) and the system.
 
 At this moment, currently only it is used for Ansible features.
 
@@ -44,7 +44,7 @@ stdout_callback=json
 
 By default, the Ansible SSH user will be 'ansible'.
 
-Must be/have:
+Must:
 
     * Be a sudo member without need to type a password
     * Have the public SSH key installed
@@ -63,7 +63,7 @@ Start 'visudo' and add:
 ansible ALL=(ALL) NOPASSWD: ALL
 ```
 
-# Fedora
+## Fedora
 
 ```
 sudo adduser ansible
@@ -98,6 +98,8 @@ If you don't use ssh-copy-id you must manually add the key to the known_host fil
 ssh-keyscan -t ecdsa,ed25519 -H server.example.com >> ~/.ssh/known_hosts 2>&1
 ```
 
+Otherwise you got a connection error refused.
+
 If the host fingerprint change you must first remove the old one
 
 ```
@@ -113,18 +115,19 @@ host_key_checking = False
 
 ## Playbooks vars
 
-Playbooks may sometimes require variables, these variables are stored in the database, and the passwords or any critical information
-must be stored encrypted. The current mechanism uses a public/private key pair; in the UI, it is encrypted with the public key, and monnet-gateway uses the private key when it needs to decrypt it. To achieve this, the keys must be generated.
+Playbooks may sometimes require variables, these variables are stored in the database, and the passwords or any critical information and
+must be stored encrypted.
+
+The current mechanism uses a public/private key pair.
+In the UI, the data is encrypted with the public key, and monnet-gateway uses the private key when it needs to decrypt it. To achieve this, the keys must be generated.
 
 Generating the keys.
-
 ```
 openssl genpkey -algorithm RSA -out monnet_private_key.pem -pkeyopt rsa_keygen_bits:2048
 openssl rsa -in monnet_private_key.pem -pubout -out monnet_public_key.pem
-mkdir -p /etc/monnet/certs-priv
 ```
 
-Private key
+Install Private key
 ```
 mkdir -p /etc/monnet/certs-priv
 chown root:root /etc/monnet/certs-priv
@@ -134,7 +137,7 @@ mv monnet_private_key.pem /etc/monnet/certs-priv
 chmod 600 /etc/monnet/certs-priv/monnet_private_key.pem
 ```
 
-Public key
+Install Public key
 ```
 mkdir -p /etc/monnet/certs-pub
 chown root:root /etc/monnet/certs-pub
@@ -144,6 +147,8 @@ chmod 644 /etc/monnet/certs-pub/monnet_public_key.pem
 ```
 
 Likewise, we must copy the contents of the public key file and insert it into the UI under Configuration -> Security -> Encrypt Public Key.
+
+# Tecnical Info
 
 ## Payload (probably outdated)
 
@@ -169,7 +174,6 @@ Receive
 
 ```
 echo '{"command": "playbook", "data": {"playbook": "test.yml"}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "test.yml", "extra_vars": {"var1": "value1", "var2": "value2"}}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "extra_vars": {}, "ip": "192.168.2.148"}}' | nc localhost 65432
-echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "extra_vars": {}, "ip": "192.168.2.148", "user": "ansible"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "ip": "192.168.2.148"}}' | nc localhost 65432
+echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "ip": "192.168.2.148", "user": "ansible"}}' | nc localhost 65432
 ```

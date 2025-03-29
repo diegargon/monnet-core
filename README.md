@@ -8,7 +8,7 @@ Monnet Agent: Linux client to be installed on other hosts to send stats and othe
 It can be installed manually or via UI/Ansible.
 
 ## Install Monnet Gateway
-    See monnet_gateway/README.md
+    https://github.com/diegargon/monnet-core/blob/main/monnet_gateway/README.md
 
 ## Install Monnet Agent
-    See monnet_agent/README.md
+    https://github.com/diegargon/monnet-core/blob/main/monnet_agent/README.md
