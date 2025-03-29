@@ -54,7 +54,7 @@ class MonnetAgent:
             return False
 
         self.config["interval"] = self.config["default_interval"]
-
+        self.ctx.set_config(self.config)
         self.setup_handlers()
         self._send_starting_notification()
 
@@ -98,7 +98,7 @@ class MonnetAgent:
             'log_level': LogLevel.NOTICE,
             'event_type': EventType.STARTING
         }
-        send_notification(self.config, 'starting', starting_data)
+        send_notification(self.ctx, 'starting', starting_data)
 
     def _collect_system_data(self) -> Dict[str, Any]:
         """Collect system metrics and return as dictionary"""
@@ -152,11 +152,11 @@ class MonnetAgent:
     def _send_ping(self, extra_data: Dict[str, Any]):
         """Send ping to server with collected data"""
         self.logger.log("Sending ping to server", "debug")
-        response = send_request(self.config, cmd="ping", data=extra_data)
+        response = send_request(self.ctx, cmd="ping", data=extra_data)
 
         if response:
             self.logger.log("Response received... validating", "debug")
-            valid_response = validate_response(response, self.config["token"])
+            valid_response = validate_response(self.ctx, response, self.config["token"])
             if valid_response:
                 self._handle_valid_response(valid_response)
             else:
@@ -183,7 +183,7 @@ class MonnetAgent:
         events = self.event_processor.process_changes(self.datastore)
         for event in events:
             self.logger.logpo(f"Sending event: {event}", "debug")
-            send_notification(self.config, event["name"], event["data"])
+            send_notification(self.ctx, event["name"], event["data"])
 
     def setup_handlers(self):
         """Setup signal handlers"""

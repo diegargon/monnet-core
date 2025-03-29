@@ -12,7 +12,6 @@ from typing import Optional, Dict, Any
 
 # Local
 from shared.app_context import AppContext
-from shared.logger import log
 
 class Datastore:
     """

@@ -13,6 +13,7 @@ Notifications
 import ssl
 import http.client
 import json
+from shared.app_context import AppContext
 import time_utils
 import uuid
 
@@ -21,9 +22,12 @@ import info_linux
 from shared.logger import log
 from monnet_agent import agent_globals
 
-def get_meta():
+def get_meta(ctx: AppContext):
     """
     Builds metadata
+
+    Args:
+        ctx (AppContext): Context
     Returns:
         dict: Dict with metadata
     """
@@ -51,20 +55,26 @@ def get_meta():
     # log(f"Metadata: {meta}", "debug")
     return meta
 
-def send_notification(config: dict, name: str, data: dict):
+def send_notification(ctx: AppContext, name: str, data: dict):
     """
         Send notification to server.
-
+        Args:
+            ctx (AppContext): Context
+            name (str): Name of the notification
+            data (dict): Extra data to send
         Return:
-        None
+            None
     """
+    config = ctx.get_config()
+    logger = ctx.get_logger()
+
     try:
         token = config["token"]
         idx = config["id"]
         ignore_cert = config["ignore_cert"]
         server_host = config["server_host"]
         server_endpoint = config["server_endpoint"]
-        meta = get_meta()
+        meta = get_meta(ctx)
         if name == 'starting':
             data["msg"] = data["msg"].strftime("%H:%M:%S")
         data["name"] = name
@@ -78,19 +88,16 @@ def send_notification(config: dict, name: str, data: dict):
             "data":  data or {},
             "meta": meta
         }
-        log(f"Notification payload: {payload}", "debug")
+        logger.log(f"Notification payload: {payload}", "debug")
         connection = None
         try:
-            if ignore_cert:
-                context = ssl._create_unverified_context()
-            else:
-                context = None
+            context = ssl._create_unverified_context() if ignore_cert else None
             connection = http.client.HTTPSConnection(server_host, context=context)
             headers = {"Content-Type": "application/json"}
             connection.request("POST", server_endpoint, body=json.dumps(payload), headers=headers)
-            log(f"Notification sent: {payload}", "debug")
+            logger.log(f"Notification sent: {payload}", "debug")
         except Exception as e:
-            log(f"Error sending notification: {e}", "err")
+            logger.log(f"Error sending notification: {e}", "err")
         finally:
             if connection:
                 connection.close()
@@ -102,31 +109,38 @@ def send_notification(config: dict, name: str, data: dict):
             if "name" in data:
                 data.pop("name")
 
-            log("Notification process completed", "debug")
+            logger.log("Notification process completed", "debug")
     except Exception as e:
-        log(f"Unexpected error in send_notification: {e}", "err")
+        logger.log(f"Unexpected error in send_notification: {e}", "err")
 
-def send_request(config, cmd="ping", data=None):
+def send_request(ctx: AppContext, cmd="ping", data=None):
     """
     Send request to server.
 
     Args:
-        config (dict): Configuration dictionary
+        ctx (AppContext): Context
         cmd (str): Command
         data (dict): Extra data
 
     Returns:
         dict or None: Server response or None if error
     """
+    config = ctx.get_config()
+    logger = ctx.get_logger()
 
     # Get base config
-    token = config["token"]
-    idx = config["id"]
-    interval = config["interval"]
-    ignore_cert = config["ignore_cert"]
-    server_host = config["server_host"]
-    server_endpoint = config["server_endpoint"]
-    meta = get_meta()
+    try:
+        token = config["token"]
+        idx = config["id"]
+        interval = config["interval"]
+        ignore_cert = config["ignore_cert"]
+        server_host = config["server_host"]
+        server_endpoint = config["server_endpoint"]
+    except KeyError as e:
+        logger.log(f"Missing configuration key: {e}", "err")
+        return None
+
+    meta = get_meta(ctx)
     payload = {
         "id": idx,
         "cmd": cmd,
@@ -141,43 +155,57 @@ def send_request(config, cmd="ping", data=None):
     connection = None
     try:
         # Accept all certs
-        if ignore_cert:
-            context = ssl._create_unverified_context()
-        else:
-            context = None
+        context = ssl._create_unverified_context() if ignore_cert else None
 
         connection = http.client.HTTPSConnection(server_host, context=context)
         headers = {"Content-Type": "application/json"}
-        log(f"Payload: {payload}", "debug")
+        logger.log(f"Sending payload: {payload}", "debug")
         connection.request("POST", server_endpoint, body=json.dumps(payload), headers=headers)
+
         # Response
         response = connection.getresponse()
         raw_data = response.read().decode()
-        log(f"Raw response: {raw_data}", "debug")
+        logger.log(f"Raw response: {raw_data}", "debug")
 
         if response.status == 200:
             if raw_data:
-                return json.loads(raw_data)
-            log("Empty response from server", "err")
+                try:
+                    return json.loads(raw_data)
+                except json.JSONDecodeError as e:
+                    logger.log(f"Error decoding JSON response: {e}", "err")
+            else:
+                logger.log("Empty response from server", "err")
         else:
-            log(f"Error HTTP: {response.status} {response.reason}, Respuesta: {raw_data}", "err")
+            logger.log(f"HTTP Error: {response.status} {response.reason}, Response: {raw_data}", "err")
 
+    except http.client.HTTPException as e:
+        logger.log(f"HTTP exception occurred: {e}", "err")
     except Exception as e:
-        log(f"Error on request: {e}", "err")
+        logger.log(f"Unexpected error on request: {e}", "err")
     finally:
         if connection:
-            connection.close()
+            try:
+                connection.close()
+            except Exception as e:
+                logger.log(f"Error closing connection: {e}", "err")
 
     return None
 
-def validate_response(response, token):
+def validate_response(ctx: AppContext, response, token):
     """
     Basic response validation
 
+    Args:
+        ctx (AppContext): Context
+        response (dict): Response from server
+        token (str): Token
     Returns:
-    None
+        None
     """
+    logger = ctx.get_logger()
+
     if response and response.get("cmd") == "pong" and response.get("token") == token:
         return response
-    log("Invalid response from server or wrong token.", "warning")
+    logger.log("Invalid response from server or wrong token.", "warning")
+
     return None

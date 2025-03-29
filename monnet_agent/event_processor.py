@@ -9,7 +9,6 @@ from typing import List, Dict, Any
 # Local
 import monnet_agent.agent_globals as agent_globals
 from shared.app_context import AppContext
-from shared.logger import log
 from constants import LogLevel
 from constants import EventType
 

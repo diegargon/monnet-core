@@ -71,6 +71,6 @@ def handle_signal(signum, frame, ctx: AppContext, config):
 
     # Send
     data = {"msg": msg, "log_level": log_level, "event_type": event_type}
-    send_notification(config, notification_type, data)
+    send_notification(ctx, notification_type, data)
     ctx.set_var("running", False)
     sys.exit(0)
