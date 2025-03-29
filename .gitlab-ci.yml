@@ -28,7 +28,7 @@ deploy_to_github:
     - git config --global user.email "ci-bot@no.domain"
     - git for-each-ref --format='delete %(refname)' refs/pipelines/ refs/merge-requests/ | git update-ref --stdin
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/diegargon/monnet-core.git
-    - git branch -M main
+    - git checkout -B main
     - git push github --mirror --force --no-verify --atomic
 
     #- git checkout main 2>/dev/null || git checkout -b main
