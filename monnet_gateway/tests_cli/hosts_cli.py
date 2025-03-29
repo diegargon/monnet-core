@@ -11,6 +11,7 @@ from pprint import pprint
 import sys
 
 from monnet_gateway.database.hosts_model import HostsModel
+from monnet_gateway.tests_cli.common_cli import init_context
 from monnet_gateway.utils.myutils import pprint_table
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,33 +19,13 @@ sys.path.append(str(BASE_DIR))
 
 # Local
 from monnet_gateway.database.dbmanager import DBManager
-from monnet_gateway import config
-from shared.mconfig import load_config, validate_db_config
 from shared.app_context import AppContext
 
 
 if __name__ == "__main__":
     print("Init monnet linux agent")
-    # Cargar la configuracion desde el archivo
-    try:
-        config = load_config(config.CONFIG_DB_PATH)
-        validate_db_config(config)
-    except (RuntimeError, ValueError) as e:
-        print(f"Configuration error: {e}")
-        sys.exit(1)
-
-    ctx = AppContext("/opt/monnet-core")
-
-    # Iniciar la conexión solo una vez y almacenarla en el contexto
-    try:
-        db = DBManager(config)
-    except RuntimeError as e:
-        print(f"Database connection error: {e}")
-        sys.exit(1)
-
-    if not db:
-        print("Database connection is not available")
-        exit(1)
+    ctx = init_context("/opt/monnet-core")
+    db = ctx.get_database()
 
     hosts = HostsModel(db)
     try:
