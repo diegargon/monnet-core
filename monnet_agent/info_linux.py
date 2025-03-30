@@ -394,3 +394,8 @@ def is_system_shutting_down():
             -1, ["systemctl", "is-system-running"],
             "Command timed out"
         )
+    except subprocess.CalledProcessError as e:
+        error_message = e.stderr.strip() if e.stderr else "Unknown error occurred"
+        raise subprocess.CalledProcessError(e.returncode, e.cmd, error_message) from e
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error while checking system status: {str(e)}") from e

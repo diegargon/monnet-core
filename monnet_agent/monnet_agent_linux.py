@@ -22,6 +22,7 @@ sys.path.append(str(BASE_DIR))
 from shared.clogger import Logger
 from shared.app_context import AppContext
 from monnet_agent.core.agent import MonnetAgent
+from monnet_agent import agent_config
 
 def main():
     parser = argparse.ArgumentParser(description="Monnet Agent")
@@ -39,7 +40,7 @@ def main():
     logger = Logger()
     ctx.set_logger(logger)
 
-    logger.log("Init Monnet Agent service...", "info")
+    logger.log(f"Init Monnet Agent service... {agent_config.AGENT_VERSION}", "info")
 
     agent = MonnetAgent(ctx)
 

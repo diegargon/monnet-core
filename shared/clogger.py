@@ -7,6 +7,18 @@ Monnet Logger
 import syslog
 
 class Logger:
+    # Define syslog levels
+    SYSLOG_LEVELS = {
+        "emerg": syslog.LOG_EMERG,
+        "alert": syslog.LOG_ALERT,
+        "crit": syslog.LOG_CRIT,
+        "err": syslog.LOG_ERR,
+        "warning": syslog.LOG_WARNING,
+        "notice": syslog.LOG_NOTICE,
+        "info": syslog.LOG_INFO,
+        "debug": syslog.LOG_DEBUG,
+    }
+
     def __init__(self, max_allowed_log_level: str = "debug", max_stored: int = 200) -> None:
         self.max_allowed_log_level = max_allowed_log_level
         self.max_stored = max_stored
@@ -43,37 +55,34 @@ class Logger:
         Raises:
             ValueError: If the priority level is invalid.
         """
-
-        syslog_level = {
-            "emerg": syslog.LOG_EMERG,
-            "alert": syslog.LOG_ALERT,
-            "crit": syslog.LOG_CRIT,
-            "err": syslog.LOG_ERR,
-            "warning": syslog.LOG_WARNING,
-            "notice": syslog.LOG_NOTICE,
-            "info": syslog.LOG_INFO,
-            "debug": syslog.LOG_DEBUG,
-        }
-
-        if priority not in syslog_level:
+        if priority not in self.SYSLOG_LEVELS:
             self.log_error(
                 f"Invalid priority level: {priority}. "
-                f"Valid options are {list(syslog_level.keys())}"
+                f"Valid options are {list(self.SYSLOG_LEVELS.keys())}"
             )
 
-        if self.max_allowed_log_level not in syslog_level:
+        if self.max_allowed_log_level not in self.SYSLOG_LEVELS:
             self.log_error(
                 f"Invalid MAX_LOG_PRIORITY: {self.max_allowed_log_level}. "
-                f"Valid options are {list(syslog_level.keys())}"
+                f"Valid options are {list(self.SYSLOG_LEVELS.keys())}"
             )
 
-        if syslog_level[priority] <= syslog_level[self.max_allowed_log_level]:
+        if self.SYSLOG_LEVELS[priority] <= self.SYSLOG_LEVELS[self.max_allowed_log_level]:
             syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
-            syslog.syslog(syslog_level[priority], message)
+            syslog.syslog(self.SYSLOG_LEVELS[priority], message)
             self.closelog()
             self._store_message(message, priority)
 
-    def pop_log(self, count: int = 1) -> list:
+    def has_stored_logs(self) -> bool:
+        """
+        Checks if there are any stored logs.
+
+        Returns:
+            bool: True if there are stored logs, False otherwise.
+        """
+        return bool(self.recent_messages)
+
+    def pop_logs(self, count: int = 1) -> list:
         """
         Pops X number of oldest messages
 
@@ -84,9 +93,14 @@ class Logger:
             list: A list of the oldest log messages.
 
         """
+        if not self.recent_messages:
+            return []
+
         popped_messages = []
+
         for _ in range(min(count, len(self.recent_messages))):
             popped_messages.append(self.recent_messages.pop(0))
+
         return popped_messages
 
     def log_error(self, error_message: str) -> None:
@@ -136,7 +150,6 @@ class Logger:
         """
         self.logpo("", message, "warning")
 
-
     def _store_message(self, message: str, priority: str) -> None:
         """
         Stores the message in the recent_messages list, maintaining the size limit.
@@ -145,6 +158,12 @@ class Logger:
             message (str): The message to store.
             priority (str): The priority level of the message.
         """
-        self.recent_messages.append(f"[{priority.upper()}] {message}")
-        if len(self.recent_messages) > self.max_stored:
-            self.recent_messages.pop(0)
+
+        # WARN: Store debug messages will raise an exhaust problem when pop logs is called
+        if self.SYSLOG_LEVELS[priority] <= syslog.LOG_NOTICE:
+            self.recent_messages.append({
+                "level": self.SYSLOG_LEVELS[priority],
+                "message": message
+            })
+            if len(self.recent_messages) > self.max_stored:
+                self.recent_messages.pop(0)

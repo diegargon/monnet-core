@@ -154,6 +154,7 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
 
     connection = None
     try:
+        logger.log(f"Attempting to send request to {server_host} with endpoint {server_endpoint}", "debug")
         # Accept all certs
         context = ssl._create_unverified_context() if ignore_cert else None
 
@@ -165,6 +166,7 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
         # Response
         response = connection.getresponse()
         raw_data = response.read().decode()
+        logger.log(f"Response status: {response.status}, reason: {response.reason}", "debug")
         logger.log(f"Raw response: {raw_data}", "debug")
 
         if response.status == 200:

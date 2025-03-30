@@ -79,10 +79,20 @@ class MonnetAgent:
         while self.running:
             current_time = time.time()
             system_metrics = self._collect_system_data()
-            host_logs = self.logger.pop_logs(count=10)
 
-            # Unpack ** system_metrics and merge with host logs into a single dictionary
-            data_values = {**system_metrics, "host_logs": host_logs}
+            try:
+                host_logs = self.logger.pop_logs(count=10)
+            except Exception as e:
+                self.logger.log(f"Error while collecting host logs: {e}", "err")
+                host_logs = []
+
+            # Ensure system_metrics and host_logs are not empty before merging
+            data_values = {}
+            if system_metrics:
+                data_values.update(system_metrics)
+            if host_logs:
+                data_values['host_logs_count'] = len(host_logs)
+                data_values["host_logs"] = host_logs
 
             self._send_ping(data_values)
             self._process_events()
@@ -165,16 +175,24 @@ class MonnetAgent:
 
     def _send_ping(self, data_values: Dict[str, Any]):
         """Send ping to server with collected data"""
-        self.logger.log("Sending ping to server", "debug")
+        self.logger.log("Preparing to send ping to server", "debug")
+
+        if not data_values:
+            data_values = {}
+
+        self.logger.log(f"Ping data: {data_values}", "debug")
         response = send_request(self.ctx, cmd="ping", data=data_values)
 
         if response:
-            self.logger.log("Response received... validating", "debug")
+            self.logger.log(f"Response received: {response}", "debug")
             valid_response = validate_response(self.ctx, response, self.config["token"])
             if valid_response:
+                self.logger.log("Valid response received. Handling response...", "debug")
                 self._handle_valid_response(valid_response)
             else:
                 self.logger.log("Invalid response received", "warning")
+        else:
+            self.logger.log("No response received from server", "err")
 
     def _handle_valid_response(self, response: Dict[str, Any]):
         """Handle valid server response"""
