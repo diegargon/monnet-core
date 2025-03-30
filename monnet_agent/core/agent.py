@@ -79,8 +79,12 @@ class MonnetAgent:
         while self.running:
             current_time = time.time()
             system_metrics = self._collect_system_data()
+            host_logs = self.logger.pop_logs(count=10)
 
-            self._send_ping(system_metrics)
+            # Unpack ** system_metrics and merge with host logs into a single dictionary
+            data_values = {**system_metrics, "host_logs": host_logs}
+
+            self._send_ping(data_values)
             self._process_events()
 
             self.running = self.ctx.get_var("running")
@@ -114,7 +118,7 @@ class MonnetAgent:
         """Collect system metrics and return as dictionary"""
         system_metrics = {}
 
-        # Get system info from tasks/system_info.py
+        # Get system info
         try:
             current_load_avg = info_linux.get_load_avg()
         except (FileNotFoundError, ValueError, OSError) as e:
@@ -159,10 +163,10 @@ class MonnetAgent:
 
         return system_metrics
 
-    def _send_ping(self, system_metrics: Dict[str, Any]):
+    def _send_ping(self, data_values: Dict[str, Any]):
         """Send ping to server with collected data"""
         self.logger.log("Sending ping to server", "debug")
-        response = send_request(self.ctx, cmd="ping", data=system_metrics)
+        response = send_request(self.ctx, cmd="ping", data=data_values)
 
         if response:
             self.logger.log("Response received... validating", "debug")
