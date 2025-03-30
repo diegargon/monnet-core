@@ -78,9 +78,9 @@ class MonnetAgent:
 
         while self.running:
             current_time = time.time()
-            extra_data = self._collect_system_data()
+            system_metrics = self._collect_system_data()
 
-            self._send_ping(extra_data)
+            self._send_ping(system_metrics)
             self._process_events()
 
             self.running = self.ctx.get_var("running")
@@ -112,7 +112,7 @@ class MonnetAgent:
 
     def _collect_system_data(self) -> Dict[str, Any]:
         """Collect system metrics and return as dictionary"""
-        extra_data = {}
+        system_metrics = {}
 
         # Get system info from tasks/system_info.py
         try:
@@ -136,17 +136,17 @@ class MonnetAgent:
         # Check and update load average
         if current_load_avg is not None and current_load_avg != self.datastore.get_data("last_load_avg"):
             self.datastore.update_data("last_load_avg", current_load_avg)
-            extra_data.update(current_load_avg)
+            system_metrics.update(current_load_avg)
 
         # Check and update memory info
         if current_memory_info is not None and current_memory_info != self.datastore.get_data("last_memory_info"):
             self.datastore.update_data("last_memory_info", current_memory_info)
-            extra_data.update(current_memory_info)
+            system_metrics.update(current_memory_info)
 
         # Check and update disk info
         if current_disk_info is not None and current_disk_info != self.datastore.get_data("last_disk_info"):
             self.datastore.update_data("last_disk_info", current_disk_info)
-            extra_data.update(current_disk_info)
+            system_metrics.update(current_disk_info)
 
         # Get IOwait
         current_cpu_times = psutil.cpu_times()
@@ -154,15 +154,15 @@ class MonnetAgent:
         current_iowait = round(current_iowait, 2)
         if current_iowait != self.datastore.get_data("last_iowait"):
             self.datastore.update_data("last_iowait", current_iowait)
-            extra_data.update({'iowait': current_iowait})
+            system_metrics.update({'iowait': current_iowait})
         self.last_cpu_times = current_cpu_times
 
-        return extra_data
+        return system_metrics
 
-    def _send_ping(self, extra_data: Dict[str, Any]):
+    def _send_ping(self, system_metrics: Dict[str, Any]):
         """Send ping to server with collected data"""
         self.logger.log("Sending ping to server", "debug")
-        response = send_request(self.ctx, cmd="ping", data=extra_data)
+        response = send_request(self.ctx, cmd="ping", data=system_metrics)
 
         if response:
             self.logger.log("Response received... validating", "debug")

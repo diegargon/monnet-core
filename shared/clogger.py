@@ -7,8 +7,10 @@ Monnet Logger
 import syslog
 
 class Logger:
-    def __init__(self, max_allowed_log_level: str = "debug") -> None:
+    def __init__(self, max_allowed_log_level: str = "debug", max_stored: int = 200) -> None:
         self.max_allowed_log_level = max_allowed_log_level
+        self.max_stored = max_stored
+        self.recent_messages = []
 
     def logpo(self, msg: str, data, priority: str = "info") -> None:
         """
@@ -69,6 +71,23 @@ class Logger:
             syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
             syslog.syslog(syslog_level[priority], message)
             self.closelog()
+            self._store_message(message, priority)
+
+    def pop_log(self, count: int = 1) -> list:
+        """
+        Pops X number of oldest messages
+
+        Args:
+            count (int): The number of messages to pop. Defaults to 1.
+
+        Returns:
+            list: A list of the oldest log messages.
+
+        """
+        popped_messages = []
+        for _ in range(min(count, len(self.recent_messages))):
+            popped_messages.append(self.recent_messages.pop(0))
+        return popped_messages
 
     def log_error(self, error_message: str) -> None:
         """
@@ -116,3 +135,16 @@ class Logger:
         Logs a warning message.
         """
         self.logpo("", message, "warning")
+
+
+    def _store_message(self, message: str, priority: str) -> None:
+        """
+        Stores the message in the recent_messages list, maintaining the size limit.
+
+        Args:
+            message (str): The message to store.
+            priority (str): The priority level of the message.
+        """
+        self.recent_messages.append(f"[{priority.upper()}] {message}")
+        if len(self.recent_messages) > self.max_stored:
+            self.recent_messages.pop(0)
