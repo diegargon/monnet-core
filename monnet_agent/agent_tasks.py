@@ -20,9 +20,7 @@ from shared.app_context import AppContext
 
 def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, startup=None):
     """
-
         Send port changes. Startup force send update every agent start/restart
-
     """
     logger = ctx.get_logger()
     logger.debug("Checking listen ports triggered")
@@ -33,7 +31,17 @@ def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, s
         current_listen_ports_info = info_linux.get_listen_ports_info()
         last_listen_ports_info = datastore.get_data("last_listen_ports_info")
 
-        if ((current_listen_ports_info != last_listen_ports_info) or startup):
+        # Calculate differences
+        added_ports = set(current_listen_ports_info) - set(last_listen_ports_info or [])
+        removed_ports = set(last_listen_ports_info or []) - set(current_listen_ports_info)
+        port_differences = {
+            "added": list(added_ports),
+            "removed": list(removed_ports)
+        }
+
+        # Trigger notification if there are differences
+        if (added_ports or removed_ports or startup):
+            logger.debug(f"Port differences: {port_differences} Statup {startup}")
             datastore.update_data("last_listen_ports_info", current_listen_ports_info)
             notify_callback(ctx, "listen_ports_info", current_listen_ports_info)  # Pass ctx to callback
         #else : #debug
@@ -44,7 +52,7 @@ def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, s
         agent_config.timers['check_ports'] = threading.Timer(
             agent_config.TIMER_STATS_INTERVAL,
             check_listen_ports,
-            args=(ctx, datastore, notify_callback, startup)  # Ensure ctx is passed here
+            args=(ctx, datastore, notify_callback)
         )
         agent_config.timers['check_ports'].start()
 

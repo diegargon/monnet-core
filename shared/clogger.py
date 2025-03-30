@@ -144,6 +144,12 @@ class Logger:
         """
         self.logpo("", message, "debug")
 
+    def notice(self, message: object) -> None:
+        """
+        Logs a notice message.
+        """
+        self.logpo("", message, "notice")
+
     def warning(self, message: object) -> None:
         """
         Logs a warning message.
