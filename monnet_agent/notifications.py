@@ -14,7 +14,7 @@ import ssl
 import http.client
 import json
 from shared.app_context import AppContext
-import time_utils
+import shared.time_utils as time_utils
 import uuid
 
 # Local

@@ -10,10 +10,12 @@ from pathlib import Path
 import sys
 from time import sleep
 
+# Local
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.utils.myutils import pprint_table
 from monnet_gateway.tests_cli.common_cli import init_context
+from shared.time_utils import utc_date_now
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -37,7 +39,11 @@ if __name__ == "__main__":
     for ip in ip_list:
         # print(f"Scanning {ip}...")
         ping_status = network_scanner.ping(ip)
+
         if (ping_status['online'] == 1):
+            if 'latency' in ping_status:
+                ping_status['latency'] = round(ping_status['latency'], 3)
+            ping_status['last_seen'] = utc_date_now()
             print(ip, ping_status)
 
     print(f"Scanned: ", len(ip_list))
