@@ -9,41 +9,52 @@ import struct
 from time import time
 
 
+import struct
+from typing import Optional
+
 class ICMPPacket:
-    def __init__(self, identifier=b"\x00\x01", sequence=b"\x00\x01", payload=b"ping"):
-        self.type = b"\x08"  # Echo Request
-        self.code = b"\x00"
-        self.checksum = b"\x00\x00"  # Placeholder for checksum
+    def __init__(self, identifier: int = 1, sequence: int = 1, payload: bytes = b"ping"):
+        self.type = 8  # Echo Request (ICMP)
+        self.code = 0
+        self.checksum = 0
         self.identifier = identifier
         self.sequence = sequence
         self.payload = payload
 
-    def build_packet(self):
-        """Construye el paquete ICMP completo con su checksum."""
-        package = self.type + self.code + self.checksum + self.identifier + self.sequence + self.payload
-        expected_size = len(self.type + self.code + self.checksum + self.identifier + self.sequence) + len(self.payload)
-        checksum = self.calculate_checksum(package)
-        return self.type + self.code + checksum + self.identifier + self.sequence + self.payload
+    def build_packet(self) -> bytes:
+        """Construye el paquete ICMP con checksum."""
+        header = struct.pack(
+            "!BBHHH",
+            self.type,
+            self.code,
+            self.checksum,  # 0 inicial
+            self.identifier,
+            self.sequence
+        )
+        packet = header + self.payload
+        self.checksum = self.calculate_checksum(packet)
+        # Reempaqueta con el checksum correcto
+        header = struct.pack(
+            "!BBHHH",
+            self.type,
+            self.code,
+            self.checksum,
+            self.identifier,
+            self.sequence
+        )
+        return header + self.payload
 
+    @staticmethod
+    def calculate_checksum(data: bytes) -> int:
+        """Calcula el checksum ICMP (RFC 1071)."""
+        if len(data) % 2 != 0:
+            data += b"\x00"  # Padding
 
-    def calculate_checksum(self, data: bytes) -> bytes:
-        """Calcula el checksum de los paquetes ICMP."""
         sum = 0
-        count_to = (len(data) // 2) * 2
-        count = 0
-
-        while count < count_to:
-            this_val = data[count + 1] * 256 + data[count]
-            sum = sum + this_val
-            sum = sum & 0xFFFFFFFF  # Keep sum within 32 bits
-            count = count + 2
-
-        if count_to < len(data):
-            sum = sum + data[len(data) - 1]
-            sum = sum & 0xFFFFFFFF
+        for i in range(0, len(data), 2):
+            word = struct.unpack("!H", data[i:i+2])[0]
+            sum += word
 
         sum = (sum >> 16) + (sum & 0xFFFF)
-        sum = sum + (sum >> 16)
-        answer = ~sum & 0xFFFF
-        answer = answer >> 8 | (answer << 8 & 0xFF00)
-        return struct.pack('H', answer)
+        sum += sum >> 16
+        return ~sum & 0xFFFF

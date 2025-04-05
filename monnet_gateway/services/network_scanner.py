@@ -34,7 +34,7 @@ class NetworkScanner:
             logger.error("No IPs to scan")
             return []
 
-        all_known_hosts = host_model.get_all()
+        all_known_hosts = host_model.get_all() or []
 
         host_ips = {host['ip'] for host in all_known_hosts}
         ip_list = [ip for ip in ip_list if ip not in host_ips]
@@ -44,7 +44,6 @@ class NetworkScanner:
     def build_ip_list(self) -> list[str]:
         ip_list = []
         networks = self.networks_model.get_all()
-
 
         for net in networks:
             if net.get('disable') or net.get('scan') != 1:
@@ -102,35 +101,40 @@ class NetworkScanner:
 
         # Enviar el paquete
         self.logger.debug(f"Sending packet to {ip} with size {len(packet)} bytes")
-        if not socket_handler.send_packet(ip, packet):
-            status['error'] = 'socket_sendto'
-            status['latency'] = -0.002
-            self.logger.error(f"Pinging error socket connect: {ip}")
+        try:
+            if not socket_handler.send_packet(ip, packet):
+                status['error'] = 'socket_sendto'
+                status['latency'] = -0.002
+                self.logger.error(f"Pinging error socket connect: {ip}")
+                socket_handler.close_socket()
+                return status
+            # Recibir la respuesta
+            buffer, from_ip = socket_handler.receive_packet()
+        finally:
             socket_handler.close_socket()
+
+
+        if buffer is None or len(buffer) < 20:
+            error_msg = f"Invalid, empty, or not packet received, len: {len(buffer)}"
+            self.logger.error(error_msg)
+            status['error'] = error_msg
             return status
 
-        # Recibir la respuesta
-        buffer, from_ip = socket_handler.receive_packet()
-        if buffer:
-            self.logger.debug(f"Received packet from {from_ip} with size {len(buffer)} bytes")
-            if len(buffer) >= 20:  # Validar que el paquete tiene al menos el tamaño mínimo esperado
-                ip_header = buffer[:20]
-                icmp_packet = buffer[20:]
-                self.logger.debug(f"IP header: {ip_header.hex()}")
-                self.logger.debug(f"ICMP packet: {icmp_packet.hex()}")
 
-                # Extraer la dirección IP de origen del encabezado IP
-                source_ip = ".".join(map(str, ip_header[12:16]))
-                self.logger.debug(f"Source IP in reply packet: {source_ip}")
+        self.logger.debug(f"Received packet from {from_ip} with size {len(buffer)} bytes")
+        ip_header = buffer[:20]
+        icmp_packet = buffer[20:]
+        self.logger.debug(f"IP header: {ip_header.hex()}")
+        self.logger.debug(f"ICMP packet: {icmp_packet.hex()}")
 
-                if source_ip == ip:
-                    return self.verify_ping_response(icmp_packet, ip, tim_start)
-                else:
-                    self.logger.warning(f"Unexpected source IP in reply packet: {source_ip}, expected: {ip}")
-            else:
-                self.logger.error(f"Received packet is too small: {len(buffer)} bytes")
+        # Extraer la dirección IP de origen del encabezado IP
+        source_ip = ".".join(map(str, ip_header[12:16]))
+        self.logger.debug(f"Source IP in reply packet: {source_ip}")
+
+        if source_ip == ip:
+            return self.verify_ping_response(icmp_packet, ip, tim_start)
         else:
-            self.logger.error(f"No response received for IP: {ip}.")
+            self.logger.warning(f"Unexpected source IP in reply packet: {source_ip}, expected: {ip}")
 
         status['error'] = 'timeout'
         status['latency'] = -0.001
@@ -143,6 +147,10 @@ class NetworkScanner:
     def verify_ping_response(self, icmp: bytes, expected_ip: str, start_time: float) -> dict:
         """Verifica la respuesta ICMP y calcula la latencia si es válida."""
         status = {'online': 0, 'latency': None}
+
+        if len(icmp) < 2:
+            self.logger.error("ICMP packet too short")
+            return status
 
         type = icmp[0]
         code = icmp[1]
@@ -158,25 +166,25 @@ class NetworkScanner:
 
         return status
 
-    def calculate_latency(start_time: float) -> float:
+    def calculate_latency(self, start_time: float) -> float:
         """Calcula la latencia en milisegundos."""
-        return round((time.time() - start_time) * 1000, 4)
+        return round((time() - start_time) * 1000, 4)
 
-    def verify_checksum(icmp: bytes) -> bool:
+    def verify_checksum(self, icmp: bytes) -> bool:
         """Verifica el checksum de una respuesta ICMP."""
         # Convertir el ICMP a una lista de enteros
-        sum = 0
-        for i in range(0, len(icmp), 2):
-            # Unpack 2 bytes de cada vez (16 bits)
-            sum += struct.unpack('!H', icmp[i:i+2])[0]
-            sum = sum & 0xFFFFFFFF  # Mantener el valor dentro de 32 bits
-
-        # Hacer la suma de 16 bits de la suma
-        sum = (sum >> 16) + (sum & 0xFFFF)
-        sum += (sum >> 16)
-
-        # Verificar si el complemento a uno de la suma es igual a 0
-        return (~sum & 0xFFFF) == 0
+        if len(icmp) % 2 != 0:
+            self.logger.error("ICMP packet has odd length")
+            return False
+        try:
+            total = 0
+            for i in range(0, len(icmp), 2):
+                total += struct.unpack('!H', icmp[i:i+2])[0]
+            total = (total >> 16) + (total & 0xFFFF)
+            return (total + (total >> 16)) == 0xFFFF
+        except struct.error:
+            self.logger.error("ICMP packet corrupted")
+            return False
 
     @staticmethod
     def is_valid_network(network_str: str) -> bool:
