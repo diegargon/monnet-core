@@ -37,7 +37,7 @@ if __name__ == "__main__":
     for ip in ip_list:
         # print(f"Scanning {ip}...")
         ping_status = network_scanner.ping(ip)
-        print(ip, ping_status)
-        sleep(0.1)
+        if (ping_status['online'] == 1):
+            print(ip, ping_status)
 
-    print(len(ip_list))
+    print(f"Scanned: ", len(ip_list))
