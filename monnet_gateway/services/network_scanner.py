@@ -45,7 +45,6 @@ class NetworkScanner:
         ip_list = []
         networks = self.networks_model.get_all()
 
-        # Comprobar si networks es None o está vacío
         if not networks:
             self.logger.notice("No networks found to scan")
             return ip_list
@@ -90,13 +89,13 @@ class NetworkScanner:
         """Realiza un ping a la IP especificada."""
         status = {'online': 0, 'latency': None}
 
-        # Validar el timeout
+        # Timeout validation
         if not isinstance(timeout.get('sec'), int) or not isinstance(timeout.get('usec'), int):
             timeout = {'sec': 0, 'usec': 150000}
 
         tim_start = time()
 
-        # Crear y configurar el socket
+        # Socket Creation
         socket_handler = SocketHandler(self.ctx, timeout['sec'], timeout['usec'])
         if not socket_handler.create_socket():
             status['error'] = 'socket_create'
@@ -117,7 +116,6 @@ class NetworkScanner:
                 self.logger.error(f"Pinging error socket connect: {ip}")
                 socket_handler.close_socket()
                 return status
-            # Recibir la respuesta
             buffer, from_ip = socket_handler.receive_packet()
         finally:
             socket_handler.close_socket()
@@ -166,7 +164,7 @@ class NetworkScanner:
 
         # Type 8 is returned when host pings itself
         if (type == 0 or type == 8) and code == 0:
-            if self.verify_checksum(icmp):  # Verificar el checksum de la respuesta
+            if self.verify_checksum(icmp):
                 status['online'] = 1
                 status['latency'] = self.calculate_latency(start_time)
                 return status
@@ -181,7 +179,7 @@ class NetworkScanner:
 
     def verify_checksum(self, icmp: bytes) -> bool:
         """Verifica el checksum de una respuesta ICMP."""
-        # Convertir el ICMP a una lista de enteros
+        # Check if len is multiple of 2
         if len(icmp) % 2 != 0:
             self.logger.error("ICMP packet has odd length")
             return False
