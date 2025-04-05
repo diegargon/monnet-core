@@ -6,7 +6,7 @@ Monnet Shared: Time Utilities
 """
 
 from datetime import datetime, timezone, timedelta
-import pytz
+from zoneinfo import ZoneInfo  # Replacing pytz
 
 def get_datetime():
     """
@@ -35,8 +35,8 @@ def date_now(timezone_str='UTC'):
         str: The current date and time in 'Y-m-d H:M:S' format, or False if the timezone is invalid.
     """
     try:
-        tz = pytz.timezone(timezone_str)
-    except pytz.UnknownTimeZoneError:
+        tz = ZoneInfo(timezone_str)
+    except KeyError:  # ZoneInfo raises KeyError for invalid timezones
         return False
 
     date_now = datetime.now(tz)

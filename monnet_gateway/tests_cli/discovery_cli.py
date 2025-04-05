@@ -9,6 +9,7 @@ Monnet Gateway
 from pathlib import Path
 import sys
 from time import sleep
+from time import time  # Add this import for timing
 
 # Local
 from monnet_gateway.database.hosts_model import HostsModel
@@ -27,6 +28,8 @@ if __name__ == "__main__":
     ctx = init_context("/opt/monnet-core")
     ctx.get_logger().log("Starting discovery CLI", "info")
 
+    start_time = time()  # Start timing
+
     networks_model = NetworksModel(ctx.get_database())
     network_scanner = NetworkScanner(ctx, networks_model)
     host_model = HostsModel(ctx.get_database())
@@ -42,8 +45,13 @@ if __name__ == "__main__":
 
         if (ping_status['online'] == 1):
             if 'latency' in ping_status:
-                ping_status['latency'] = round(ping_status['latency'], 3)
+                ping_status['misc']['latency'] = round(ping_status['latency'], 3)
+                del ping_status['latency']
+
             ping_status['last_seen'] = utc_date_now()
             print(ip, ping_status)
 
     print(f"Scanned: ", len(ip_list))
+
+    end_time = time()
+    print(f"Total scan time: {round(end_time - start_time, 2)} seconds")
