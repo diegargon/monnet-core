@@ -49,6 +49,10 @@ class NetworkScanner:
             if net.get('disable') or net.get('scan') != 1:
                 continue
 
+            if 'network' not in net:
+                self.logger.error("Missing 'network' key in network entry")
+                continue
+
             network_str = net.get('network')
             if not network_str or not self.is_valid_network(network_str):
                 self.logger.error(f"Invalid network detected {network_str}")
