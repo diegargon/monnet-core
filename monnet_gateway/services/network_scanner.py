@@ -45,6 +45,11 @@ class NetworkScanner:
         ip_list = []
         networks = self.networks_model.get_all()
 
+        # Comprobar si networks es None o está vacío
+        if not networks:
+            self.logger.notice("No networks found to scan")
+            return ip_list
+
         for net in networks:
             if net.get('disable') or net.get('scan') != 1:
                 continue
@@ -81,13 +86,13 @@ class NetworkScanner:
 
         return ip_list
 
-    def ping(self, ip: str, timeout: dict = {'sec': 1, 'usec': 200000}) -> dict:
+    def ping(self, ip: str, timeout: dict = {'sec': 0, 'usec': 50000}) -> dict:
         """Realiza un ping a la IP especificada."""
         status = {'online': 0, 'latency': None}
 
         # Validar el timeout
         if not isinstance(timeout.get('sec'), int) or not isinstance(timeout.get('usec'), int):
-            timeout = {'sec': 0, 'usec': 200000}
+            timeout = {'sec': 0, 'usec': 150000}
 
         tim_start = time()
 
@@ -104,7 +109,7 @@ class NetworkScanner:
         packet = icmp_packet.build_packet()
 
         # Enviar el paquete
-        self.logger.debug(f"Sending packet to {ip} with size {len(packet)} bytes")
+        # self.logger.debug(f"Sending packet to {ip} with size {len(packet)} bytes")
         try:
             if not socket_handler.send_packet(ip, packet):
                 status['error'] = 'socket_sendto'
@@ -117,28 +122,28 @@ class NetworkScanner:
         finally:
             socket_handler.close_socket()
 
-
-        if buffer is None or len(buffer) < 20:
-            error_msg = f"Invalid, empty, or not packet received, len: {len(buffer)}"
-            self.logger.error(error_msg)
-            status['error'] = error_msg
+        if buffer is None:
+            error_msg = "No packet received (timeout or network issue)"
+            self.logger.error(f"{error_msg} from {ip}")
+            status['error'] = 'timeout'
+            status['latency'] = -0.001
             return status
 
-
-        self.logger.debug(f"Received packet from {from_ip} with size {len(buffer)} bytes")
+        # self.logger.debug(f"Received packet from {from_ip} with size {len(buffer)} bytes")
         ip_header = buffer[:20]
         icmp_packet = buffer[20:]
-        self.logger.debug(f"IP header: {ip_header.hex()}")
-        self.logger.debug(f"ICMP packet: {icmp_packet.hex()}")
+        # self.logger.debug(f"IP header: {ip_header.hex()}")
+        # self.logger.debug(f"ICMP packet: {icmp_packet.hex()}")
 
         # Extraer la dirección IP de origen del encabezado IP
         source_ip = ".".join(map(str, ip_header[12:16]))
-        self.logger.debug(f"Source IP in reply packet: {source_ip}")
+        #self.logger.debug(f"Source IP in reply packet: {source_ip}")
 
         if source_ip == ip:
             return self.verify_ping_response(icmp_packet, ip, tim_start)
-        else:
-            self.logger.warning(f"Unexpected source IP in reply packet: {source_ip}, expected: {ip}")
+        elif icmp_packet[0] != 3:
+            # Discard Log Destination Unreachable ip is expected always different
+            self.logger.warning(f"Unexpected source IP in reply packet: {icmp_packet[0]} {source_ip}, expected: {ip}")
 
         status['error'] = 'timeout'
         status['latency'] = -0.001
@@ -193,7 +198,7 @@ class NetworkScanner:
     @staticmethod
     def is_valid_network(network_str: str) -> bool:
         try:
-            ipaddress.IPv4Network(network_str, strict=False)
+            ipaddress.IPv4Network(network_str, strict=True)
             return True
         except ValueError:
             return False

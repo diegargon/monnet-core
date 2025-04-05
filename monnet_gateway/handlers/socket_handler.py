@@ -11,7 +11,7 @@ import socket
 from shared.app_context import AppContext
 
 class SocketHandler:
-    def __init__(self, ctx: AppContext, timeout_sec=0, timeout_usec=200000):
+    def __init__(self, ctx: AppContext, timeout_sec=0, timeout_usec=100000):
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.timeout_sec = timeout_sec
@@ -50,27 +50,24 @@ class SocketHandler:
             return False
         return True
 
-    def receive_packet(self, buffer_size=4096):
+    def receive_packet(self, buffer_size=1024):
         """Recibe un paquete desde el socket."""
         try:
-            self.logger.debug("Waiting to receive a packet...")
-            buffer, from_ip = self.socket.recvfrom(buffer_size)  # Aumentar el tamaño del buffer
+            #self.logger.debug("Waiting to receive a packet...")
+            buffer, from_ip = self.socket.recvfrom(buffer_size)
             self.logger.debug(f"Packet received from {from_ip} with size {len(buffer)} bytes")
             self.logger.debug(f"Raw packet data: {buffer.hex()}")
 
-            # Verificar si el paquete es ICMP
-            if len(buffer) >= 20:  # Asegurarse de que el paquete tiene al menos el tamaño mínimo
-                ip_header = buffer[:20]
-                # Los bytes 12-15 contienen la dirección IP de origen
-                src_ip = socket.inet_ntoa(ip_header[12:16])
-                self.logger.debug(f"Source IP from IP header: {src_ip}")
-                self.logger.debug(f"Socket returned from_addr: {from_ip[0]}")
+            # Validar que el paquete tenga al menos un encabezado IP completo
+            if len(buffer) < 20:
+                self.logger.warning(f"Received packet too small to contain valid IP header (size: {len(buffer)})")
+                return None, None
 
-                icmp_packet = buffer[20:]
-                self.logger.debug(f"IP header: {ip_header.hex()}")
-                self.logger.debug(f"ICMP packet: {icmp_packet.hex()}")
-            else:
-                self.logger.warning("Received packet is too small to contain ICMP data")
+            # Verificar si el paquete es ICMP
+            #ip_header = buffer[:20]
+            #src_ip = socket.inet_ntoa(ip_header[12:16])
+            #self.logger.debug(f"Source IP from IP header: {src_ip}")
+            #self.logger.debug(f"Socket returned from_addr: {from_ip[0]}")
 
             return buffer, from_ip[0]
         except socket.timeout:

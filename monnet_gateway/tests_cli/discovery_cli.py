@@ -8,6 +8,7 @@ Monnet Gateway
 # Std
 from pathlib import Path
 import sys
+from time import sleep
 
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
@@ -30,10 +31,13 @@ if __name__ == "__main__":
 
     ip_list = network_scanner.get_discovery_ips(host_model)
 
-    ping_status = network_scanner.ping('192.168.2.126')
+#    ping_status = network_scanner.ping('192.168.2.126')
+#    print(ping_status)
 
-    print(ping_status)
-    #for ip in ip_list:
-    #    print(ip)
+    for ip in ip_list:
+        # print(f"Scanning {ip}...")
+        ping_status = network_scanner.ping(ip)
+        print(ip, ping_status)
+        sleep(0.1)
 
     print(len(ip_list))
