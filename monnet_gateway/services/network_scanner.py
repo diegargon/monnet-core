@@ -12,7 +12,7 @@ from time import time, sleep
 # Local
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
-from monnet_gateway.handlers.socket_handler import SocketHandler
+from monnet_gateway.handlers.socket_raw_handler import SocketRawHandler
 from monnet_gateway.ping.icmp_packet import ICMPPacket
 from shared.app_context import AppContext
 
@@ -106,7 +106,7 @@ class NetworkScanner:
 
         try:
             # Socket Creation
-            socket_handler = SocketHandler(self.ctx, timeout)
+            socket_handler = SocketRawHandler(self.ctx, timeout)
             if not socket_handler.create_socket():
                 status['latency'] = -0.003  # F
                 raise Exception("Socket creation failed: {ip}")

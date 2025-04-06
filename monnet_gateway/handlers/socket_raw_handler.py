@@ -10,7 +10,7 @@ import socket
 # Local
 from shared.app_context import AppContext
 
-class SocketHandler:
+class SocketRawHandler:
     def __init__(self, ctx: AppContext, timeout: float = 0.2, buffer_size: int = 1024):
         self.ctx = ctx
         self.logger = ctx.get_logger()
