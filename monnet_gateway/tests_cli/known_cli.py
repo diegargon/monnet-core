@@ -33,7 +33,7 @@ if __name__ == "__main__":
     for host_stat in hosts_status:
         if host_stat['online'] == 0:
             count_offline += 1
-            print(host_stat)
+        print(host_stat)
 
     end_time = time()
     print(f"Scanned: ", len(hosts_status), "Offline: ", count_offline)
