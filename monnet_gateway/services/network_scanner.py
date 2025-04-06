@@ -10,24 +10,23 @@ import struct
 from time import time, sleep
 
 # Local
-from monnet_gateway.database import networks_model
 from monnet_gateway.database.hosts_model import HostsModel
+from monnet_gateway.database.networks_model import NetworksModel
 from monnet_gateway.handlers.socket_handler import SocketHandler
 from monnet_gateway.ping.icmp_packet import ICMPPacket
 from shared.app_context import AppContext
 
 class NetworkScanner:
-    def __init__(self, ctx: AppContext, networks_model: networks_model.NetworksModel):
+    def __init__(self, ctx: AppContext):
         self.ctx = ctx
-        self.networks_model = networks_model
         self.logger = self.ctx.get_logger()
 
-    def get_discovery_ips(self, host_model: HostsModel) -> list[str]:
+    def get_discovery_ips(self, networks_model: NetworksModel, host_model: HostsModel) -> list[str]:
         """
         Get the list of IPs to be scanned
         :return: list of IPs
         """
-        ip_list = self.build_ip_list()
+        ip_list = self.build_ip_list(networks_model)
         logger = self.ctx.get_logger()
 
         if not ip_list:
@@ -41,16 +40,17 @@ class NetworkScanner:
 
         return ip_list
 
-    def build_ip_list(self) -> list[str]:
+    def build_ip_list(self, networks_model: NetworksModel) -> list[str]:
         ip_list = []
-        networks = self.networks_model.get_all()
+        networks = networks_model.get_all()
 
         if not networks:
             self.logger.notice("No networks found to scan")
             return ip_list
 
         for net in networks:
-            if net.get('disable') or net.get('scan') != 1:
+            if net.get('disable') == 1 or net.get('scan') != 1:
+                self.logger.debug(f"Skipping due flags: {net}")
                 continue
 
             if 'network' not in net:
@@ -85,75 +85,85 @@ class NetworkScanner:
 
         return ip_list
 
-    def ping(self, ip: str, timeout: dict = {'sec': 0, 'usec': 50000}) -> dict:
-        """Realiza un ping a la IP especificada."""
-        status = {'online': 0, 'latency': None}
-
-        # Timeout validation
-        if not isinstance(timeout.get('sec'), int) or not isinstance(timeout.get('usec'), int):
-            timeout = {'sec': 0, 'usec': 150000}
+    def ping(self, ip: str, timeout: float = 1.2) -> dict:
+        """
+            Realiza un ping a la IP especificada.
+            latency is used with negative values to indicate errors in graphs
+        """
+        status = {
+            'ip': ip,
+            'online': 0,
+            'latency_ms': None,
+            'error_type': None,
+            'error_details': None,
+            'source_ip': None,
+            'from_ip': None,
+            'icmp_type': None,
+            'icmp_code': None
+        }
 
         tim_start = time()
 
-        # Socket Creation
-        socket_handler = SocketHandler(self.ctx, timeout['sec'], timeout['usec'])
-        if not socket_handler.create_socket():
-            status['error'] = 'socket_create'
-            status['latency'] = -0.003
-            self.logger.error(f"Pinging error socket creating: {ip}")
+        try:
+            # Socket Creation
+            socket_handler = SocketHandler(self.ctx, timeout)
+            if not socket_handler.create_socket():
+                status['latency'] = -0.003  # F
+                raise Exception("Socket creation failed: {ip}")
+
+            # Construir el paquete ICMP
+            icmp_packet = ICMPPacket().build_packet()
+
+            # Enviar el paquete
+            # self.logger.debug(f"Sending packet to {ip} with size {len(packet)} bytes")
+
+            if not socket_handler.send_packet(ip, icmp_packet):
+                status['latency'] = -0.002
+                raise Exception("Send_packet failed: {ip}")
+
+            buffer, from_ip = socket_handler.receive_packet()
+            status['from_ip'] = from_ip
+
+            if buffer is None:
+                error_msg = f'Timeout: No response after {timeout["sec"]}.{timeout["usec"]}s from {ip}'
+                status['error'] = error_msg
+                status['latency'] = -0.001
+                return status
+
+            # self.logger.debug(f"Received packet from {from_ip} with size {len(buffer)} bytes")
+            ip_header = buffer[:20]
+            icmp_header = buffer[20:28]
+            icmp_type, icmp_code = icmp_header[0], icmp_header[1]
+            # Extraer la dirección IP de origen del encabezado IP
+            source_ip = ".".join(map(str, ip_header[12:16]))
+            status['source_ip'] = source_ip
+            status['icmp_type'] = icmp_type
+            status['icmp_code'] = icmp_code
+
+            if source_ip == ip: # ICMP Echo Reply
+                return self.verify_ping_response(status, icmp_packet, ip, tim_start)
+            elif icmp_packet[0] == 3:  # ICMP Destination Unreachable
+                status['error'] = 'Destination_unreachable'
+                status['latency'] = self.calculate_latency(tim_start)
+                self.logger.warning(f"Destination unreachable from {source_ip} (code {icmp_packet[1]})")
+                return status
+            else:
+                self.logger.warning(f"Unexpected reply packet: {icmp_packet[0]} {source_ip}, expected: {ip}")
+
+            status['error'] = 'timeout'
+            status['latency'] = -0.001
+
+            return status
+        except Exception as e:
+            self.logger.error(str(e))
+            status['error'] = str(e)
             return status
 
-        # Construir el paquete ICMP
-        icmp_packet = ICMPPacket()
-        packet = icmp_packet.build_packet()
-
-        # Enviar el paquete
-        # self.logger.debug(f"Sending packet to {ip} with size {len(packet)} bytes")
-        try:
-            if not socket_handler.send_packet(ip, packet):
-                status['error'] = 'socket_sendto'
-                status['latency'] = -0.002
-                self.logger.error(f"Pinging error socket connect: {ip}")
-                socket_handler.close_socket()
-                return status
-            buffer, from_ip = socket_handler.receive_packet()
         finally:
             socket_handler.close_socket()
 
-        if buffer is None:
-            error_msg = "No packet received (timeout or network issue)"
-            self.logger.error(f"{error_msg} from {ip}")
-            status['error'] = 'timeout'
-            status['latency'] = -0.001
-            return status
-
-        # self.logger.debug(f"Received packet from {from_ip} with size {len(buffer)} bytes")
-        ip_header = buffer[:20]
-        icmp_packet = buffer[20:]
-        # self.logger.debug(f"IP header: {ip_header.hex()}")
-        # self.logger.debug(f"ICMP packet: {icmp_packet.hex()}")
-
-        # Extraer la dirección IP de origen del encabezado IP
-        source_ip = ".".join(map(str, ip_header[12:16]))
-        #self.logger.debug(f"Source IP in reply packet: {source_ip}")
-
-        if source_ip == ip:
-            return self.verify_ping_response(icmp_packet, ip, tim_start)
-        elif icmp_packet[0] != 3:
-            # Discard Log Destination Unreachable ip is expected always different
-            self.logger.warning(f"Unexpected source IP in reply packet: {icmp_packet[0]} {source_ip}, expected: {ip}")
-
-        status['error'] = 'timeout'
-        status['latency'] = -0.001
-        socket_handler.close_socket()
-        sleep(0.1)
-
-        return status
-
-
-    def verify_ping_response(self, icmp: bytes, expected_ip: str, start_time: float) -> dict:
+    def verify_ping_response(self, status: dict, icmp: bytes, expected_ip: str, start_time: float) -> dict:
         """Verifica la respuesta ICMP y calcula la latencia si es válida."""
-        status = {'online': 0, 'latency': None}
 
         if len(icmp) < 2:
             self.logger.error("ICMP packet too short")

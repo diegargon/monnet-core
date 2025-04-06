@@ -16,3 +16,7 @@ class HostsModel:
     def get_all(self) -> list[dict]:
         """ Get all hosts """
         return self.db.fetchall("SELECT * FROM hosts")
+
+    def get_all_enabled(self) -> list[dict]:
+        """ Get all hosts enabled """
+        return self.db.fetchall("SELECT * FROM hosts WHERE disable = 0")

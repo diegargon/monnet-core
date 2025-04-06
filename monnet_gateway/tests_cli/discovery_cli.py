@@ -31,10 +31,10 @@ if __name__ == "__main__":
     start_time = time()  # Start timing
 
     networks_model = NetworksModel(ctx.get_database())
-    network_scanner = NetworkScanner(ctx, networks_model)
+    network_scanner = NetworkScanner(ctx)
     host_model = HostsModel(ctx.get_database())
 
-    ip_list = network_scanner.get_discovery_ips(host_model)
+    ip_list = network_scanner.get_discovery_ips(networks_model, host_model)
 
 #    ping_status = network_scanner.ping('192.168.2.126')
 #    print(ping_status)

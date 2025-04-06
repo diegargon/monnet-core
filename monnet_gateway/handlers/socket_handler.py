@@ -11,21 +11,22 @@ import socket
 from shared.app_context import AppContext
 
 class SocketHandler:
-    def __init__(self, ctx: AppContext, timeout_sec=0, timeout_usec=100000):
+    def __init__(self, ctx: AppContext, timeout: float = 0.2, buffer_size: int = 1024):
         self.ctx = ctx
         self.logger = ctx.get_logger()
-        self.timeout_sec = timeout_sec
-        self.timeout_usec = timeout_usec
         self.socket = None
+        self.timeout = timeout
+        self.buffer = buffer_size
 
     def create_socket(self):
         """Crea un socket RAW para ICMP."""
         try:
             protocol_number = socket.getprotobyname('icmp')
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, protocol_number)
-            self.socket.settimeout(self.timeout_sec + self.timeout_usec / 1000000)
+        except socket.error as e:
+            self.logger.error(f"Create ocket error: {e}")
+            return False
         except Exception as e:
-            self.logger.error(f"Error creating socket: {e}")
+            self.logger.error(f"Unexpected error: {e}")
             return False
         return True
 
@@ -50,11 +51,14 @@ class SocketHandler:
             return False
         return True
 
-    def receive_packet(self, buffer_size=1024):
+    def receive_packet(self):
         """Recibe un paquete desde el socket."""
         try:
+            if not self.socket:
+                self.logger.error("Socket is not initialized")
+                return None, None
             #self.logger.debug("Waiting to receive a packet...")
-            buffer, from_ip = self.socket.recvfrom(buffer_size)
+            buffer, from_ip = self.socket.recvfrom(self.buffer_size)
             self.logger.debug(f"Packet received from {from_ip} with size {len(buffer)} bytes")
             self.logger.debug(f"Raw packet data: {buffer.hex()}")
 
@@ -77,6 +81,8 @@ class SocketHandler:
             self.logger.error(f"Error receiving packet: {e}")
             self.close_socket()
             return None, None
+        finally:
+            self.socket = None
 
     def close_socket(self):
         """Cierra el socket."""
