@@ -85,7 +85,7 @@ class NetworkScanner:
 
         return ip_list
 
-    def ping(self, ip: str, timeout: float = 1.2) -> dict:
+    def ping(self, ip: str, timeout: float = 0.2) -> dict:
         """
             Realiza un ping a la IP especificada.
             latency is used with negative values to indicate errors in graphs
@@ -109,7 +109,7 @@ class NetworkScanner:
             socket_handler = SocketRawHandler(self.ctx, timeout)
             if not socket_handler.create_socket():
                 status['latency'] = -0.003  # F
-                raise Exception("Socket creation failed: {ip}")
+                raise Exception(f"Socket creation failed: {ip}")
 
             # Construir el paquete ICMP
             icmp_packet = ICMPPacket().build_packet()
@@ -119,13 +119,13 @@ class NetworkScanner:
 
             if not socket_handler.send_packet(ip, icmp_packet):
                 status['latency'] = -0.002
-                raise Exception("Send_packet failed: {ip}")
+                raise Exception(f"Send packet failed: {ip}")
 
             buffer, from_ip = socket_handler.receive_packet()
             status['from_ip'] = from_ip
 
             if buffer is None:
-                error_msg = f'Timeout: No response after {timeout["sec"]}.{timeout["usec"]}s from {ip}'
+                error_msg = f'Timeout: No response after {timeout} from {ip}'
                 status['error'] = error_msg
                 status['latency'] = -0.001
                 return status
@@ -158,7 +158,6 @@ class NetworkScanner:
             self.logger.error(str(e))
             status['error'] = str(e)
             return status
-
         finally:
             socket_handler.close_socket()
 

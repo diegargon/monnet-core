@@ -16,14 +16,17 @@ class SocketRawHandler:
         self.logger = ctx.get_logger()
         self.socket = None
         self.timeout = timeout
-        self.buffer = buffer_size
+        self.buffer_size = buffer_size
 
     def create_socket(self):
         """Crea un socket RAW para ICMP."""
         try:
             protocol_number = socket.getprotobyname('icmp')
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, protocol_number)
+            self.socket.settimeout(self.timeout)
+
         except socket.error as e:
-            self.logger.error(f"Create ocket error: {e}")
+            self.logger.error(f"Create socket error: {e}")
             return False
         except Exception as e:
             self.logger.error(f"Unexpected error: {e}")
@@ -42,8 +45,8 @@ class SocketRawHandler:
     def send_packet(self, ip: str, packet):
         """Envía un paquete a la IP especificada."""
         try:
-            if (not self.socket):
-                self.logger.error("Socket is not created or not valid")
+            if not self.socket:
+                self.logger.error("Socket is not created or is not valid")
                 return False
             self.socket.sendto(packet, (ip, 0))
         except Exception as e:
