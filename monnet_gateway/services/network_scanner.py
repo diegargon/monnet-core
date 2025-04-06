@@ -12,8 +12,8 @@ from time import time, sleep
 # Local
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
-from monnet_gateway.handlers.socket_raw_handler import SocketRawHandler
-from monnet_gateway.ping.icmp_packet import ICMPPacket
+from monnet_gateway.networking.socket_raw import SocketRawHandler
+from monnet_gateway.networking.icmp_packet import ICMPPacket
 from shared.app_context import AppContext
 
 class NetworkScanner:
