@@ -35,7 +35,7 @@ class HostScanner:
 
         for host in all_hosts:
             ip = host['ip']
-            ping_result = self.network_scanner.ping(ip, timeout={'sec': 1, 'usec': 200000})
+            ping_result = self.network_scanner.ping(ip, timeout=0.2)
             ip_status.append(ping_result)
 
         return ip_status
