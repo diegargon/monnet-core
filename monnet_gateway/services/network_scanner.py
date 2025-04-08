@@ -6,6 +6,7 @@ Monnet Gateway
 """
 # Std
 import ipaddress
+import socket
 import struct
 from time import time, sleep
 
@@ -142,17 +143,25 @@ class NetworkScanner:
 
             if source_ip == ip: # ICMP Echo Reply
                 return self.verify_ping_response(status, icmp_packet, ip, tim_start)
-            elif icmp_packet[0] == 3:  # ICMP Destination Unreachable
+            elif icmp_header[0] == 3:  # ICMP Destination Unreachable
                 status['error'] = 'Destination_unreachable'
                 status['latency'] = self.calculate_latency(tim_start)
-                self.logger.warning(f"Destination unreachable from {source_ip} (code {icmp_packet[1]})")
+                self.logger.warning(f"Destination unreachable from {source_ip} (code {icmp_header[1]})")
                 return status
             else:
-                self.logger.warning(f"Unexpected reply packet: {icmp_packet[0]} {source_ip}, expected: {ip}")
+                self.logger.warning(f"Unexpected reply packet: {icmp_header[0]} {source_ip}, expected: {ip}")
 
             status['error'] = 'timeout'
             status['latency'] = -0.001
 
+            return status
+        except socket.error as e:
+            self.logger.error(f"Socket error: {e}")
+            status['error'] = f"Socket error: {e}"
+            return status
+        except struct.error as e:
+            self.logger.error(f"Struct error: {e}")
+            status['error'] = f"Struct error: {e}"
             return status
         except Exception as e:
             self.logger.error(str(e))
