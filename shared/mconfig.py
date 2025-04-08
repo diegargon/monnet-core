@@ -3,11 +3,15 @@
 
 Monnet Shared: Config
 """
-
+import os
 import json
 
-def load_config(file_path):
+def load_config(file_path: str) -> dict:
     """Load JSON config"""
+
+    if not os.path.isfile(file_path) or not os.access(file_path, os.R_OK):
+        raise ValueError("File path not exist or not readable")
+
     try:
         with open(file_path, "r", encoding='utf-8') as file:
             config = json.load(file)
@@ -16,7 +20,32 @@ def load_config(file_path):
     except Exception as e:
         raise RuntimeError(f"Error loading configuration: {e}")
 
-def update_config(config: dict, key: str, value):
+def update_config(config: dict):
+    """
+    Saves the entire configu to the file specified in `_config_path`.
+
+    Args:
+        config (dict): The loaded configuration dictionary containing `_config_path`.
+
+    Returns:
+        bool: True if the operation was successful, False otherwise.
+    """
+    try:
+        if '_config_path' not in config:
+            raise ValueError("Configuration dictionary missing '_config_path' key.")
+
+        if not os.path.isfile(config["_config_path"]) or not os.access([config['_config_path']], os.W_OK):
+            raise ValueError("Config path not exist or not writable")
+
+        # Save the entire config back to the file
+        with open(config['_config_path'], 'w', encoding='utf-8') as file:
+            json.dump(config, file, indent=4)
+
+        return True
+    except Exception as e:
+        raise RuntimeError(f"Error saving configuration: {e}")
+
+def update_config_key(config: dict, key: str, value):
     """
     Updates or adds a key-value pair in the given configuration dictionary and saves it to the file.
 
@@ -32,6 +61,8 @@ def update_config(config: dict, key: str, value):
         if '_config_path' not in config:
             raise ValueError("Configuration dictionary missing '_config_path' key.")
 
+        if not os.path.isfile(config["_config_path"]) or not os.access([config['_config_path']], os.W_OK):
+            raise ValueError("Config path not exist or not writable")
         # Update or add the key-value pair
         config[key] = value
 

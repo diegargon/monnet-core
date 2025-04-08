@@ -23,7 +23,7 @@ from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification, send_request, validate_response
-from shared.mconfig import load_config, validate_agent_config
+from shared.mconfig import load_config, validate_agent_config, update_config
 
 
 class MonnetAgent:
@@ -203,12 +203,25 @@ class MonnetAgent:
             self.config["interval"] = new_interval
             self.logger.log(f"Interval updated to {self.config['interval']} seconds", "info")
 
+        if isinstance(data, dict) and "config" in data:
+            new_config = data["config"]
+            if isinstance(new_config, dict):
+                # Add or update config values
+                for key, value in new_config.items():
+                    if key in self.config:
+                        self.logger.debug(f"Updating config key '{key}' with new value: {value}")
+                    else:
+                        self.logger.debug(f"Adding new config key '{key}' with value: {value}")
+                    self.config[key] = value
+                update_config(self.config)
+                self.logger.log(f"Config updated: {self.config}", "info")
+        """
         if isinstance(data, dict) and "something" in data:
-            # Handle specific commands from server
             try:
-                pass  # Implement command handling
+                pass
             except ValueError:
                 self.logger.log("Invalid command", "warning")
+        """
 
     def _process_events(self):
         """Process and send events"""
