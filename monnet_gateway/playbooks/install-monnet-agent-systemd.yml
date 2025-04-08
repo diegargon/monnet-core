@@ -88,10 +88,17 @@
         mode: '0755'
       when: not etc_monnet_dir.stat.exists
 
+#    - name: Create the agent-config file if it doesn't exist
+#      copy:
+#        dest: /etc/monnet/agent-config
+#        content: "{{ agent_config | from_json | to_nice_json }}"
+#        mode: '0644'
+#        creates: /etc/monnet/agent-config
+
     - name: Create the agent-config file
       copy:
         dest: /etc/monnet/agent-config
-        content: "{{ agent_config }}"
+        content: "{{ agent_config | from_json | to_nice_json }}"
         mode: '0644'
 
     - name: Copy the monnet-agent-linux.service file to /etc/systemd/system
