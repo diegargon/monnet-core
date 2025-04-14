@@ -78,8 +78,15 @@ def update_config_key(config: dict, key: str, value):
         config[key] = value
 
         # Save the updated config back to the file
-        with open(config['_config_path'], 'w', encoding='utf-8') as file:
-            json.dump(config, file, indent=4)
+        try:
+            with open(config['_config_path'], 'w', encoding='utf-8') as file:
+                json.dump(config, file, indent=4)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON format: {e}")
+        except TypeError as e:
+            raise ValueError(f"Invalid type in JSON: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Error saving configuration: {e}")
 
         return True
     except Exception as e:
