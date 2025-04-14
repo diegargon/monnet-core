@@ -23,6 +23,8 @@ chmod +x install.bash
 The install script sets up a virtual Python environment for an application in a specific directory (/opt/monnet-core/monnet_gateway).
 it configures a systemd service by copying a configuration file and setting the proper permissions. Finally, it configures ansible to use JSON-formatted output by modifying its configuration file.
 
+Also install requeriment.txt withint virtual environment
+
 ## Configure Ansible Support
 
 Ansible server listens on localhost only; You must install ansible on the same system
