@@ -1,5 +1,5 @@
 # @meta
-# id: "std-setup""
+# id: "std-setup"
 # name: "std-setup"
 # desc: "Gather system information"
 # os: { linux, posix, windows}
