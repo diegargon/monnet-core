@@ -124,9 +124,9 @@ def extract_pb_metadata(ctx: AppContext) -> Optional[List[dict]]:
     # vars
     PLAYBOOKS_DIR = os.path.join(ctx.workdir, 'monnet_gateway', 'playbooks')
     VALID_EXTENSIONS = ('.yml', '.yaml')
-    METADATA_REGEX = r'#\s*@meta(.+?)(?=---|\n\s*\n)'
     REQUIRED_FIELDS = {'id', 'name'}
-
+    # The metadata block should start with `# @meta` and end with `---` or a blank line.
+    METADATA_REGEX = r'#\s*@meta(.+?)(?=---|\n\s*\n)'
 
     if not os.path.isdir(PLAYBOOKS_DIR):
         ctx.get_logger().error(f"Playbooks directory not found: {PLAYBOOKS_DIR}")
