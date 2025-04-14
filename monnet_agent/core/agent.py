@@ -1,7 +1,7 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Agent
+Monnet Agent - core
 
 """
 
@@ -99,6 +99,8 @@ class MonnetAgent:
 
             self.running = self.ctx.get_var("running")
             self._sleep_interval(current_time)
+
+        self.logger.notice("Agent run core finish")
 
         return True
 
