@@ -1,3 +1,10 @@
+# @meta
+# id: "std_service-facts-linux"
+# name: "service-facts-linux"
+# desc: "Gather service facts"
+# os: { linux, posix }
+# tags: { service, facts }
+---
 - name: Gather service facts
   hosts: all
   gather_facts: true #need for services

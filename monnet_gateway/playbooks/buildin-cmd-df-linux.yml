@@ -1,3 +1,10 @@
+# @meta
+# id: "std_cmd-df-linux"
+# name: "cmd-df-linux"
+# desc: "Get disk usage"
+# os: { linux , posix }
+# tags: { df }
+---
 - name: Get disk usage
   hosts: all
   gather_facts: false

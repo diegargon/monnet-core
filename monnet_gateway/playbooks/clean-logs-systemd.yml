@@ -1,8 +1,18 @@
+# @meta
+# id: "std_clean-logs-systemd"
+# name: "clean-logs-systemd"
+# desc: "Manage journald and log cleanup"
+# os: { linux, posix }
+# vars:
+#   - { name: log_retention_days, type: int, default: 30, desc: "Number of days to retain logs" }
+# tags: { journald, logs }
+---
 - name: Manage journald and log cleanup
   hosts: all
   become: true
   gather_facts: false
-
+  vars:
+    log_retention_days: "{{ log_retention_days | default(30) }}"
   tasks:
     - name: Ensure log_retention_days is provided
       fail:

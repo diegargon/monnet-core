@@ -1,3 +1,10 @@
+# @meta
+# id: "std_cmd-topbn1"
+# name: "cmd-topbn1"
+# desc: "Obtener información de carga del sistema"
+# os: { linux, posix }
+# tags: { top }
+---
 - name: Gather system load information
   hosts: all
   gather_facts: false

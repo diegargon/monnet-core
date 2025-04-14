@@ -1,14 +1,22 @@
-# Need pip3 install PyMySQL
+# @meta
+# id: "std_mysql-performance"
+# name: "mysql-performance"
+# desc: "Monitor MySQL performance and resource usage"
+# os: { linux, posix }
+# vars:
+#   - { name: db_username, type: str, default: "root", desc: "Nombre de usuario de la base de datos" }
+#   - { name: db_password, type: str_password, desc: "Contraseña de la base de datos" }
+# tags: { mysql, performance, monitoring }
+# dependencies: { PyMySQL: ">=0.9.3" }
+---
 - name: Monitor MySQL performance and resource usage
   hosts: all
   become: true
   gather_facts: false
 
   vars:
-    #db_service: "{{ database_service }}"
-    #db_name: "{{ database_name }}"
-    mysql_username: "{{ db_username }}"
-    mysql_password: "{{ db_password }}"
+    db_username: "{{ db_username | default('root') }}"
+    db_password: "{{ db_password }}"
 
   tasks:
     - name: Ensure MySQL is running
@@ -29,8 +37,8 @@
     # Check number of running queries
     - name: Get running queries
       mysql_query:
-        login_user: "{{ mysql_username }}"
-        login_password: "{{ mysql_password }}"
+        login_user: "{{ db_username }}"
+        login_password: "{{ db_password }}"
         login_host: localhost
         login_unix_socket: /run/mysqld/mysqld.sock
         query: "SHOW PROCESSLIST;"
@@ -66,8 +74,8 @@
     # Check MySQL status related to cache and buffer
     - name: Get MySQL InnoDB buffer pool status
       mysql_query:
-        login_user: "{{ mysql_username }}"
-        login_password: "{{ mysql_password }}"
+        login_user: "{{ db_username }}"
+        login_password: "{{ db_password }}"
         login_host: localhost
         login_unix_socket: /run/mysqld/mysqld.sock
         query: "SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';"
@@ -81,8 +89,8 @@
     # Get MySQL query cache status
     - name: Get MySQL query cache status
       mysql_query:
-        login_user: "{{ mysql_username }}"
-        login_password: "{{ mysql_password }}"
+        login_user: "{{ db_username }}"
+        login_password: "{{ db_password }}"
         login_host: localhost
         login_unix_socket: /run/mysqld/mysqld.sock
         query: "SHOW GLOBAL STATUS LIKE 'Qcache%';"
@@ -96,8 +104,8 @@
     # Check MySQL connection stats
     - name: Get MySQL connections statistics
       mysql_query:
-        login_user: "{{ mysql_username }}"
-        login_password: "{{ mysql_password }}"
+        login_user: "{{ db_username }}"
+        login_password: "{{ db_password }}"
         login_host: localhost
         login_unix_socket: /run/mysqld/mysqld.sock
         query: "SHOW STATUS LIKE 'Threads_connected';"

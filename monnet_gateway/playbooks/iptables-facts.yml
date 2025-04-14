@@ -1,3 +1,10 @@
+# @meta
+# id: "std_iptables-facts"
+# name: "iptables-facts"
+# desc: "Gather iptables state"
+# os: { linux, posix }
+# tags: { iptables, firewall }
+---
 - name: Gather iptables state
   hosts: all
   become: true

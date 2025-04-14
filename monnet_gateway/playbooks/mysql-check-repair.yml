@@ -1,12 +1,25 @@
+# @meta
+# id: "std_mysql-check-repair"
+# name: "mysql-check-repair"
+# desc: "Check and repair MySQL tables"
+# os: { linux, posix }
+# vars:
+#   - { name: db_username, type: str, default: "root", desc: "Nombre de usuario de la base de datos" }
+#   - { name: db_password, type: str_password, desc: "Contraseña de la base de datos" }
+#   - { name: db_name, type: str, desc: "Nombre de la base de datos" }
+# tags: { mysql, repair, check }
+---
 - name: Check and optimize/repair all MySQL tables
   hosts: all
   gather_facts: false
   become: true
   vars:
     ansible_python_interpreter: "/usr/bin/python3"
-    
-  tasks:
+    db_username: "{{ db_username | default('root') }}"
+    db_password: "{{ db_password }}"
+    db_name: "{{ db_name }}"
 
+  tasks:
     - name: Get list of all tables in the database
       community.mysql.mysql_query:
         login_host: "localhost"

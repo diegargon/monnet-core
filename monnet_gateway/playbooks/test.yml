@@ -1,3 +1,10 @@
+# @meta
+# id: "std_tets"
+# name: "test"
+# desc: "Test playbook"
+# os: { linux, posix, windows }
+# tags: { test }
+---
 - name: Playbook que no hace nada
   hosts: localhost
   gather_facts: false

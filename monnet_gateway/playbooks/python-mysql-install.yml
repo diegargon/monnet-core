@@ -1,3 +1,10 @@
+# @meta
+# id: "std_python-mysql-install"
+# name: "python-mysql-install"
+# desc: "Install Python MySQL library on Debian/Redhat os"
+# os: { linux, posix }
+# tags: { mysql, pip}
+---
 - name: Install MySQL library based on Python version and OS family
   hosts: all
   gather_facts: true

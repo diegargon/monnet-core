@@ -1,3 +1,10 @@
+# @meta
+# id: "std_syslog-linux"
+# name: "syslog-linux"
+# desc: "Get the last lines of syslog"
+# os: { linux, posix }
+# tags: { syslog, logs }
+---
 - name: Get the last lines of syslog
   hosts: all
   gather_facts: false

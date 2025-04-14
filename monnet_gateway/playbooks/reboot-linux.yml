@@ -1,3 +1,10 @@
+# @meta
+# id: "std_reboot-linux"
+# name: "reboot-linux"
+# desc: "Reboot a Linux system"
+# os: { linux, posix }
+# tags: { reboot, system }
+---
 - name: Reboot a Linux system
   hosts: all
   become: true

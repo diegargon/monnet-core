@@ -1,3 +1,10 @@
+# @meta
+# id: "std_shutdown-win"
+# name: "shutdown-win"
+# desc: "Shutdown a Windows system"
+# os: { windows }
+# tags: { shutdown }
+---
 - name: Shutdown a Windows system
   hosts: all
   become: true

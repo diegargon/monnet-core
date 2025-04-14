@@ -1,3 +1,10 @@
+# @meta
+# id: "std_win-facts"
+# name: "win-facts"
+# desc: "Gather Windows facts"
+# os: { windows }
+# tags: { facts }
+---
 - name: Gather facts from Windows hosts
   hosts: all
   gather_facts: false
