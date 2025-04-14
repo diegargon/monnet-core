@@ -7,7 +7,10 @@
 #   - { name: db_username, type: str, default: "root", desc: "Nombre de usuario de la base de datos" }
 #   - { name: db_password, type: str_password, desc: "Contraseña de la base de datos" }
 # tags: { mysql, performance, monitoring }
-# dependencies: { PyMySQL: ">=0.9.3" }
+# reqirements:
+#   min_ansible_version: "2.9"
+#   dependencies: { PyMySQL: ">=0.9.3" }
+
 ---
 - name: Monitor MySQL performance and resource usage
   hosts: all

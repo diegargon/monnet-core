@@ -22,6 +22,7 @@ class AppContext:
         self._database = None
         self._logger = None
         self._config = None
+        self._pb_metadata = {}
         self._variables = {}
 
     def set_var(self, key: str, value)-> None:
@@ -114,3 +115,27 @@ class AppContext:
             Logger instance
         """
         return self._logger
+
+    def set_pb_metadata(self, metadata: dict) -> None:
+        """
+        Set playbook metadata.
+        Args:
+            metadata (dict): Metadata dictionary.
+        """
+        self._pb_metadata = metadata
+
+    def get_pb_metadata(self) -> dict:
+        """
+        Get playbook metadata.
+        Returns:
+            dict: Metadata dictionary.
+        """
+        return self._pb_metadata
+
+    def has_pb_metadata(self) -> bool:
+        """
+        Check if playbook metadata is set.
+        Returns:
+            bool: True if metadata is set, False otherwise.
+        """
+        return bool(self._pb_metadata)

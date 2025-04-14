@@ -1,6 +1,11 @@
 TODO
 last.diff
 oldfiles
+monnet_gateway/playbooks/*
+monnet_gateway/playbooks/*
+!monnet_gateway/playbooks/std_*.yml
+!monnet_gateway/playbooks/std_*.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

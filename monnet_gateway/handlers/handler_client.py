@@ -11,7 +11,7 @@ import json
 import traceback
 
 # Local
-from monnet_gateway.handlers.handler_ansible import handle_ansible_command
+from monnet_gateway.handlers.handler_ansible import extract_pb_metadata, handle_ansible_command
 from monnet_gateway.mgateway_config import ALLOWED_COMMANDS
 from shared.app_context import AppContext
 
@@ -47,6 +47,8 @@ def handle_client(ctx: AppContext, conn, addr):
                     response = {"status": "error", "message": f"Invalid command: {command}"}
                 elif command == "playbook":
                     response = handle_ansible_command(ctx, command, request.get('data', {}))
+                elif command == "scan_playbooks":
+                    response == extract_pb_metadata(ctx)
                 # elif command == "another_command":
                 #     # Handle 'another_command' logic
                 #     pass

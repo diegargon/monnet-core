@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
+from monnet_gateway.handlers.handler_ansible import extract_pb_metadata
 from shared.app_context import AppContext
 from shared.clogger import Logger
 from monnet_gateway.mgateway_config import TASK_INTERVAL
@@ -114,6 +115,9 @@ def main():
     # Setting up signal handlers
     signal.signal(signal.SIGTERM, lambda sig, frame: signal_handler(sig, frame, ctx))
     signal.signal(signal.SIGINT, lambda sig, frame: signal_handler(sig, frame, ctx))
+
+    # Escan Ansible Playbooks Directory and save it in the context
+    extract_pb_metadata(ctx)
 
     # Run the server on the test port if specified
     if args.test_port:  # Cambiado de args.test a args.test_port

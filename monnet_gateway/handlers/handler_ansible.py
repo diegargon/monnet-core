@@ -9,7 +9,10 @@ Ansible
 # Standard
 import json
 import os
+import re
 import subprocess
+from typing import List, Optional
+import yaml
 
 # Local
 from monnet_gateway.mgateway_config import VERSION, MINOR_VERSION
@@ -106,3 +109,72 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
             "message": str(e)
         }
         return json.dumps(error_message)
+
+def extract_pb_metadata(ctx: AppContext) -> Optional[List[dict]]:
+    """
+    Extracts metadata from all YAML playbooks in the directory and stores it in the context.
+
+    Args:
+        ctx (AppContext): Context with workdir, logger, and metadata storage capability.
+
+    Returns:
+        Optional[List[dict]]: List of metadata dicts if successful, None if critical failure occurs.
+                             Also stores the result in ctx via set_pb_metadata().
+    """
+    # vars
+    PLAYBOOKS_DIR = os.path.join(ctx.workdir, 'monnet_gateway', 'playbooks')
+    VALID_EXTENSIONS = ('.yml', '.yaml')
+    METADATA_REGEX = r'#\s*@meta(.+?)(?=---|\n\s*\n)'
+    REQUIRED_FIELDS = {'id', 'name'}
+
+
+    if not os.path.isdir(PLAYBOOKS_DIR):
+        ctx.get_logger().error(f"Playbooks directory not found: {PLAYBOOKS_DIR}")
+        return None
+
+    # valid files
+    playbook_files = [
+        f for f in os.listdir(PLAYBOOKS_DIR)
+        if f.lower().endswith(VALID_EXTENSIONS)
+        and os.path.isfile(os.path.join(PLAYBOOKS_DIR, f))
+    ]
+
+    if not playbook_files:
+        ctx.get_logger().warning(f"No valid YAML files found in {PLAYBOOKS_DIR}")
+        ctx.set_pb_metadata([])
+        return []
+
+    # Scan files
+    metadata_list = []
+    for filename in playbook_files:
+        filepath = os.path.join(PLAYBOOKS_DIR, filename)
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            if not (metadata_block := re.search(METADATA_REGEX, content, re.DOTALL)):
+                ctx.get_logger().debug(f"No metadata found in {filename}")
+                continue
+
+            metadata = yaml.safe_load(
+                re.sub(r'^\s*#\s*', '', metadata_block.group(1), flags=re.MULTILINE)
+            )
+
+            if not metadata or not REQUIRED_FIELDS.issubset(metadata):
+                ctx.get_logger().warning(
+                    f"Invalid metadata in {filename}. "
+                    f"Required fields: {REQUIRED_FIELDS}"
+                )
+                continue
+
+            metadata['_source_file'] = filename
+            metadata_list.append(metadata)
+
+        except yaml.YAMLError as e:
+            ctx.get_logger().error(f"YAML syntax error in {filename}: {str(e)}")
+        except Exception as e:
+            ctx.get_logger().error(f"Unexpected error with {filename}: {str(e)}")
+
+    ctx.set_pb_metadata(metadata_list)
+
+    return metadata_list if metadata_list else None
