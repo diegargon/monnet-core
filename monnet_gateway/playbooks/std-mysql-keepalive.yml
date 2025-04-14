@@ -1,6 +1,6 @@
 # @meta
-# id: "std_mysql-keepalive"
-# name: "mysql-keepalive"
+# id: "std-mysql-keepalive"
+# name: "std-mysql-keepalive"
 # desc: "Check and ensure MySQL service is running"
 # os: { linux , posix }
 # tags: { mysql }

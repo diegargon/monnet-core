@@ -1,6 +1,6 @@
 # @meta
-# id: "std_setup""
-# name: "setup"
+# id: "std-setup""
+# name: "std-setup"
 # desc: "Gather system information"
 # os: { linux, posix, windows}
 # tags: { system, facts }

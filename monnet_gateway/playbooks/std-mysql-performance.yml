@@ -1,6 +1,6 @@
 # @meta
-# id: "std_mysql-performance"
-# name: "mysql-performance"
+# id: "std-mysql-performance"
+# name: "std-mysql-performance"
 # desc: "Monitor MySQL performance and resource usage"
 # os: { linux, posix }
 # vars:

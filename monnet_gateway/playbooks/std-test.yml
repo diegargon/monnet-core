@@ -1,6 +1,6 @@
 # @meta
-# id: "std_tets"
-# name: "test"
+# id: "std-test"
+# name: "std-test"
 # desc: "Test playbook"
 # os: { linux, posix, windows }
 # tags: { test }

@@ -1,6 +1,6 @@
 # @meta
-# id: "std_cmd-df-linux"
-# name: "cmd-df-linux"
+# id: "std-buildin-cmd-df-linux"
+# name: "std-buildin-cmd-df-linux"
 # desc: "Get disk usage"
 # os: { linux , posix }
 # tags: { df }

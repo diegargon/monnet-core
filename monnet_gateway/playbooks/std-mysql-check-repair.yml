@@ -1,6 +1,6 @@
 # @meta
-# id: "std_mysql-check-repair"
-# name: "mysql-check-repair"
+# id: "std-mysql-check-repair"
+# name: "std-mysql-check-repair"
 # desc: "Check and repair MySQL tables"
 # os: { linux, posix }
 # vars:

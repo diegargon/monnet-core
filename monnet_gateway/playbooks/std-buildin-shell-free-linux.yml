@@ -1,7 +1,7 @@
 
 # @meta
-# id: "std_buildin-shell-free-linux"
-# name: "buildin-shell-free-linux"
+# id: "std-buildin-shell-free-linux"
+# name: "std-buildin-shell-free-linux"
 # desc: "Get memory usage"
 # os: { linux, posix }
 # tags: { free }

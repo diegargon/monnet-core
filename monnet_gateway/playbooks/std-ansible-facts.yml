@@ -1,6 +1,6 @@
 # @meta
-# id: "std_ansible-facts"
-# name: "ansible-facts"
+# id: "std-ansible-facts"
+# name: "std-ansible-facts"
 # desc: "Display gathered facts"
 # os: { linux, windows, posix }
 # tags: { facts }

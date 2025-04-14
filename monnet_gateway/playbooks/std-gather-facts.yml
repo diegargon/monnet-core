@@ -1,6 +1,6 @@
 # @meta
-# id: "std_gather-min-facts"
-# name: "cmd-gather-min-facts"
+# id: "std-gather-min-facts"
+# name: "std-cmd-gather-min-facts"
 # desc: "Gather minimal facts"
 # os: { linux, posix }
 # tags: { facts }

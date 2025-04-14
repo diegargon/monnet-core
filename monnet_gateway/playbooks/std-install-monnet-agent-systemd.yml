@@ -1,6 +1,6 @@
 # @meta
-# id: "std_install-monnet-agent-systemd"
-# name: "cmd-install-monnet-agent-systemd"
+# id: "std-install-monnet-agent-systemd"
+# name: "std-cmd-install-monnet-agent-systemd"
 # desc: "Install Monnet Agent on systemd distributions"
 # os: { linux, posix }
 # tags: { monnet, systemd }

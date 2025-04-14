@@ -3,8 +3,8 @@ last.diff
 oldfiles
 monnet_gateway/playbooks/*
 monnet_gateway/playbooks/*
-!monnet_gateway/playbooks/std_*.yml
-!monnet_gateway/playbooks/std_*.yaml
+!monnet_gateway/playbooks/std-*.yml
+!monnet_gateway/playbooks/std-*.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

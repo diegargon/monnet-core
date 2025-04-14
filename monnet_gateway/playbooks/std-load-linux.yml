@@ -1,6 +1,6 @@
 # @meta
-# id: "std_load-linux"
-# name: "load-linux"
+# id: "std-load-linux"
+# name: "std-load-linux"
 # desc: "Get load statistics"
 # os: { linux, posix }
 # tags: { performance, load }

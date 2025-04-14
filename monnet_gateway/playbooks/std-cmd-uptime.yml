@@ -1,6 +1,6 @@
 # @meta
-# id: "std_cmd-uptime"
-# name: "cmd-uptime"
+# id: "std-cmd-uptime"
+# name: "std-cmd-uptime"
 # desc: "Obtener información de tiempo de actividad del sistema"
 # os: { linux, posix }
 # tags: { uptime }

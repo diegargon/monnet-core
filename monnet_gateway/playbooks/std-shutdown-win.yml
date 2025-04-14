@@ -1,6 +1,6 @@
 # @meta
-# id: "std_shutdown-win"
-# name: "shutdown-win"
+# id: "std-shutdown-win"
+# name: "std-shutdown-win"
 # desc: "Shutdown a Windows system"
 # os: { windows }
 # tags: { shutdown }

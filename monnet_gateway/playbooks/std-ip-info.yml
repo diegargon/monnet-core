@@ -1,6 +1,6 @@
 # @meta
-# id: "std_ip-info"
-# name: "ip-info"
+# id: "std-ip-info"
+# name: "std-ip-info"
 # desc: "Gather IP address and routes"
 # os: { linux, posix }
 # tags: { ip, network }

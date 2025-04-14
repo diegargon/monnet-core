@@ -1,6 +1,6 @@
 # @meta
-# id: "std_service-facts-linux"
-# name: "service-facts-linux"
+# id: "std-service-facts"
+# name: "std-service-facts"
 # desc: "Gather service facts"
 # os: { linux, posix }
 # tags: { service, facts }

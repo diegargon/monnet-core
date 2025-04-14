@@ -1,6 +1,6 @@
 # @meta
-# id: "std_win-facts"
-# name: "win-facts"
+# id: "std-win-facts"
+# name: "std-win-facts"
 # desc: "Gather Windows facts"
 # os: { windows }
 # tags: { facts }

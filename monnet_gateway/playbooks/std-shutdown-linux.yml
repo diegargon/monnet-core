@@ -1,6 +1,6 @@
 # @meta
-# id: "std_shutdown-linux"
-# name: "shutdown-linux"
+# id: "std-shutdown-linux"
+# name: "std-shutdown-linux"
 # desc: "Shutdown a Linux system"
 # os: { linux, posix }
 # tags: { shutfown }

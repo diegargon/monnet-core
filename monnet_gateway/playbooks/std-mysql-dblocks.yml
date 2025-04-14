@@ -1,6 +1,6 @@
 # @meta
-# id: "std_mysql-dblocks"
-# name: "mysql-dblocks"
+# id: "std-mysql-dblocks"
+# name: "std-mysql-dblocks"
 # desc: "Ensure MySQL is running and check database locks"
 # os: { linux, posix }
 # vars:

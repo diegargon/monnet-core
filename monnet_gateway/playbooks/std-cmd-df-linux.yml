@@ -1,6 +1,6 @@
 # @meta
-# id: "std_cmd-df-linux"
-# name: "cmd-df-linux"
+# id: "std-cmd-df-linux"
+# name: "std-cmd-df-linux"
 # desc: "Obtener información de particiones reales"
 # os: { linux, posix }
 # tags: { df }

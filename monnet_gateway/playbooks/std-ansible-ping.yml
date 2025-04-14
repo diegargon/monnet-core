@@ -1,6 +1,6 @@
 # @meta
-# id: "std_test_ansible_connectivity"
-# name: "ansible-ping"
+# id: "std-ansible-ping"
+# name: "std-ansible-ping"
 # desc: "Test Ansible connectivity"
 # os: { linux, windows, posix }
 # tags: { ping, connectivity }

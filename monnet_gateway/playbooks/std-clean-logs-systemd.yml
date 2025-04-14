@@ -1,6 +1,6 @@
 # @meta
-# id: "std_clean-logs-systemd"
-# name: "clean-logs-systemd"
+# id: "std-clean-logs-systemd"
+# name: "std-clean-logs-systemd"
 # desc: "Manage journald and log cleanup"
 # os: { linux, posix }
 # vars:

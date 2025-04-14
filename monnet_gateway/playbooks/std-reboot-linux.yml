@@ -1,6 +1,6 @@
 # @meta
-# id: "std_reboot-linux"
-# name: "reboot-linux"
+# id: "std-reboot-linux"
+# name: "std-reboot-linux"
 # desc: "Reboot a Linux system"
 # os: { linux, posix }
 # tags: { reboot, system }

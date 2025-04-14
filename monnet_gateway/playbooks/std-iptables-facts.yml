@@ -1,6 +1,6 @@
 # @meta
-# id: "std_iptables-facts"
-# name: "iptables-facts"
+# id: "std-iptables-facts"
+# name: "std-iptables-facts"
 # desc: "Gather iptables state"
 # os: { linux, posix }
 # tags: { iptables, firewall }
