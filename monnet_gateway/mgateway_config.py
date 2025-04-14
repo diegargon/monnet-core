@@ -6,8 +6,8 @@ Monnet Gateway
 Config file
 """
 
-VERSION = "0.4"
-MINOR_VERSION = 50
+VERSION = "0.5"
+MINOR_VERSION = 3
 HOST = 'localhost'
 PORT = 65432
 PORT_TEST = 65433
@@ -15,4 +15,4 @@ CONFIG_MGATEWAY_PATH = "/etc/monnet/mgateway-config"
 CONFIG_DB_PATH = "/etc/monnet/config-db.json"
 
 TASK_INTERVAL = 10  # Seconds
-ALLOWED_COMMANDS = ["playbook", "scan_plabooks"]
+ALLOWED_MODULES = ["ansible",]

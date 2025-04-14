@@ -11,8 +11,8 @@ import json
 import traceback
 
 # Local
-from monnet_gateway.handlers.handler_ansible import extract_pb_metadata, handle_ansible_command
-from monnet_gateway.mgateway_config import ALLOWED_COMMANDS
+from monnet_gateway.handlers.handler_ansible import handle_ansible_command
+from monnet_gateway.mgateway_config import ALLOWED_MODULES
 from shared.app_context import AppContext
 
 def handle_client(ctx: AppContext, conn, addr):
@@ -40,20 +40,22 @@ def handle_client(ctx: AppContext, conn, addr):
 
                 # Check if 'command' exists
                 command = request.get('command')
+                module = request.get('module')
+                if not module:
+                    response = {"status": "error", "message": "Module not specified"}
                 if not command:
                     response = {"status": "error", "message": "Command not specified"}
-                elif command not in ALLOWED_COMMANDS:
+                if module not in ALLOWED_MODULES:
                     # Validate the command
-                    response = {"status": "error", "message": f"Invalid command: {command}"}
-                elif command == "playbook":
-                    response = handle_ansible_command(ctx, command, request.get('data', {}))
-                elif command == "scan_playbooks":
-                    response == extract_pb_metadata(ctx)
-                # elif command == "another_command":
-                #     # Handle 'another_command' logic
+                    response = {"status": "error", "message": f"Invalid command: {module} {command}"}
+
+                if module == "ansible":
+                    response = handle_ansible_command(ctx, command, request.get('data'))
+                # elif module == "another_cmodule":
+                #     # Handle 'another_module' logic
                 #     pass
                 else:
-                    response = {"status": "error", "message": f"Invalid command: {command}"}
+                    response = {"status": "error", "message": f"Invalid module: {module}"}
                 logger.debug(f"Response: {response}")
                 # Send the response back to the client in JSON format
                 try:

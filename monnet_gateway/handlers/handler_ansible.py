@@ -19,6 +19,80 @@ from monnet_gateway.mgateway_config import VERSION, MINOR_VERSION
 from shared.app_context import AppContext
 
 def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
+    """
+        Handle ansible command
+
+        Args:
+            ctx (AppContext): context
+            command (str): command
+            data_content (dict): data content
+
+        Returns:
+            dict: response
+    """
+    ALLOWED_COMMANDS = ["playbook_exec", "scan_plabooks", "get_playbooks_metadata"]
+    if command not in ALLOWED_COMMANDS:
+        return {"status": "error", "message": f"Invalid command: {command}"}
+
+    if command == "playbook_exec":
+        return ansible_exec(ctx, command, data_content)
+    elif command == "scan_playbooks":
+        extract_pb_metadata(ctx)
+        return _response_success(command, "Playbooks scanned successfully")
+    elif command == "get_playbook_metadata":
+        pb_id = data_content.get('pb_id')
+        if not pb_id:
+            return {"status": "error", "message": "Playbook ID not specified"}
+        return get_pb_metadata(ctx, pb_id)
+    else:
+        return {"status": "error", "message": f"Invalid command: {command}"}
+
+def _response_success(command: str, data:dict):
+    """
+    Create a success response
+    Args:
+        command (str): command
+        data (dict): data
+    Returns:
+        dict: response
+    """
+    response = {
+        "version": str(VERSION) + '.' + str(MINOR_VERSION),
+        "status": "success",
+        "command": command,
+        "result": data
+    }
+
+    return response
+
+def _response_error(command: str, message: str):
+    """
+    Create an error response
+    Args:
+        command (str): command
+        message (str): message
+        Returns:
+            dict: response
+    """
+    response = {
+        "version": str(VERSION) + '.' + str(MINOR_VERSION),
+        "status": "error",
+        "command": command,
+        "message": message
+    }
+
+    return response
+
+def ansible_exec(ctx: AppContext, command: str, data_content: dict):
+    """
+        Execute ansible playbook
+        Args:
+            ctx (AppContext): context
+            command (str): command
+            data_content (dict): data content
+            Returns:
+                dict: response
+"""
     playbook = data_content.get('playbook', None)
     extra_vars = data_content.get('extra_vars', None)
     ip = data_content.get('ip', None)
@@ -27,27 +101,20 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
     logger = ctx.get_logger()
 
     if not playbook:
-        return {"status": "error", "message": "Playbook not specified"}
+        return _response_error(command, "Playbook not specified")
 
     try:
         logger.info("Running ansible playbook...")
         result = run_ansible_playbook(ctx, playbook, extra_vars, ip=ip, user=user, limit=limit)
         result_data = json.loads(result)
         # logpo("ResultData: ", result_data)
-        response = {
-            "version": str(VERSION) + '.' + str(MINOR_VERSION),
-            "status": "success",
-            "command": command,
-            "result": result_data
-        }
-
-        return response
+        return _response_success(command, result_data)
     except json.JSONDecodeError as e:
         logger.error("Failed to decode JSON: " + str(e))
-        return {"status": "error", "message": "Failed to decode JSON: " + str(e)}
+        return _response_error(command, "Failed to decode JSON: " + str(e))
     except Exception as e:
         logger.error("Error executing the playbook: " + str(e))
-        return {"status": "error", "message": "Error executing the playbook: " + str(e)}
+        return _response_error(command, "Error executing the playbook: " + str(e))
 
 def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=None, user=None, limit=None):
     """
@@ -178,3 +245,27 @@ def extract_pb_metadata(ctx: AppContext) -> Optional[List[dict]]:
     ctx.set_pb_metadata(metadata_list)
 
     return metadata_list if metadata_list else None
+
+def get_pb_metadata(ctx: AppContext, pb_id: str) -> Optional[dict]:
+    """
+    Retrieve metadata for a specific playbook ID from the context.
+
+    Args:
+        ctx (AppContext): Context with metadata storage capability.
+        pb_id (str): Playbook ID to search for.
+
+    Returns:
+        Optional[dict]: Metadata dict or __response_error if not found.
+    """
+    if not ctx.has_pb_metadata():
+        extract_pb_metadata(ctx)
+
+    pb_metadata = ctx.get_pb_metadata()
+    if not pb_metadata:
+        return _response_error("get_playbook_metadata", "No metadata found")
+
+    for metadata in pb_metadata:
+        if metadata.get('id') == pb_id:
+            return _response_success("get_playbook_metadata", metadata)
+
+    return _response_error("get_playbook_metadata", f"Playbook ID {pb_id} not found")
