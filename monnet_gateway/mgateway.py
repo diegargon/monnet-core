@@ -116,7 +116,7 @@ def main():
     signal.signal(signal.SIGTERM, lambda sig, frame: signal_handler(sig, frame, ctx))
     signal.signal(signal.SIGINT, lambda sig, frame: signal_handler(sig, frame, ctx))
 
-    # Escan Ansible Playbooks Directory and save it in the context
+    # Scan Ansible Playbooks Directory and save it in the context
     extract_pb_metadata(ctx)
 
     # Run the server on the test port if specified
