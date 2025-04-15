@@ -144,6 +144,7 @@ class NetworkScanner:
             status['icmp_code'] = icmp_code
 
             if source_ip == ip: # ICMP Echo Reply
+                status['latency'] = self.calculate_latency(tim_start)
                 return self.verify_ping_response(status, icmp_packet, tim_start)
 
             if icmp_header[0] == 3:  # ICMP Destination Unreachable
@@ -175,18 +176,16 @@ class NetworkScanner:
     def verify_ping_response(self, status: dict, icmp: bytes, start_time: float) -> dict:
         """Verifica la respuesta ICMP y calcula la latencia si es válida."""
 
-        if len(icmp) < 2:
+        if len(icmp) < 8:
             self.logger.error("ICMP packet too short")
             return status
 
-        type = icmp[0]
-        code = icmp[1]
-        status['test'] = 1
+        icmp_type = icmp[0]
+        icmp_code = icmp[1]
         # Type 8 is returned when host pings itself
-        if (type == 0 or type == 8) and code == 0:
+        if (icmp_type == 0 or icmp_type == 8) and icmp_code == 0:
             if self.verify_checksum(icmp):
                 status['online'] = 1
-                status['latency'] = self.calculate_latency(start_time)
                 return status
             self.logger.error(f"Response checksum verification failed")
 
@@ -194,7 +193,7 @@ class NetworkScanner:
 
     def calculate_latency(self, start_time: float) -> float:
         """Calcula la latencia en milisegundos."""
-        return round((time() - start_time) * 1000, 4)
+        return round((time() - start_time) * 1000, 3)
 
     def verify_checksum(self, icmp: bytes) -> bool:
         """Verifica el checksum de una respuesta ICMP."""

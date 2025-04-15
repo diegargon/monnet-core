@@ -5,7 +5,7 @@ Monnet Gateway
 
 """
 
-from monnet_gateway.database.hosts_model import HostsModel
+from pprint import pprint
 from monnet_gateway.services.network_scanner import NetworkScanner
 
 
@@ -17,16 +17,14 @@ class HostScanner:
     def __init__(self, ctx):
         self.ctx = ctx
         self.logger = ctx.get_logger()
-        db = ctx.get_database()
-        self.hosts_model = HostsModel(db)
         self.network_scanner = NetworkScanner(ctx)
 
-    def scan_known(self):
+    def scan_hosts(self, all_hosts: dict):
         """
         Scan a host
         """
         self.logger.log("Scanning known hosts...", "info")
-        all_hosts = self.hosts_model.get_all_enabled()
+
         if not all_hosts:
             self.logger.log("No hosts found to scan.", "info")
             return []
@@ -36,6 +34,7 @@ class HostScanner:
         for host in all_hosts:
             ip = host['ip']
             ping_result = self.network_scanner.ping(ip, timeout=0.3)
+            ping_result["id"] = host["id"]
             ip_status.append(ping_result)
 
         return ip_status
