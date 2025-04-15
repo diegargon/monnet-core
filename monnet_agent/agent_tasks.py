@@ -49,6 +49,9 @@ def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, s
     except Exception as e:
         logger.error(f"Error in check_listen_ports: {e}")  # Log error instead of raising
     finally:
+        if not ctx.get_var("running"):
+            return
+        # Start again
         agent_config.timers['check_ports'] = threading.Timer(
             agent_config.TIMER_STATS_INTERVAL,
             check_listen_ports,
@@ -113,6 +116,8 @@ def send_stats(ctx: AppContext, datastore, notify_callback):
     except Exception as e:
         logger.error(f"Error in send_stats: {e}")  # Log error instead of raising
     finally:
+        if not ctx.get_var("running"):
+            return
         # Start again
         agent_config.timers['send_stats'] = threading.Timer(
             agent_config.TIMER_STATS_INTERVAL,

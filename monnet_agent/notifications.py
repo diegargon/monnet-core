@@ -174,11 +174,11 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
                 try:
                     return json.loads(raw_data)
                 except json.JSONDecodeError as e:
-                    logger.log(f"Error decoding JSON response: {e}", "err")
+                    logger.log(f"Error decoding JSON response: {e} Raw data: {raw_data}", "err")
             else:
                 logger.log("Empty response from server", "err")
         else:
-            logger.log(f"HTTP Error: {response.status} {response.reason}, Response: {raw_data}", "err")
+            logger.log(f"HTTP Error: {response.status} {response.reason}, Raw data: {raw_data}", "err")
 
     except http.client.HTTPException as e:
         logger.log(f"HTTP exception occurred: {e}", "err")
