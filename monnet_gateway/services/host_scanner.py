@@ -21,7 +21,7 @@ class HostScanner:
         self.hosts_model = HostsModel(db)
         self.network_scanner = NetworkScanner(ctx)
 
-    def scanKnown(self):
+    def scan_known(self):
         """
         Scan a host
         """
@@ -29,7 +29,7 @@ class HostScanner:
         all_hosts = self.hosts_model.get_all_enabled()
         if not all_hosts:
             self.logger.log("No hosts found to scan.", "info")
-            return
+            return []
 
         ip_status = []
 

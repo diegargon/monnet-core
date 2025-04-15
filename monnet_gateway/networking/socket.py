@@ -155,9 +155,8 @@ class SocketHandler:
                     self.logger.warning("Connection closed by peer")
                     return None, None
                 return data, None
-            else:
-                data, address = self.socket.recvfrom(buffer_size)
-                return data, address
+            data, address = self.socket.recvfrom(buffer_size)
+            return data, address
 
         except socket.timeout:
             self.logger.warning("Socket timeout while receiving data")

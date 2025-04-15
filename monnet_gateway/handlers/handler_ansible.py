@@ -44,8 +44,8 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
         if not pb_id:
             return {"status": "error", "message": "Playbook ID not specified"}
         return get_pb_metadata(ctx, pb_id)
-    else:
-        return {"status": "error", "message": f"Invalid command: {command}"}
+
+    return {"status": "error", "message": f"Invalid command: {command}"}
 
 def _response_success(command: str, data:dict):
     """

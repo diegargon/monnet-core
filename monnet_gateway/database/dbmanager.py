@@ -98,9 +98,9 @@ class DBManager:
             # Return results as dictionaries
             self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
         except ImportError:
-            raise RuntimeError("PyMySQL is not installed. Install it with `pip install pymysql`.")
+            raise RuntimeError("PyMySQL is not installed. Install it with `pip install pymysql`.") from e
         except pymysql.Error as e:
-            raise RuntimeError(f"PyMySQL connection failed: {e}")
+            raise RuntimeError(f"PyMySQL connection failed: {e}") from e
 
     @contextmanager
     def transaction(self):
@@ -110,7 +110,7 @@ class DBManager:
             self.commit()
         except Exception as e:
             self.rollback()
-            raise RuntimeError(f"Transaction failed: {e}")
+            raise RuntimeError(f"Transaction failed: {e}") from e
 
     def execute(self, query: str, params: Union[Tuple, List] = None) -> int:
         """
@@ -124,7 +124,7 @@ class DBManager:
             self.cursor.execute(query, params)
             return self.cursor.rowcount
         except Exception as e:
-            raise RuntimeError(f"Query execution failed: {e}")
+            raise RuntimeError(f"Query execution failed: {e}") from e
 
     def fetchone(self, query: str, params: Union[Tuple, List] = None) -> Optional[Dict]:
         """
@@ -138,7 +138,7 @@ class DBManager:
             self.cursor.execute(query, params)
             return self.cursor.fetchone()
         except Exception as e:
-            raise RuntimeError(f"Query execution failed: {e}")
+            raise RuntimeError(f"Query execution failed: {e}") from e
 
     def fetchall(self, query: str, params: Union[Tuple, List] = None) -> List[Dict]:
         """
@@ -152,7 +152,7 @@ class DBManager:
             self.cursor.execute(query, params)
             return self.cursor.fetchall()
         except Exception as e:
-            raise RuntimeError(f"Query execution failed: {e}")
+            raise RuntimeError(f"Query execution failed: {e}") from e
 
     def commit(self):
         """Commit the current transaction."""

@@ -22,4 +22,4 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint --rcfile=.github/config/.pylintrc  --ignore-patterns="tests/*" --max-line-length=120 $(git ls-files '*.py')
+        pylint --rcfile=.github/config/.pylintrc  --ignore-patterns="tests/*,test_cli/*" --max-line-length=120 $(git ls-files '*.py')

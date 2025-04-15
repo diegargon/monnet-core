@@ -5,7 +5,7 @@ Monnet Shared: Time Utilities
 
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo  # Replacing pytz
 
 def get_datetime():
@@ -39,9 +39,9 @@ def date_now(timezone_str='UTC'):
     except KeyError:  # ZoneInfo raises KeyError for invalid timezones
         return False
 
-    date_now = datetime.now(tz)
+    _date_now = datetime.now(tz)
 
-    return date_now.strftime('%Y-%m-%d %H:%M:%S')
+    return _date_now.strftime('%Y-%m-%d %H:%M:%S')
 
 def utc_date_now():
     """
@@ -51,4 +51,3 @@ def utc_date_now():
         str: The current date and time in 'Y-m-d H:M:S' format.
     """
     return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-

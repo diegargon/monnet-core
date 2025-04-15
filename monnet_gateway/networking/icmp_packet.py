@@ -6,11 +6,6 @@ Monnet Gateway
 """
 
 import struct
-from time import time
-
-
-import struct
-from typing import Optional
 
 class ICMPPacket:
     def __init__(self, identifier: int = 1, sequence: int = 1, payload: bytes = b"ping"):

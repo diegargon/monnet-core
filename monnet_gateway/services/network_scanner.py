@@ -8,7 +8,7 @@ Monnet Gateway
 import ipaddress
 import socket
 import struct
-from time import time, sleep
+from time import time
 
 # Local
 from monnet_gateway.database.hosts_model import HostsModel
@@ -143,14 +143,14 @@ class NetworkScanner:
 
             if source_ip == ip: # ICMP Echo Reply
                 return self.verify_ping_response(status, icmp_packet, ip, tim_start)
-            elif icmp_header[0] == 3:  # ICMP Destination Unreachable
+
+            if icmp_header[0] == 3:  # ICMP Destination Unreachable
                 status['error'] = 'Destination_unreachable'
                 status['latency'] = self.calculate_latency(tim_start)
                 self.logger.warning(f"Destination unreachable from {source_ip} (code {icmp_header[1]})")
                 return status
-            else:
-                self.logger.warning(f"Unexpected reply packet: {icmp_header[0]} {source_ip}, expected: {ip}")
 
+            self.logger.warning(f"Unexpected reply packet: {icmp_header[0]} {source_ip}, expected: {ip}")
             status['error'] = 'timeout'
             status['latency'] = -0.001
 
@@ -186,8 +186,7 @@ class NetworkScanner:
                 status['online'] = 1
                 status['latency'] = self.calculate_latency(start_time)
                 return status
-            else:
-                self.logger.error(f"Response checksum verification failed")
+            self.logger.error(f"Response checksum verification failed")
 
         return status
 

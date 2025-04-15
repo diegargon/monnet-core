@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     host_scanner = HostScanner(ctx)
 
-    hosts_status = host_scanner.scanKnown()
+    hosts_status = host_scanner.scan_known()
 
     count_offline = 0
     for host_stat in hosts_status:
