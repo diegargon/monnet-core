@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     for ip in ip_list:
         # print(f"Scanning {ip}...")
-        ping_status = network_scanner.ping(ip)
+        ping_status = network_scanner.ping(ip, 0.3)
 
         if (ping_status['online'] == 1):
             if 'latency' in ping_status:
@@ -50,6 +50,7 @@ if __name__ == "__main__":
 
             ping_status['last_seen'] = utc_date_now()
             print(ip, ping_status)
+        sleep(0.1)
 
     print(f"Scanned: ", len(ip_list))
 

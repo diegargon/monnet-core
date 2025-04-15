@@ -140,8 +140,8 @@ class SocketHandler:
 
         Returns:
             Tuple (data, address)
-            - Para TCP: address será None
-            - Para UDP: address contendrá (host, port) del remitente
+            - Para TCP: address None
+            - Para UDP: address hold(host, port) from remitente
         """
         try:
             if self.socket.type == socket.SOCK_STREAM:
@@ -159,7 +159,8 @@ class SocketHandler:
             return data, address
 
         except socket.timeout:
-            self.logger.warning("Socket timeout while receiving data")
+            current_timeout = self.socket.gettimeout()  # self.socket es tu socket
+            self.logger.warning(f"Socket timeout ({current_timeout} segundos) while receiving data")
             return None, None
         except Exception as e:
             self.logger.error(f"Error receiving data: {e}")

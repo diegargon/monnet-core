@@ -78,7 +78,8 @@ class SocketRawHandler:
 
             return buffer, from_ip[0]
         except socket.timeout:
-            self.logger.warning("Socket timed out while waiting for a packet")
+            current_timeout = self.socket.gettimeout()  # self.socket es tu socket
+            self.logger.debug(f"Socket timeout ({current_timeout} segundos) while waiting for a packet")
             return None, None
         except Exception as e:
             self.logger.error(f"Error receiving packet: {e}")

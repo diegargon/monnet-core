@@ -147,7 +147,7 @@ class NetworkScanner:
             if icmp_header[0] == 3:  # ICMP Destination Unreachable
                 status['error'] = 'Destination_unreachable'
                 status['latency'] = self.calculate_latency(tim_start)
-                self.logger.warning(f"Destination unreachable from {source_ip} (code {icmp_header[1]})")
+                self.logger.debug(f"Destination unreachable from {source_ip} (code {icmp_header[1]})")
                 return status
 
             self.logger.warning(f"Unexpected reply packet: {icmp_header[0]} {source_ip}, expected: {ip}")
