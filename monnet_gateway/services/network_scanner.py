@@ -6,6 +6,7 @@ Monnet Gateway
 """
 # Std
 import ipaddress
+import random
 import socket
 import struct
 from time import time
@@ -83,6 +84,7 @@ class NetworkScanner:
                     break
                 if ip != network_address and ip != broadcast_address:
                     ip_list.append(str(ip))
+        random.shuffle(ip_list)
 
         return ip_list
 
@@ -94,7 +96,7 @@ class NetworkScanner:
         status = {
             'ip': ip,
             'online': 0,
-            'latency_ms': None,
+            'latency': None,
             'error_type': None,
             'error_details': None,
             'source_ip': None,
@@ -142,7 +144,7 @@ class NetworkScanner:
             status['icmp_code'] = icmp_code
 
             if source_ip == ip: # ICMP Echo Reply
-                return self.verify_ping_response(status, icmp_packet, ip, tim_start)
+                return self.verify_ping_response(status, icmp_packet, tim_start)
 
             if icmp_header[0] == 3:  # ICMP Destination Unreachable
                 status['error'] = 'Destination_unreachable'
@@ -170,7 +172,7 @@ class NetworkScanner:
         finally:
             socket_handler.close_socket()
 
-    def verify_ping_response(self, status: dict, icmp: bytes, expected_ip: str, start_time: float) -> dict:
+    def verify_ping_response(self, status: dict, icmp: bytes, start_time: float) -> dict:
         """Verifica la respuesta ICMP y calcula la latencia si es válida."""
 
         if len(icmp) < 2:
@@ -179,7 +181,7 @@ class NetworkScanner:
 
         type = icmp[0]
         code = icmp[1]
-
+        status['test'] = 1
         # Type 8 is returned when host pings itself
         if (type == 0 or type == 8) and code == 0:
             if self.verify_checksum(icmp):

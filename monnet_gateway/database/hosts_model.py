@@ -20,3 +20,13 @@ class HostsModel:
     def get_all_enabled(self) -> list[dict]:
         """ Get all hosts enabled """
         return self.db.fetchall("SELECT * FROM hosts WHERE disable = 0")
+
+    def insert_host(self, host: dict) -> int:
+        """ Insert a new host """
+        columns = ", ".join(host.keys())
+        placeholders = ", ".join(["%s"] * len(host))
+        values = tuple(host.values())
+        query = f"INSERT INTO hosts ({columns}) VALUES ({placeholders})"
+        self.db.execute(query, values)
+        self.db.commit()
+        return self.db.cursor.lastrowid
