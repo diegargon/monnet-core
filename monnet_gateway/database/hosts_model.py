@@ -21,6 +21,21 @@ class HostsModel:
         """ Get all hosts enabled """
         return self.db.fetchall("SELECT * FROM hosts WHERE disable = 0")
 
+    def get_by_id(self, host_id: int) -> dict:
+        """
+        Retrieve a host by its ID.
+
+        Args:
+            host_id (int): ID of the host to retrieve.
+
+        Returns:
+            dict: A dictionary representing the host, or None if not found.
+        """
+        query = "SELECT * FROM hosts WHERE id = %s"
+        result = self.db.fetchone(query, (host_id,))
+
+        return result
+
     def insert_host(self, host: dict) -> int:
         """ Insert a new host """
         columns = ", ".join(host.keys())
@@ -30,3 +45,24 @@ class HostsModel:
         self.db.execute(query, values)
         self.db.commit()
         return self.db.cursor.lastrowid
+
+    def update_host(self, host_id: int, set_data: dict) -> None:
+        """
+        Update an existing host in the database.
+
+        Args:
+            host_id (int): ID of the host to update.
+            set_data (dict): Dictionary containing the fields to update.
+
+        Raises:
+            ValueError: If set_data is empty.
+        """
+        if not set_data:
+            raise ValueError("No data provided to update the host.")
+
+        columns = ", ".join([f"{key} = %s" for key in set_data.keys()])
+        values = tuple(set_data.values())
+        query = f"UPDATE hosts SET {columns} WHERE id = %s"
+
+        self.db.execute(query, values + (host_id,))
+        self.db.commit()

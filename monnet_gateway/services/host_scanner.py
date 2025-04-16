@@ -32,9 +32,19 @@ class HostScanner:
         ip_status = []
 
         for host in all_hosts:
+            if "misc" in host and isinstance(host["misc"], dict) and "timeout" in host["misc"]:
+                timeout = host["misc"]["timeout"]
+            else:
+                timeout = 0.3
             ip = host['ip']
-            ping_result = self.network_scanner.ping(ip, timeout=0.3)
+            ping_result = self.network_scanner.ping(ip, timeout)
             ping_result["id"] = host["id"]
+            ping_result["used_timeout"] = timeout
+            if "retries" in host:
+                ping_result["retries"] = host["retries"] + 1
+            else:
+                ping_result["retries"] = 0
+
             ip_status.append(ping_result)
 
         return ip_status

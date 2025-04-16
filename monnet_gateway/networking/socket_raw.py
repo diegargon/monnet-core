@@ -63,7 +63,7 @@ class SocketRawHandler:
             #self.logger.debug("Waiting to receive a packet...")
             buffer, from_ip = self.socket.recvfrom(self.buffer_size)
             self.logger.debug(f"Packet received from {from_ip} with size {len(buffer)} bytes")
-            self.logger.debug(f"Raw packet data: {buffer.hex()}")
+            #self.logger.debug(f"Raw packet data: {buffer.hex()}")
 
             # Validar que el paquete tenga al menos un encabezado IP completo
             if len(buffer) < 20:
