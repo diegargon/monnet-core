@@ -21,7 +21,7 @@ class SocketRawHandler:
     def create_socket(self):
         """Crea un socket RAW para ICMP."""
         try:
-            protocol_number = socket.getprotobyname('icmp')
+            protocol_number = 1 # ICMP
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, protocol_number)
             self.socket.settimeout(self.timeout)
 
