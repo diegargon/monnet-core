@@ -81,7 +81,7 @@ class TaskSched:
                 if self.task_locks["discovery_hosts"].acquire(blocking=False):
                     try:
                         self.logger.debug("Running DiscoveryHostsTask...")
-                        self.discovery_hosts.run()
+                        # self.discovery_hosts.run()
                         self.last_run_time["discovery_hosts"] = current_time
                     finally:
                         self.task_locks["discovery_hosts"].release()
@@ -91,7 +91,7 @@ class TaskSched:
                 if self.task_locks["hosts_checker"].acquire(blocking=False):
                     try:
                         self.logger.debug("Running HostsCheckerTask...")
-                        self.hosts_checker.run()
+                        # self.hosts_checker.run()
                         self.last_run_time["hosts_checker"] = current_time
                     finally:
                         self.task_locks["hosts_checker"].release()
@@ -101,7 +101,7 @@ class TaskSched:
                 if self.task_locks["ansible"].acquire(blocking=False):
                     try:
                         self.logger.debug("Running AnsibleTask...")
-                        self.ansible.run()
+                        # self.ansible.run()
                         self.last_run_time["ansible"] = current_time
                     finally:
                         self.task_locks["ansible"].release()
