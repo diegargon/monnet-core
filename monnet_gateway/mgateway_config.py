@@ -7,7 +7,7 @@ Config file
 """
 
 VERSION = "0.5"
-MINOR_VERSION = 4
+MINOR_VERSION = 5
 HOST = 'localhost'
 PORT = 65432
 PORT_TEST = 65433
