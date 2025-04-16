@@ -5,6 +5,7 @@ Monnet Gateway
 
 """
 # Std
+import errno
 import socket
 from typing import Optional, Tuple
 
@@ -28,10 +29,10 @@ class SocketHandler:
         self.connection: Optional[socket.socket] = None  # Para sockets TCP (modo servidor)
         self.client_address: Optional[Tuple[str, int]] = None  # Para sockets TCP (modo servidor)
 
-    def create_tcp_socket(self) -> bool:
+    def create_tcp_socket(self, family: int = socket.AF_INET) -> bool:
         """Crea un socket TCP."""
         try:
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket = socket.socket(family, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
             return True
         except Exception as e:
@@ -50,6 +51,11 @@ class SocketHandler:
 
     def bind(self, host: str, port: int) -> bool:
         """Enlaza el socket a una dirección y puerto específicos."""
+
+        if not isinstance(host, str) or not isinstance(port, int):
+            self.logger.error("Invalid host or port")
+            return False
+
         if not self.socket:
             self.logger.error("Socket not created")
             return False
@@ -64,8 +70,7 @@ class SocketHandler:
 
     def tcp_listen(self, backlog: int = 5) -> bool:
         """Pone el socket TCP en modo escucha."""
-        if not self.socket or self.socket.type != socket.SOCK_STREAM:
-            self.logger.error("Not a TCP socket or socket not created")
+        if not self._validate_socket(socket.SOCK_STREAM):
             return False
 
         try:
@@ -78,8 +83,7 @@ class SocketHandler:
 
     def tcp_accept(self) -> bool:
         """Acepta una conexión entrante (TCP)."""
-        if not self.socket or self.socket.type != socket.SOCK_STREAM:
-            self.logger.error("Not a TCP socket or socket not created")
+        if not self._validate_socket(socket.SOCK_STREAM):
             return False
 
         try:
@@ -96,8 +100,7 @@ class SocketHandler:
 
     def tcp_connect(self, host: str, port: int) -> bool:
         """Establece una conexión TCP con un servidor."""
-        if not self.socket or self.socket.type != socket.SOCK_STREAM:
-            self.logger.error("Not a TCP socket or socket not created")
+        if not self._validate_socket(socket.SOCK_STREAM):
             return False
 
         try:
@@ -117,21 +120,26 @@ class SocketHandler:
         """
         try:
             if self.socket.type == socket.SOCK_STREAM:
-                if not (self.socket or self.connection):
-                    self.logger.error("No active TCP connection")
+                if not self._validate_socket(socket.SOCK_STREAM, check_connection=True):
                     return False
-
-                target = self.connection if self.connection else self.socket
-                target.sendall(data)
+                self.connection.sendall(data)
             else:
+                if not self._validate_socket(socket.SOCK_DGRAM):
+                    return False
                 if not address:
                     self.logger.error("UDP send requires destination address")
                     return False
                 self.socket.sendto(data, address)
 
             return True
+        except socket.timeout:
+            self.logger.debug("Socket operation timed out")
+            return False
+        except OSError as e:
+            self.logger.error(f"Socket error: {e}")
+            return False
         except Exception as e:
-            self.logger.error(f"Error sending data: {e}")
+            self.logger.critical(f"Unexpected error socket sending: {e}")
             return False
 
     def receive(self, buffer_size: int = 4096) -> Tuple[Optional[bytes], Optional[Tuple[str, int]]]:
@@ -143,36 +151,47 @@ class SocketHandler:
             - Para TCP: address None
             - Para UDP: address hold(host, port) from remitente
         """
+        if not isinstance(buffer_size, int) or buffer_size <= 0:
+            self.logger.error("Buffer size must be a positive integer")
+            return None, None
         try:
             if self.socket.type == socket.SOCK_STREAM:
-                if not (self.socket or self.connection):
-                    self.logger.error("No active TCP connection")
+                if not self._validate_socket(socket.SOCK_STREAM):
                     return None, None
-
-                target = self.connection if self.connection else self.socket
-                data = target.recv(buffer_size)
+                data = self.connection.recv(buffer_size)
                 if not data:
                     self.logger.warning("Connection closed by peer")
                     return None, None
                 return data, None
-            data, address = self.socket.recvfrom(buffer_size)
-            return data, address
+            else:
+                if not self._validate_socket(socket.SOCK_DGRAM):
+                    return None, None
+                data, address = self.socket.recvfrom(buffer_size)
+                return data, address
 
         except socket.timeout:
             current_timeout = self.socket.gettimeout()  # self.socket es tu socket
-            self.logger.warning(f"Socket timeout ({current_timeout} segundos) while receiving data")
+            self.logger.debug(f"Socket timeout ({current_timeout} segundos) while receiving data")
+            return None, None
+        except OSError as e:
+            self.logger.error(f"Socket error: {e}")
             return None, None
         except Exception as e:
-            self.logger.error(f"Error receiving data: {e}")
+            self.logger.critical(f"Unexpected error socket receive: {e}")
             return None, None
 
-    def close(self):
+    def close(self) -> None:
         """Cierra el socket y cualquier conexión asociada."""
         if self.connection:
             try:
                 self.connection.close()
+            except socket.error as e:
+                if e.errno == errno.EBADF:  # Socket closed (bad file descriptor)
+                    self.logger.debug("Connection already closed")
+                else:
+                    self.logger.error(f"Socket error closing connection: {e}")
             except Exception as e:
-                self.logger.error(f"Error closing connection: {e}")
+                self.logger.critical(f"Unexpected error closing connection: {e}")
             finally:
                 self.connection = None
                 self.client_address = None
@@ -186,12 +205,25 @@ class SocketHandler:
                 self.socket = None
 
     def set_timeout(self, timeout: float):
-        """Establece un nuevo timeout para el socket."""
+        """ Set Socket Timeout """
         self.timeout = timeout
         if self.socket:
             self.socket.settimeout(timeout)
         if self.connection:
             self.connection.settimeout(timeout)
+
+    def _validate_socket(self, expected_type: int, check_connection: bool = False) -> bool:
+        """Valida el socket y, opcionalmente, la conexión activa."""
+        if not self.socket:
+            self.logger.error("Socket not created")
+            return False
+        if self.socket.type != expected_type:
+            self.logger.error(f"Invalid socket type. Expected {expected_type}, got {self.socket.type}")
+            return False
+        if check_connection and not self.connection:
+            self.logger.error("No active TCP connection")
+            return False
+        return True
 
     def __del__(self):
         """Destructor que asegura que los sockets se cierren."""
