@@ -88,87 +88,93 @@ class NetworkScanner:
 
     def ping(self, ip: str, timeout: float = 0.2) -> dict:
         """
-            Realiza un ping a la IP especificada.
-            latency is used with negative values to indicate errors in graphs
+        Realiza un ping a la IP especificada.
         """
+        tim_start = time()
         status = {
             'ip': ip,
             'online': 0,
             'latency': None,
-            'error_type': None,
-            'error_details': None,
-            'source_ip': None,
-            'from_ip': None,
-            'icmp_type': None,
-            'icmp_code': None
+            'error': None,
         }
 
-        tim_start = time()
-
         try:
-            # Socket Creation
-            socket_handler = SocketRawHandler(self.ctx, timeout)
-            if not socket_handler.create_socket():
-                status['latency'] = -0.003  # F
-                raise Exception(f"Socket creation failed: {ip}")
+            # Crear el socket
+            socket_handler = self.create_socket(timeout)
 
-            # Construir el paquete ICMP
-            icmp_packet = ICMPPacket().build_packet()
+            # Construir y enviar el paquete ICMP
+            icmp_packet = self.send_icmp_packet(socket_handler, ip)
 
-            # Enviar el paquete
-            # self.logger.debug(f"Sending packet to {ip} with size {len(packet)} bytes")
-
-            if not socket_handler.send_packet(ip, icmp_packet):
-                status['latency'] = -0.002
-                raise Exception(f"Send packet failed: {ip}")
-
+            # Recibir el paquete
             buffer, from_ip = socket_handler.receive_packet(ip)
-            status['from_ip'] = from_ip
-
             if buffer is None:
-                error_msg = f'Timeout: No response after {timeout} from {ip}'
-                status['error'] = error_msg
+                status['error'] = f"Timeout: No response after {timeout} seconds"
                 status['latency'] = -0.001
                 return status
 
-            # self.logger.debug(f"Received packet from {from_ip} with size {len(buffer)} bytes")
-            ip_header = buffer[:20]
-            icmp_header = buffer[20:28]
-            icmp_type, icmp_code = icmp_header[0], icmp_header[1]
-            # Extraer la dirección IP de origen del encabezado IP
-            source_ip = ".".join(map(str, ip_header[12:16]))
-            status['source_ip'] = source_ip
-            status['icmp_type'] = icmp_type
-            status['icmp_code'] = icmp_code
-
-            if source_ip == ip: # ICMP Echo Reply
-                status['latency'] = self.calculate_latency(tim_start)
-                return self.verify_ping_response(status, icmp_packet, tim_start)
-
-            if icmp_header[0] == 3:  # ICMP Destination Unreachable
-                status['error'] = 'Destination_unreachable'
-                status['latency'] = -0.001
-                return status
-
-            self.logger.warning(f"Unexpected reply packet: {icmp_header[0]} {source_ip}, expected: {ip}")
-            status['error'] = 'timeout'
-            status['latency'] = -0.001
-
+            # Procesar el paquete recibido
+            status = self.process_received_packet(buffer, ip, tim_start)
             return status
-        except socket.error as e:
-            self.logger.error(f"Socket error: {e}")
-            status['error'] = f"Socket error: {e}"
-            return status
-        except struct.error as e:
-            self.logger.error(f"Struct error: {e}")
-            status['error'] = f"Struct error: {e}"
-            return status
+
         except Exception as e:
-            self.logger.error(str(e))
+            self.logger.error(f"Ping error: {e}")
             status['error'] = str(e)
             return status
         finally:
             socket_handler.close_socket()
+
+
+    def process_received_packet(self, buffer: bytes, ip: str, start_time: float) -> dict:
+        """Procesa el paquete recibido y devuelve el estado."""
+        status = {
+            'ip': ip,
+            'online': 0,
+            'latency': None,
+            'error': None,
+            'source_ip': None,
+            'icmp_type': None,
+            'icmp_code': None,
+        }
+
+        if len(buffer) < 28:  # Encabezado IP (20 bytes) + Encabezado ICMP (8 bytes)
+            self.logger.error("Received packet too short")
+            status['error'] = "Packet too short"
+            return status
+
+        ip_header = buffer[:20]
+        icmp_header = buffer[20:28]
+        source_ip = ".".join(map(str, ip_header[12:16]))
+        icmp_type, icmp_code = icmp_header[0], icmp_header[1]
+
+        status['source_ip'] = source_ip
+        status['icmp_type'] = icmp_type
+        status['icmp_code'] = icmp_code
+
+        if source_ip == ip and icmp_type == 0:  # ICMP Echo Reply
+            status['online'] = 1
+            status['latency'] = self.calculate_latency(start_time)
+        elif icmp_type == 3:  # ICMP Destination Unreachable
+            status['error'] = "Destination Unreachable"
+            status['latency'] = -0.001
+        else:
+            self.logger.warning(f"Unexpected packet: {icmp_type} from {source_ip}, expected: {ip}")
+            status['error'] = "Unexpected packet"
+
+        return status
+
+    def create_socket(self, timeout: float) -> SocketRawHandler:
+        """Crea y devuelve un socket RAW configurado para ICMP."""
+        socket_handler = SocketRawHandler(self.ctx, timeout)
+        if not socket_handler.create_socket():
+            raise Exception("Socket creation failed")
+        return socket_handler
+
+    def send_icmp_packet(self, socket_handler: SocketRawHandler, ip: str) -> bytes:
+        """Construye y envía un paquete ICMP."""
+        icmp_packet = ICMPPacket().build_packet()
+        if not socket_handler.send_packet(ip, icmp_packet):
+            raise Exception(f"Failed to send ICMP packet to {ip}")
+        return icmp_packet
 
     def verify_ping_response(self, status: dict, icmp: bytes, start_time: float) -> dict:
         """Verifica la respuesta ICMP y calcula la latencia si es válida."""
