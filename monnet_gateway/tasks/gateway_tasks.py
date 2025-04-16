@@ -6,7 +6,7 @@ Monnet Gateway
 """
 
 import threading
-from time import sleep
+from time import sleep, time
 
 DEFAULT_INTERVAL = 60
 
@@ -27,8 +27,21 @@ class TaskSched:
                 self.logger.warning(
                     f"TaskSched interval not set. Using default: {DEFAULT_INTERVAL}"
                 )
-            self.interval = ctx.get_var("task_interval")
+
             self.stop_event = ctx.get_var("stop_event")
+
+            self.task_intervals = {
+                "discovery":  60,
+                "checker":  60,
+                "ansible": 60,
+            }
+
+            # Última ejecución de cada tarea
+            self.last_run_time = {
+                "discovery": 0,
+                "checker": 0,
+                "ansible": 0,
+            }
 
             self.discovery = DiscoveryTask(ctx)
             self.checker = HostCheckerTask(ctx)
@@ -55,11 +68,25 @@ class TaskSched:
             Ansible Tasks
         """
         while not self.stop_event.is_set():
-            self.logger.debug(f"TaskSched: Running... interval: {self.interval}")
-            self.discovery.run()
-            self.checker.run()
-            self.ansible.run()
-            sleep(self.interval)
+            current_time = time()
+            # Ejecutar DiscoveryTask si ha pasado el intervalo
+            if current_time - self.last_run_time["discovery"] >= self.task_intervals["discovery"]:
+                self.logger.debug("Running DiscoveryTask...")
+                self.discovery.run()
+                self.last_run_time["discovery"] = current_time
+
+            # Ejecutar HostCheckerTask si ha pasado el intervalo
+            if current_time - self.last_run_time["checker"] >= self.task_intervals["checker"]:
+                self.logger.debug("Running HostCheckerTask...")
+                self.checker.run()
+                self.last_run_time["checker"] = current_time
+
+            # Ejecutar AnsibleTask si ha pasado el intervalo
+            if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
+                self.logger.debug("Running AnsibleTask...")
+                self.ansible.run()
+                self.last_run_time["ansible"] = current_time
+            sleep(1)
 
     def stop(self):
         """Detiene la tarea periódica."""
