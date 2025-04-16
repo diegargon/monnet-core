@@ -35,7 +35,6 @@ if __name__ == "__main__":
     if not all_hosts:
         sys.exit()
 
-
     hosts_status = hosts_scanner.scan_hosts(all_hosts)
 
     # Mark host that become off for retry

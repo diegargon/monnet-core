@@ -42,15 +42,16 @@ class HostsScanner:
                     timeout = 0.3
             else:
                 timeout = 0.3
-            ping_result = self.network_scanner.ping(ip, timeout)
-            ping_result["id"] = host["id"]
-            ping_result["used_timeout"] = timeout
+            scan_result = self.network_scanner.ping(ip, timeout)
+            scan_result["check_method"] = host.get("check_method", 1)
+            scan_result["id"] = host["id"]
+            scan_result["used_timeout"] = timeout
             if "retries" in host:
-                ping_result["retries"] = host["retries"] + 1
+                scan_result["retries"] = host["retries"] + 1
             else:
-                ping_result["retries"] = 0
+                scan_result["retries"] = 0
 
-            ip_status.append(ping_result)
+            ip_status.append(scan_result)
             sleep(0.1)
 
         return ip_status
