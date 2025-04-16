@@ -150,7 +150,8 @@ class NetworkScanner:
         status['icmp_type'] = icmp_type
         status['icmp_code'] = icmp_code
 
-        if source_ip == ip and icmp_type == 0:  # ICMP Echo Reply
+        # 0 ICMP Echo Reply, 8 when this host ping himself
+        if source_ip == ip and (icmp_type == 0 or icmp_type == 8):
             status['online'] = 1
             status['latency'] = self.calculate_latency(start_time)
         elif icmp_type == 3:  # ICMP Destination Unreachable
