@@ -54,29 +54,38 @@ class SocketRawHandler:
             return False
         return True
 
-    def receive_packet(self):
+    def receive_packet(self, expected_ip):
         """Recibe un paquete desde el socket."""
         try:
             if not self.socket:
                 self.logger.error("Socket is not initialized")
                 return None, None
-            #self.logger.debug("Waiting to receive a packet...")
-            buffer, from_ip = self.socket.recvfrom(self.buffer_size)
-            self.logger.debug(f"Packet received from {from_ip} with size {len(buffer)} bytes")
-            #self.logger.debug(f"Raw packet data: {buffer.hex()}")
 
-            # Validar que el paquete tenga al menos un encabezado IP completo
-            if len(buffer) < 20:
-                self.logger.warning(f"Received packet too small to contain valid IP header (size: {len(buffer)})")
-                return None, None
+            while True:
+                buffer, from_ip = self.socket.recvfrom(self.buffer_size)
+                #self.logger.debug(f"Packet received from {from_ip} with size {len(buffer)} bytes")
+                #self.logger.debug(f"Raw packet data: {buffer.hex()}")
 
-            # Verificar si el paquete es ICMP
-            #ip_header = buffer[:20]
-            #src_ip = socket.inet_ntoa(ip_header[12:16])
-            #self.logger.debug(f"Source IP from IP header: {src_ip}")
-            #self.logger.debug(f"Socket returned from_addr: {from_ip[0]}")
+                # Validar que el paquete tenga al menos un encabezado IP completo
+                if len(buffer) < 20:
+                    self.logger.warning(f"Received packet is too small to contain valid IP header (size: {len(buffer)})")
+                    continue  # Ignorar paquetes demasiado pequeños
 
-            return buffer, from_ip[0]
+                icmp_header = buffer[20:28]
+                icmp_type, icmp_code = icmp_header[0], icmp_header[1]
+
+                if icmp_type == 3:  # ICMP Destination Unreachable
+                    self.logger.debug(f"Destination Unreachable from {from_ip[0]} (code {icmp_code})")
+                    return buffer, from_ip[0]
+
+                # Verificar si el paquete es de la IP esperada
+                if from_ip[0] == expected_ip:
+                    self.logger.debug(f"Valid packet received from expected IP: {expected_ip}")
+                    return buffer, from_ip[0]
+
+                # Ignorar paquetes de IPs no esperadas
+                self.logger.warning(f"Discarding unexpected packet from {from_ip[0]}, expected: {expected_ip}")
+
         except socket.timeout:
             current_timeout = self.socket.gettimeout()  # self.socket es tu socket
             self.logger.debug(f"Socket timeout ({current_timeout} segundos) while waiting for a packet")

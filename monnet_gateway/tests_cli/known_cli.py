@@ -33,12 +33,12 @@ if __name__ == "__main__":
     hosts_service = HostService(ctx, hosts_model)
     all_hosts = hosts_service.get_all()
 
+    if not all_hosts:
+        sys.exit()
+
     hosts_status = host_scanner.scan_hosts(all_hosts)
 
-    count_offline = 0
-    for host_stat in hosts_status:
-        if host_stat['online'] == 0:
-            count_offline += 1
+
 
     # Mark host that become off for retry
     for previous_host in all_hosts:
@@ -55,27 +55,34 @@ if __name__ == "__main__":
     for host_status in hosts_status:
         if "change" in host_status and host_status["change"] == 1:
             for attempt in range(1, retries + 1):
+                host_status_retry_result = host_scanner.scan_hosts([host_status])
+                if not host_status_retry_result:
+                    continue
                 # Get first element since return a list
-                new_host_status = host_scanner.scan_hosts([host_status])[0]
+                new_host_status = host_status_retry_result[0]
                 if new_host_status["online"] == 1:
                     host_status["online"] = 1
-                    host_status["retries"] = new_host_status["retries"]
-                    host_status["latency"] = new_host_status["latency"]
+                    host_status["retries"] = new_host_status.get("retries", 0)
+                    host_status["latency"] = new_host_status.get("latency")
                     break
-                host_status["retries"] = new_host_status["retries"]
+                host_status["retries"] = new_host_status.get("retries", 0)
                 sleep(0.2)
 
     hosts_online = []
     hosts_offline = []
+    count_offline = 0
 
     for host_status in hosts_status:
         if host_status["online"] == 1:
             hosts_online.append(host_status)
         else:
             hosts_offline.append(host_status)
+            count_offline += 1
 
-    pprint_table(hosts_online)
-    pprint_table(hosts_offline)
+    if hosts_online:
+        pprint_table(hosts_online)
+    if hosts_offline:
+        pprint_table(hosts_offline)
 
     end_time = time()
     total_host = len(hosts_status)
