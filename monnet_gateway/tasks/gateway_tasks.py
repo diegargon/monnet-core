@@ -12,8 +12,8 @@ DEFAULT_INTERVAL = 60
 
 # Local
 from shared.app_context import AppContext
-from monnet_gateway.tasks.discovery import DiscoveryTask
-from monnet_gateway.tasks.known_checker import HostCheckerTask
+from monnet_gateway.tasks.discovery import DiscoveryHostsTask
+from monnet_gateway.tasks.known_checker import HostsCheckerTask
 from monnet_gateway.tasks.ansible_runner import AnsibleTask
 
 class TaskSched:
@@ -31,27 +31,26 @@ class TaskSched:
             self.stop_event = ctx.get_var("stop_event")
 
             self.task_intervals = {
-                "discovery":  60,
-                "checker":  60,
+                "discovery_hosts":  60,
+                "hosts_checker":  60,
                 "ansible": 60,
             }
 
-            # Última ejecución de cada tarea
             self.last_run_time = {
-                "discovery": 0,
-                "checker": 0,
+                "discovery_hosts": 0,
+                "hosts_checker": 0,
                 "ansible": 0,
             }
 
-            # Bloqueos para evitar ejecuciones simultáneas
+            # Avoid parallel task
             self.task_locks = {
-                "discovery": threading.Lock(),
-                "checker": threading.Lock(),
+                "discovery_hosts": threading.Lock(),
+                "hosts_checker": threading.Lock(),
                 "ansible": threading.Lock(),
             }
 
-            self.discovery = DiscoveryTask(ctx)
-            self.checker = HostCheckerTask(ctx)
+            self.discovery_hosts = DiscoveryHostsTask(ctx)
+            self.hosts_checker = HostsCheckerTask(ctx)
             self.ansible = AnsibleTask(ctx)
 
             # Launch Thread
@@ -78,24 +77,24 @@ class TaskSched:
             current_time = time()
 
             # Ejecutar DiscoveryTask si ha pasado el intervalo
-            if current_time - self.last_run_time["discovery"] >= self.task_intervals["discovery"]:
-                if self.task_locks["discovery"].acquire(blocking=False):
+            if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
+                if self.task_locks["discovery_hosts"].acquire(blocking=False):
                     try:
-                        self.logger.debug("Running DiscoveryTask...")
-                        self.discovery.run()
-                        self.last_run_time["discovery"] = current_time
+                        self.logger.debug("Running DiscoveryHostsTask...")
+                        self.discovery_hosts.run()
+                        self.last_run_time["discovery_hosts"] = current_time
                     finally:
-                        self.task_locks["discovery"].release()
+                        self.task_locks["discovery_hosts"].release()
 
             # Ejecutar HostCheckerTask si ha pasado el intervalo
-            if current_time - self.last_run_time["checker"] >= self.task_intervals["checker"]:
-                if self.task_locks["checker"].acquire(blocking=False):
+            if current_time - self.last_run_time["hosts_checker"] >= self.task_intervals["hosts_checker"]:
+                if self.task_locks["hosts_checker"].acquire(blocking=False):
                     try:
-                        self.logger.debug("Running HostCheckerTask...")
-                        self.checker.run()
-                        self.last_run_time["checker"] = current_time
+                        self.logger.debug("Running HostsCheckerTask...")
+                        self.hosts_checker.run()
+                        self.last_run_time["hosts_checker"] = current_time
                     finally:
-                        self.task_locks["checker"].release()
+                        self.task_locks["hosts_checker"].release()
 
             # Ejecutar AnsibleTask si ha pasado el intervalo
             if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
@@ -112,5 +111,6 @@ class TaskSched:
     def stop(self):
         """Detiene la tarea periódica."""
         self.stop_event.set()
-        self.thread.join()
+        if self.thread.is_alive():
+            self.thread.join()
         self.logger.info("TaskSched stopped.")

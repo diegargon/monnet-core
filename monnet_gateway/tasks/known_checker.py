@@ -5,7 +5,7 @@
 
 from shared.app_context import AppContext
 
-class HostCheckerTask:
+class HostsCheckerTask:
     """ Verify known hosts """
     def __init__(self, ctx: AppContext):
         self.ctx = ctx

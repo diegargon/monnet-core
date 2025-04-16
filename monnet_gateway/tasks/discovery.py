@@ -7,7 +7,7 @@ Monnet Gateway
 
 from shared.app_context import AppContext
 
-class DiscoveryTask:
+class DiscoveryHostsTask:
     """ Descubrimiento de hosts """
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
