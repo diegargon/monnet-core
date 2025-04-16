@@ -131,7 +131,7 @@ class NetworkScanner:
         """Comprueba si un puerto TCP está abierto utilizando SocketHandler."""
         tim_start = time()
         status = {"ip": ip, "port": port, "online": 0, "error": None}
-        socket_handler = SocketHandler(self.ctx, timeout)
+        socket_handler = SocketHandler(timeout)
         try:
             if not socket_handler.create_tcp_socket():
                 raise Exception("Failed to create TCP socket")
@@ -139,7 +139,14 @@ class NetworkScanner:
                 status["error"] = f"Failed to connect to {ip}:{port}"
             else:
                 status["online"] = 1
+        except ConnectionError as e:
+            self.logger.error(str(e))
+            status["error"] = str(e)
+        except RuntimeError as e:
+            self.logger.debug(str(e))
+            status["error"] = str(e)
         except Exception as e:
+            self.logger.error(str(e))
             status["error"] = str(e)
         finally:
             socket_handler.close()
@@ -152,7 +159,7 @@ class NetworkScanner:
         """Comprueba si un puerto UDP está abierto utilizando SocketHandler."""
         tim_start = time()
         status = {"ip": ip, "port": port, "online": 0, "error": None}
-        socket_handler = SocketHandler(self.ctx, timeout)
+        socket_handler = SocketHandler(timeout)
         try:
             if not socket_handler.create_udp_socket():
                 raise Exception("Failed to create UDP socket")
@@ -164,7 +171,14 @@ class NetworkScanner:
                     status["online"] = 1
                 else:
                     status["error"] = "No response received"
+        except ConnectionError as e:
+            self.logger.error(str(e))
+            status["error"] = str(e)
+        except RuntimeError as e:
+            self.logger.error(str(e))
+            status["error"] = str(e)
         except Exception as e:
+            self.logger.error(str(e))
             status["error"] = str(e)
         finally:
             socket_handler.close()
@@ -186,6 +200,9 @@ class NetworkScanner:
                 status["error"] = f"HTTP error: {response.status_code}"
         except requests.RequestException as e:
             status["error"] = str(e)
+        except Exception as e:
+            self.logger.error(f"Unexpected error while checking HTTP for {url}: {e}")
+            status["error"] = str(e)
 
         status['latency'] = self.calculate_latency(tim_start)
 
@@ -203,6 +220,9 @@ class NetworkScanner:
             else:
                 status["error"] = f"HTTPS error: {response.status_code}"
         except requests.RequestException as e:
+            status["error"] = str(e)
+        except Exception as e:
+            self.logger.error(f"Unexpected error while checking HTTPS for {url}: {e}")
             status["error"] = str(e)
 
         status['latency'] = self.calculate_latency(tim_start)
