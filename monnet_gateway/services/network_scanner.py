@@ -100,7 +100,7 @@ class NetworkScanner:
 
         try:
             # Crear el socket
-            socket_handler = self.create_socket(timeout)
+            socket_handler = self.create_raw_socket(timeout)
 
             # Construir y enviar el paquete ICMP
             icmp_packet = self.send_icmp_packet(socket_handler, ip)
@@ -163,7 +163,7 @@ class NetworkScanner:
 
         return status
 
-    def create_socket(self, timeout: float) -> SocketRawHandler:
+    def create_raw_socket(self, timeout: float) -> SocketRawHandler:
         """Crea y devuelve un socket RAW configurado para ICMP."""
         socket_handler = SocketRawHandler(self.ctx, timeout)
         if not socket_handler.create_socket():
