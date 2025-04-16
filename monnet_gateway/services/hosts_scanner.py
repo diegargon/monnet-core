@@ -8,7 +8,6 @@ Monnet Gateway - Hosts Scanner
 from time import sleep
 from monnet_gateway.services.network_scanner import NetworkScanner
 
-
 class HostsScanner:
     """
     HostScanner class to manage host scanning
@@ -33,6 +32,7 @@ class HostsScanner:
 
         for host in all_hosts:
             ip = host['ip']
+            check_method = host.get("check_method", 1)
             self.logger.debug(f"Scanning ip {ip}")
             if "misc" in host and isinstance(host["misc"], dict) and "timeout" in host["misc"]:
                 try:
@@ -42,8 +42,36 @@ class HostsScanner:
                     timeout = 0.3
             else:
                 timeout = 0.3
-            scan_result = self.network_scanner.ping(ip, timeout)
-            scan_result["check_method"] = host.get("check_method", 1)
+            self.logger.log(f"Check method {check_method}")
+
+            if check_method == 1:  # Ping
+                scan_result = self.network_scanner.ping(ip, timeout)
+            elif check_method == 2:  # Ports
+                # TODO Get Host Ports
+                host_ports = [
+                    { "protocol": 1, "pnumber": 443}
+                ]
+                for host_port in host_ports:
+                    protocol = host_port.get("protocol")
+                    pnumber = host_port.get("pnumber")
+                    if protocol == 1:                   # TCP Port
+                        scan_result = self.network_scanner.check_tcp_port(ip, pnumber, timeout)
+                    elif protocol == 2:                 # UDP Port
+                        scan_result = self.network_scanner.check_udp_port(ip, pnumber, timeout)
+                    elif protocol == 3:                 # HTTPS
+                        scan_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=True)
+                    elif protocol == 4:                 # HTTPS Self-Signed
+                        scan_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=False)
+                    elif protocol == 5:                 # HTTP
+                        scan_result = self.network_scanner.check_http(ip, pnumber, timeout)
+                    else:
+                        self.logger.warning(f"Unknown port {pnumber} protocol for host {ip}, skipping.")
+                        continue
+            else:
+                self.logger.warning(f"Unknown check method for host {ip}, skipping.")
+                continue
+
+            scan_result["check_method"] = check_method
             scan_result["id"] = host["id"]
             scan_result["used_timeout"] = timeout
             if "retries" in host:

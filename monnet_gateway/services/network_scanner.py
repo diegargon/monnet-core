@@ -7,14 +7,17 @@ Monnet Gateway - Network Scanner
 # Std
 import ipaddress
 import random
-import socket
 import struct
 from time import time
+
+# Third party
+import requests
 
 # Local
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
 from monnet_gateway.networking.socket_raw import SocketRawHandler
+from monnet_gateway.networking.socket import SocketHandler
 from monnet_gateway.networking.icmp_packet import ICMPPacket
 from shared.app_context import AppContext
 
@@ -123,6 +126,88 @@ class NetworkScanner:
         finally:
             socket_handler.close_socket()
 
+
+    def check_tcp_port(self, ip: str, port: int, timeout: float = 1.0) -> dict:
+        """Comprueba si un puerto TCP está abierto utilizando SocketHandler."""
+        tim_start = time()
+        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        socket_handler = SocketHandler(self.ctx, timeout)
+        try:
+            if not socket_handler.create_tcp_socket():
+                raise Exception("Failed to create TCP socket")
+            if not socket_handler.tcp_connect(ip, port):
+                status["error"] = f"Failed to connect to {ip}:{port}"
+            else:
+                status["online"] = 1
+        except Exception as e:
+            status["error"] = str(e)
+        finally:
+            socket_handler.close()
+
+        status['latency'] = self.calculate_latency(tim_start)
+
+        return status
+
+    def check_udp_port(self, ip: str, port: int, timeout: float = 1.0) -> dict:
+        """Comprueba si un puerto UDP está abierto utilizando SocketHandler."""
+        tim_start = time()
+        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        socket_handler = SocketHandler(self.ctx, timeout)
+        try:
+            if not socket_handler.create_udp_socket():
+                raise Exception("Failed to create UDP socket")
+            if not socket_handler.send(b"ping", (ip, port)):
+                status["error"] = f"Failed to send data to {ip}:{port}"
+            else:
+                data, address = socket_handler.receive()
+                if data:
+                    status["online"] = 1
+                else:
+                    status["error"] = "No response received"
+        except Exception as e:
+            status["error"] = str(e)
+        finally:
+            socket_handler.close()
+
+        status['latency'] = self.calculate_latency(tim_start)
+
+        return status
+
+    def check_http(self, ip: str, port: int = 80, timeout: float = 5.0) -> dict:
+        """Comprueba si un servidor HTTP responde correctamente."""
+        tim_start = time()
+        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        url = f"http://{ip}:{port}"
+        try:
+            response = requests.get(url, timeout=timeout)
+            if response.status_code == 200:
+                status["online"] = 1
+            else:
+                status["error"] = f"HTTP error: {response.status_code}"
+        except requests.RequestException as e:
+            status["error"] = str(e)
+
+        status['latency'] = self.calculate_latency(tim_start)
+
+        return status
+
+    def check_https(self, ip: str, port: int = 443, timeout: float = 5.0, verify_ssl = False) -> dict:
+        """Comprueba si un servidor HTTPS responde correctamente."""
+        tim_start = time()
+        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        url = f"https://{ip}:{port}"
+        try:
+            response = requests.get(url, timeout=timeout, verify=verify_ssl)
+            if response.status_code == 200:
+                status["online"] = 1
+            else:
+                status["error"] = f"HTTPS error: {response.status_code}"
+        except requests.RequestException as e:
+            status["error"] = str(e)
+
+        status['latency'] = self.calculate_latency(tim_start)
+
+        return status
 
     def process_received_packet(self, buffer: bytes, ip: str, start_time: float) -> dict:
         """Procesa el paquete recibido y devuelve el estado."""
