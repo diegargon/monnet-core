@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway
+Monnet Gateway - Network Scanner
 
 """
 # Std
@@ -75,15 +75,13 @@ class NetworkScanner:
                 self.logger.error("Invalid IP build network for scan")
                 continue
 
-            network_address = network.network_address
-            broadcast_address = network.broadcast_address
-
             count = min(network.num_addresses, 256)
+            # network.hosts exclude net dir and broadcast
             for i, ip in enumerate(network.hosts()):
                 if i >= count:
                     break
-                if ip != network_address and ip != broadcast_address:
-                    ip_list.append(str(ip))
+                ip_list.append(str(ip))
+
         random.shuffle(ip_list)
 
         return ip_list

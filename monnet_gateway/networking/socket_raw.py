@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway
+Monnet Gateway - Raw Socket
 
 """
 # Std
@@ -11,6 +11,7 @@ import socket
 from shared.app_context import AppContext
 
 class SocketRawHandler:
+
     def __init__(self, ctx: AppContext, timeout: float = 0.2, buffer_size: int = 1024):
         self.ctx = ctx
         self.logger = ctx.get_logger()
@@ -84,7 +85,7 @@ class SocketRawHandler:
                     return buffer, from_ip[0]
 
                 # Ignorar paquetes de IPs no esperadas
-                self.logger.warning(f"Discarding unexpected packet from {from_ip[0]}, expected: {expected_ip}")
+                self.logger.info(f"Discarding unexpected packet from {from_ip[0]}, expected: {expected_ip}")
 
         except socket.timeout:
             current_timeout = self.socket.gettimeout()  # self.socket es tu socket
