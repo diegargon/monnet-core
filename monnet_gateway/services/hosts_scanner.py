@@ -19,7 +19,7 @@ class HostsScanner:
         self.logger = ctx.get_logger()
         self.network_scanner = NetworkScanner(ctx)
 
-    def scan_hosts(self, all_hosts: dict):
+    def ping_hosts(self, all_hosts: dict):
         """
         Scan a list of hosts
         """
@@ -55,11 +55,11 @@ class HostsScanner:
 
         return ip_status
 
-    def retry_scan(self, hosts_status: list[dict], retries: int) -> None:
+    def retry_ping(self, hosts_status: list[dict], retries: int) -> None:
         for host_status in hosts_status:
             if "change" in host_status and host_status["change"] == 1:
                 for attempt in range(1, retries + 1):
-                    host_status_retry_result = self.scan_hosts([host_status])
+                    host_status_retry_result = self.ping_hosts([host_status])
                     if not host_status_retry_result:
                         continue
                     # Get first element since return a list

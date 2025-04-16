@@ -35,7 +35,7 @@ if __name__ == "__main__":
     if not all_hosts:
         sys.exit()
 
-    hosts_status = hosts_scanner.scan_hosts(all_hosts)
+    hosts_status = hosts_scanner.ping_hosts(all_hosts)
 
     # Mark host that become off for retry
     for previous_host in all_hosts:
@@ -48,7 +48,7 @@ if __name__ == "__main__":
                 current_host["change"] = 1
                 current_host["retries"] = 0
 
-    hosts_scanner.retry_scan(hosts_status, retries)
+    hosts_scanner.retry_ping(hosts_status, retries)
 
     hosts_online = []
     hosts_offline = []
