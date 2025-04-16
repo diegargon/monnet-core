@@ -43,6 +43,13 @@ class TaskSched:
                 "ansible": 0,
             }
 
+            # Bloqueos para evitar ejecuciones simultáneas
+            self.task_locks = {
+                "discovery": threading.Lock(),
+                "checker": threading.Lock(),
+                "ansible": threading.Lock(),
+            }
+
             self.discovery = DiscoveryTask(ctx)
             self.checker = HostCheckerTask(ctx)
             self.ansible = AnsibleTask(ctx)
@@ -69,23 +76,37 @@ class TaskSched:
         """
         while not self.stop_event.is_set():
             current_time = time()
+
             # Ejecutar DiscoveryTask si ha pasado el intervalo
             if current_time - self.last_run_time["discovery"] >= self.task_intervals["discovery"]:
-                self.logger.debug("Running DiscoveryTask...")
-                self.discovery.run()
-                self.last_run_time["discovery"] = current_time
+                if self.task_locks["discovery"].acquire(blocking=False):
+                    try:
+                        self.logger.debug("Running DiscoveryTask...")
+                        self.discovery.run()
+                        self.last_run_time["discovery"] = current_time
+                    finally:
+                        self.task_locks["discovery"].release()
 
             # Ejecutar HostCheckerTask si ha pasado el intervalo
             if current_time - self.last_run_time["checker"] >= self.task_intervals["checker"]:
-                self.logger.debug("Running HostCheckerTask...")
-                self.checker.run()
-                self.last_run_time["checker"] = current_time
+                if self.task_locks["checker"].acquire(blocking=False):
+                    try:
+                        self.logger.debug("Running HostCheckerTask...")
+                        self.checker.run()
+                        self.last_run_time["checker"] = current_time
+                    finally:
+                        self.task_locks["checker"].release()
 
             # Ejecutar AnsibleTask si ha pasado el intervalo
             if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
-                self.logger.debug("Running AnsibleTask...")
-                self.ansible.run()
-                self.last_run_time["ansible"] = current_time
+                if self.task_locks["ansible"].acquire(blocking=False):
+                    try:
+                        self.logger.debug("Running AnsibleTask...")
+                        self.ansible.run()
+                        self.last_run_time["ansible"] = current_time
+                    finally:
+                        self.task_locks["ansible"].release()
+
             sleep(1)
 
     def stop(self):
