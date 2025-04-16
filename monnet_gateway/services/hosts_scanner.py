@@ -44,42 +44,57 @@ class HostsScanner:
                 timeout = 0.3
             self.logger.log(f"Check method {check_method}")
 
+
             if check_method == 1:  # Ping
-                scan_result = self.network_scanner.ping(ip, timeout)
+                scan_result = {"id": host["id"], "ip": ip, "online": 0, "check_method": check_method}
+                ping_result = self.network_scanner.ping(ip, timeout)
+                scan_result.update(ping_result)
+
+                if "retries" in host:
+                    scan_result["retries"] = host["retries"] + 1
+                else:
+                    scan_result["retries"] = 0
+
+                ip_status.append(scan_result)
+
             elif check_method == 2:  # Ports
-                # TODO Get Host Ports
+                # TODO Get Real Host Ports
                 host_ports = [
-                    { "protocol": 1, "pnumber": 443}
+                    { "protocol": 1, "pnumber": 443 },
+                    { "protocol": 1, "pnumber": 80 }
                 ]
                 for host_port in host_ports:
                     protocol = host_port.get("protocol")
                     pnumber = host_port.get("pnumber")
+                    scan_result = {
+                        "id": host["id"],
+                        "ip": ip,
+                        "online": 0,
+                        "check_method": check_method,
+                        "port": pnumber,
+                        "error": None
+                    }
+
                     if protocol == 1:                   # TCP Port
-                        scan_result = self.network_scanner.check_tcp_port(ip, pnumber, timeout)
+                        port_result = self.network_scanner.check_tcp_port(ip, pnumber, timeout)
                     elif protocol == 2:                 # UDP Port
-                        scan_result = self.network_scanner.check_udp_port(ip, pnumber, timeout)
+                        port_result = self.network_scanner.check_udp_port(ip, pnumber, timeout)
                     elif protocol == 3:                 # HTTPS
-                        scan_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=True)
+                        port_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=True)
                     elif protocol == 4:                 # HTTPS Self-Signed
-                        scan_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=False)
+                        port_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=False)
                     elif protocol == 5:                 # HTTP
-                        scan_result = self.network_scanner.check_http(ip, pnumber, timeout)
+                        port_result = self.network_scanner.check_http(ip, pnumber, timeout)
                     else:
-                        self.logger.warning(f"Unknown port {pnumber} protocol for host {ip}, skipping.")
+                        self.logger.warning(f"Unknown protocol:port {protocol}:{pnumber} for host {ip}, skipping.")
                         continue
+                    scan_result.update(port_result)
+                    ip_status.append(scan_result)
+                    sleep(0.1)
             else:
                 self.logger.warning(f"Unknown check method for host {ip}, skipping.")
                 continue
 
-            scan_result["check_method"] = check_method
-            scan_result["id"] = host["id"]
-            scan_result["used_timeout"] = timeout
-            if "retries" in host:
-                scan_result["retries"] = host["retries"] + 1
-            else:
-                scan_result["retries"] = 0
-
-            ip_status.append(scan_result)
             sleep(0.1)
 
         return ip_status

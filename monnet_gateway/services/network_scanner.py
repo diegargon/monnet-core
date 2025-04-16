@@ -130,7 +130,7 @@ class NetworkScanner:
     def check_tcp_port(self, ip: str, port: int, timeout: float = 1.0) -> dict:
         """Comprueba si un puerto TCP está abierto utilizando SocketHandler."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        status = {"ip": ip, "port": port, "online": 0, "protocol": 1, "error": None}
         socket_handler = SocketHandler(timeout)
         try:
             if not socket_handler.create_tcp_socket():
@@ -158,7 +158,7 @@ class NetworkScanner:
     def check_udp_port(self, ip: str, port: int, timeout: float = 1.0) -> dict:
         """Comprueba si un puerto UDP está abierto utilizando SocketHandler."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        status = {"ip": ip, "port": port, "online": 0, "protocol": 2, "error": None}
         socket_handler = SocketHandler(timeout)
         try:
             if not socket_handler.create_udp_socket():
@@ -190,7 +190,7 @@ class NetworkScanner:
     def check_http(self, ip: str, port: int = 80, timeout: float = 5.0) -> dict:
         """Comprueba si un servidor HTTP responde correctamente."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        status = {"ip": ip, "port": port, "online": 0, "protocol": 5, "error": None}
         url = f"http://{ip}:{port}"
         try:
             response = requests.get(url, timeout=timeout)
@@ -211,7 +211,10 @@ class NetworkScanner:
     def check_https(self, ip: str, port: int = 443, timeout: float = 5.0, verify_ssl = False) -> dict:
         """Comprueba si un servidor HTTPS responde correctamente."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "error": None}
+        status = {"ip": ip, "port": port, "online": 0, "protocol": 4, "error": None}
+        if verify_ssl:
+            status['protocol'] = 3
+
         url = f"https://{ip}:{port}"
         try:
             response = requests.get(url, timeout=timeout, verify=verify_ssl)
