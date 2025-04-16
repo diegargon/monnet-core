@@ -8,14 +8,13 @@ Monnet Gateway CLI TEST
 from pathlib import Path
 from pprint import pprint
 import sys
-from time import sleep
-from time import time  # Add this import for timing
+from time import time, sleep
 
 # Local
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.tests_cli.common_cli import init_context
-from monnet_gateway.services.host_scanner import HostScanner
+from monnet_gateway.services.hosts_scanner import HostsScanner
 from monnet_gateway.utils.myutils import pprint_table
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +27,7 @@ if __name__ == "__main__":
 
     start_time = time()  # Start timing
 
-    host_scanner = HostScanner(ctx)
+    hosts_scanner = HostsScanner(ctx)
     hosts_model = HostsModel(ctx.get_database())
     hosts_service = HostService(ctx, hosts_model)
     all_hosts = hosts_service.get_all()
@@ -36,9 +35,7 @@ if __name__ == "__main__":
     if not all_hosts:
         sys.exit()
 
-    hosts_status = host_scanner.scan_hosts(all_hosts)
-
-
+    hosts_status = hosts_scanner.scan_hosts(all_hosts)
 
     # Mark host that become off for retry
     for previous_host in all_hosts:
@@ -51,22 +48,7 @@ if __name__ == "__main__":
                 current_host["change"] = 1
                 current_host["retries"] = 0
 
-
-    for host_status in hosts_status:
-        if "change" in host_status and host_status["change"] == 1:
-            for attempt in range(1, retries + 1):
-                host_status_retry_result = host_scanner.scan_hosts([host_status])
-                if not host_status_retry_result:
-                    continue
-                # Get first element since return a list
-                new_host_status = host_status_retry_result[0]
-                if new_host_status["online"] == 1:
-                    host_status["online"] = 1
-                    host_status["retries"] = new_host_status.get("retries", 0)
-                    host_status["latency"] = new_host_status.get("latency")
-                    break
-                host_status["retries"] = new_host_status.get("retries", 0)
-                sleep(0.2)
+    hosts_scanner.retry_scan(hosts_status, retries)
 
     hosts_online = []
     hosts_offline = []

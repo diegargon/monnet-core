@@ -1,16 +1,15 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway
+Monnet Gateway - Hosts Scanner
 
 """
 
-from pprint import pprint
 from time import sleep
 from monnet_gateway.services.network_scanner import NetworkScanner
 
 
-class HostScanner:
+class HostsScanner:
     """
     HostScanner class to manage host scanning
     """
@@ -55,3 +54,20 @@ class HostScanner:
             sleep(0.1)
 
         return ip_status
+
+    def retry_scan(self, hosts_status: list[dict], retries: int) -> None:
+        for host_status in hosts_status:
+            if "change" in host_status and host_status["change"] == 1:
+                for attempt in range(1, retries + 1):
+                    host_status_retry_result = self.scan_hosts([host_status])
+                    if not host_status_retry_result:
+                        continue
+                    # Get first element since return a list
+                    new_host_status = host_status_retry_result[0]
+                    if new_host_status["online"] == 1:
+                        host_status["online"] = 1
+                        host_status["retries"] = new_host_status.get("retries", 0)
+                        host_status["latency"] = new_host_status.get("latency")
+                        break
+                    host_status["retries"] = new_host_status.get("retries", 0)
+                    sleep(0.2)
