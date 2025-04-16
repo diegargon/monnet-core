@@ -63,7 +63,7 @@ if __name__ == "__main__":
                     host_status["latency"] = new_host_status["latency"]
                     break
                 host_status["retries"] = new_host_status["retries"]
-                sleep(0.5)
+                sleep(0.2)
 
     hosts_online = []
     hosts_offline = []
