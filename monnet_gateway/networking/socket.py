@@ -90,12 +90,20 @@ class SocketHandler:
             raise RuntimeError("Socket is not valid or not created")
 
         try:
-            self.socket.connect((host, port))
+            resolved_host = self.resolve_host(host)
+            self.socket.connect((resolved_host, port))
             return True
         except socket.timeout:
             raise ConnectionError(f"Connection to {host}:{port} timed out")
         except OSError as e:
             raise ConnectionError(f"Failed to connect to {host}:{port}: {e}")
+
+    def resolve_host(self, host: str) -> str:
+        """Resuelve un dominio a una dirección IP."""
+        try:
+            return socket.gethostbyname(host)
+        except socket.gaierror as e:
+            raise RuntimeError(f"Failed to resolve host {host}: {e}")
 
     def send(self, data: bytes, address: Optional[Tuple[str, int]] = None) -> bool:
         """

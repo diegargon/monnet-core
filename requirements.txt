@@ -4,3 +4,4 @@ python-daemon
 psutil
 pyyaml
 requests
+urllib3

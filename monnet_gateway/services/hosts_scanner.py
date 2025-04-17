@@ -4,8 +4,11 @@
 Monnet Gateway - Hosts Scanner
 
 """
-
+# Std
 from time import sleep
+
+# Local
+from monnet_gateway.database.ports_model import PortsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
 
 class HostsScanner:
@@ -17,6 +20,8 @@ class HostsScanner:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.network_scanner = NetworkScanner(ctx)
+        self.db = ctx.get_database()
+        self.ports_model = PortsModel(self.db)
 
     def scan_hosts(self, all_hosts: dict):
         """
@@ -58,11 +63,8 @@ class HostsScanner:
                 ip_status.append(scan_result)
 
             elif check_method == 2:  # Ports
-                # TODO Get Real Host Ports
-                host_ports = [
-                    { "protocol": 1, "pnumber": 443 },
-                    { "protocol": 1, "pnumber": 80 }
-                ]
+                host_ports = self.ports_model.get_by_hid(host["id"], scan_type=1)
+
                 for host_port in host_ports:
                     protocol = host_port.get("protocol")
                     pnumber = host_port.get("pnumber")

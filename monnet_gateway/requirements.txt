@@ -2,3 +2,4 @@ mysql-connector-python
 python-daemon
 pyyaml
 requests
+urllib3

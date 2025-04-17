@@ -94,7 +94,7 @@ class PortsModel:
         if scan_type is not None:
             query += " WHERE scan_type = %(scan_type)s"
             params['scan_type'] = scan_type
-        return self.db_manager.fetch_all(query, params)
+        return self.db_manager.fetchall(query, params)
 
     def get_by_id(self, port_id: int, scan_type: int = None) -> dict:
         """
@@ -110,7 +110,7 @@ class PortsModel:
         if scan_type is not None:
             query += " AND scan_type = %(scan_type)s"
             params['scan_type'] = scan_type
-        return self.db_manager.fetch_one(query, params)
+        return self.db_manager.fetchone(query, params)
 
     def get_by_hid(self, hid: int, scan_type: int = None) -> list[dict]:
         """
@@ -126,4 +126,4 @@ class PortsModel:
         if scan_type is not None:
             query += " AND scan_type = %(scan_type)s"
             params['scan_type'] = scan_type
-        return self.db_manager.fetch_all(query, params)
+        return self.db_manager.fetchall(query, params)

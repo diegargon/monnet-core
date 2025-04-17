@@ -12,6 +12,8 @@ from time import time
 
 # Third party
 import requests
+from urllib3.exceptions import InsecureRequestWarning
+import urllib3
 
 # Local
 from monnet_gateway.database.hosts_model import HostsModel
@@ -217,17 +219,21 @@ class NetworkScanner:
 
         url = f"https://{ip}:{port}"
         try:
+            if not verify_ssl:
+                urllib3.disable_warnings(InsecureRequestWarning)
             response = requests.get(url, timeout=timeout, verify=verify_ssl)
             if response.status_code == 200:
                 status["online"] = 1
             else:
                 status["error"] = f"HTTPS error: {response.status_code}"
+        except requests.exceptions.SSLError as ssl_error:
+            self.logger.error(f"SSL error while checking HTTPS for {url}: {ssl_error}")
+            status["error"] = f"SSL error: {ssl_error}"
         except requests.RequestException as e:
             status["error"] = str(e)
         except Exception as e:
             self.logger.error(f"Unexpected error while checking HTTPS for {url}: {e}")
             status["error"] = str(e)
-
         status['latency'] = self.calculate_latency(tim_start)
 
         return status
