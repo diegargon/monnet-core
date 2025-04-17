@@ -52,6 +52,9 @@ class HostsScanner:
 
             if check_method == 1:  # Ping
                 scan_result = {"id": host["id"], "ip": ip, "online": 0, "check_method": check_method}
+                if "hostname" in host:
+                    scan_result["hostname"] = host["hostname"]
+
                 ping_result = self.network_scanner.ping(ip, timeout)
                 scan_result.update(ping_result)
 
@@ -76,6 +79,8 @@ class HostsScanner:
                         "port": pnumber,
                         "error": None
                     }
+                    if "hostname" in host:
+                        scan_result["hostname"] = host["hostname"]
 
                     if protocol == 1:                   # TCP Port
                         port_result = self.network_scanner.check_tcp_port(ip, pnumber, timeout)
