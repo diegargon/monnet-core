@@ -142,8 +142,8 @@ class NetworkScanner:
             else:
                 status["online"] = 1
         except ConnectionError as e:
-            self.logger.error(str(e))
-            status["error"] = str(e)
+            self.logger.debug(str(e))
+            status["debug"] = str(e)
         except RuntimeError as e:
             self.logger.debug(str(e))
             status["error"] = str(e)
@@ -174,7 +174,7 @@ class NetworkScanner:
                 else:
                     status["error"] = "No response received"
         except ConnectionError as e:
-            self.logger.error(str(e))
+            self.logger.debug(str(e))
             status["error"] = str(e)
         except RuntimeError as e:
             self.logger.error(str(e))

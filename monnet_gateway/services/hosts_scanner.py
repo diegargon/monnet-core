@@ -47,8 +47,7 @@ class HostsScanner:
                     timeout = 0.3
             else:
                 timeout = 0.3
-            self.logger.log(f"Check method {check_method}")
-
+            self.logger.debug(f"Check method {check_method}")
 
             if check_method == 1:  # Ping
                 scan_result = {"id": host["id"], "ip": ip, "online": 0, "check_method": check_method}
@@ -79,6 +78,8 @@ class HostsScanner:
                         "port": pnumber,
                         "error": None
                     }
+
+                    self.logger.debug(f"Protocol {protocol}")
                     if "hostname" in host:
                         scan_result["hostname"] = host["hostname"]
 
