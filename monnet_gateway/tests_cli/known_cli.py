@@ -23,7 +23,7 @@ sys.path.append(str(BASE_DIR))
 if __name__ == "__main__":
     ctx = init_context("/opt/monnet-core")
     ctx.get_logger().log("Starting discovery CLI", "info")
-    retries = 4
+    retries = 3
 
     start_time = time()  # Start timing
 
