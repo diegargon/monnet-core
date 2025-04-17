@@ -91,13 +91,13 @@ class NetworkScanner:
 
         return ip_list
 
-    def ping(self, ip: str, timeout: float = 0.2) -> dict:
+    def ping(self, host: str, timeout: float = 0.2) -> dict:
         """
         Realiza un ping a la IP especificada.
         """
         tim_start = time()
         status = {
-            'ip': ip,
+            'host': host,
             'online': 0,
             'latency': None,
             'error': None,
@@ -106,19 +106,19 @@ class NetworkScanner:
         try:
             # Crear el socket
             socket_handler = self.create_raw_socket(timeout)
-
+            status["ip"] = socket_handler.resolve_host(host)
             # Construir y enviar el paquete ICMP
-            icmp_packet = self.send_icmp_packet(socket_handler, ip)
+            icmp_packet = self.send_icmp_packet(socket_handler, host)
 
             # Recibir el paquete
-            buffer, from_ip = socket_handler.receive_packet(ip)
+            buffer, from_ip = socket_handler.receive_packet(host)
             if buffer is None:
                 status['error'] = f"Timeout: No response after {timeout} seconds"
                 status['latency'] = -0.001
                 return status
 
             # Procesar el paquete recibido
-            status = self.process_received_packet(buffer, ip, tim_start)
+            status = self.process_received_packet(buffer, host, tim_start)
             return status
 
         except Exception as e:
@@ -129,16 +129,16 @@ class NetworkScanner:
             socket_handler.close_socket()
 
 
-    def check_tcp_port(self, ip: str, port: int, timeout: float = 1.0) -> dict:
+    def check_tcp_port(self, host: str, port: int, timeout: float = 1.0) -> dict:
         """Comprueba si un puerto TCP está abierto utilizando SocketHandler."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "protocol": 1, "error": None}
+        status = {"host": host, "port": port, "online": 0, "protocol": 1, "error": None}
         socket_handler = SocketHandler(timeout)
         try:
             if not socket_handler.create_tcp_socket():
                 raise Exception("Failed to create TCP socket")
-            if not socket_handler.tcp_connect(ip, port):
-                status["error"] = f"Failed to connect to {ip}:{port}"
+            if not socket_handler.tcp_connect(host, port):
+                status["error"] = f"Failed to connect to {host}:{port}"
             else:
                 status["online"] = 1
         except ConnectionError as e:
@@ -157,16 +157,16 @@ class NetworkScanner:
 
         return status
 
-    def check_udp_port(self, ip: str, port: int, timeout: float = 1.0) -> dict:
+    def check_udp_port(self, host: str, port: int, timeout: float = 1.0) -> dict:
         """Comprueba si un puerto UDP está abierto utilizando SocketHandler."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "protocol": 2, "error": None}
+        status = {"host": host, "port": port, "online": 0, "protocol": 2, "error": None}
         socket_handler = SocketHandler(timeout)
         try:
             if not socket_handler.create_udp_socket():
                 raise Exception("Failed to create UDP socket")
-            if not socket_handler.send(b"ping", (ip, port)):
-                status["error"] = f"Failed to send data to {ip}:{port}"
+            if not socket_handler.send(b"ping", (host, port)):
+                status["error"] = f"Failed to send data to {host}:{port}"
             else:
                 data, address = socket_handler.receive()
                 if data:
@@ -189,11 +189,11 @@ class NetworkScanner:
 
         return status
 
-    def check_http(self, ip: str, port: int = 80, timeout: float = 5.0) -> dict:
+    def check_http(self, host: str, port: int = 80, timeout: float = 5.0) -> dict:
         """Comprueba si un servidor HTTP responde correctamente."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "protocol": 5, "error": None}
-        url = f"http://{ip}:{port}"
+        status = {"host": host, "port": port, "online": 0, "protocol": 5, "error": None}
+        url = f"http://{host}:{port}"
         try:
             response = requests.get(url, timeout=timeout)
             if response.status_code == 200:
@@ -210,14 +210,14 @@ class NetworkScanner:
 
         return status
 
-    def check_https(self, ip: str, port: int = 443, timeout: float = 5.0, verify_ssl = False) -> dict:
+    def check_https(self, host: str, port: int = 443, timeout: float = 5.0, verify_ssl = False) -> dict:
         """Comprueba si un servidor HTTPS responde correctamente."""
         tim_start = time()
-        status = {"ip": ip, "port": port, "online": 0, "protocol": 4, "error": None}
+        status = {"host": host, "port": port, "online": 0, "protocol": 4, "error": None}
         if verify_ssl:
             status['protocol'] = 3
 
-        url = f"https://{ip}:{port}"
+        url = f"https://{host}:{port}"
         try:
             if not verify_ssl:
                 urllib3.disable_warnings(InsecureRequestWarning)

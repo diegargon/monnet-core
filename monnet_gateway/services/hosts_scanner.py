@@ -36,25 +36,31 @@ class HostsScanner:
         ip_status = []
 
         for host in all_hosts:
-            ip = host['ip']
+            ip_or_host = host['ip']
             check_method = host.get("check_method", 1)
-            self.logger.debug(f"Scanning ip {ip}")
+            self.logger.debug(f"Scanning ip {ip_or_host}")
             if "misc" in host and isinstance(host["misc"], dict) and "timeout" in host["misc"]:
                 try:
                     timeout = float(host["misc"]["timeout"])
                 except (ValueError, TypeError):
-                    self.logger.warning(f"Invalid timeout value for host {host['ip']}, using default 0.3")
+                    self.logger.warning(f"Invalid timeout value for host {ip_or_host}, using default 0.3")
                     timeout = 0.3
             else:
                 timeout = 0.3
             self.logger.debug(f"Check method {check_method}")
 
             if check_method == 1:  # Ping
-                scan_result = {"id": host["id"], "ip": ip, "online": 0, "check_method": check_method}
+                scan_result = {
+                    "id": host["id"],
+                    "ip": host["ip"],
+                    "host": ip_or_host,
+                    "online": 0,
+                    "check_method": check_method
+                }
                 if "hostname" in host:
                     scan_result["hostname"] = host["hostname"]
 
-                ping_result = self.network_scanner.ping(ip, timeout)
+                ping_result = self.network_scanner.ping(ip_or_host, timeout)
                 scan_result.update(ping_result)
 
                 if "retries" in host:
@@ -72,7 +78,7 @@ class HostsScanner:
                     pnumber = host_port.get("pnumber")
                     scan_result = {
                         "id": host["id"],
-                        "ip": ip,
+                        "ip": host["ip"],
                         "online": 0,
                         "check_method": check_method,
                         "port": pnumber,
@@ -80,27 +86,36 @@ class HostsScanner:
                     }
 
                     self.logger.debug(f"Protocol {protocol}")
-                    if "hostname" in host:
-                        scan_result["hostname"] = host["hostname"]
+                    # For http/s check using hostname
+                    if "hostname" in host and host["hostname"] and protocol > 3:
+                        ip_or_host = scan_result["host"] = host["hostname"]
+                    else:
+                        ip_or_host = scan_result["host"] = host["ip"]
 
                     if protocol == 1:                   # TCP Port
-                        port_result = self.network_scanner.check_tcp_port(ip, pnumber, timeout)
+                        port_result = self.network_scanner.check_tcp_port(ip_or_host, pnumber, timeout)
                     elif protocol == 2:                 # UDP Port
-                        port_result = self.network_scanner.check_udp_port(ip, pnumber, timeout)
+                        port_result = self.network_scanner.check_udp_port(ip_or_host, pnumber, timeout)
                     elif protocol == 3:                 # HTTPS
-                        port_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=True)
+                        port_result = self.network_scanner.check_https(ip_or_host, pnumber, timeout, verify_ssl=True)
                     elif protocol == 4:                 # HTTPS Self-Signed
-                        port_result = self.network_scanner.check_https(ip, pnumber, timeout, verify_ssl=False)
+                        port_result = self.network_scanner.check_https(ip_or_host, pnumber, timeout, verify_ssl=False)
                     elif protocol == 5:                 # HTTP
-                        port_result = self.network_scanner.check_http(ip, pnumber, timeout)
+                        port_result = self.network_scanner.check_http(ip_or_host, pnumber, timeout)
                     else:
-                        self.logger.warning(f"Unknown protocol:port {protocol}:{pnumber} for host {ip}, skipping.")
+                        self.logger.warning(f"Unknown protocol:port {protocol}:{pnumber} for host {ip_or_host}, skipping.")
                         continue
                     scan_result.update(port_result)
+
+                    if "retries" in host:
+                        scan_result["retries"] = host["retries"] + 1
+                    else:
+                        scan_result["retries"] = 0
+
                     ip_status.append(scan_result)
                     sleep(0.1)
             else:
-                self.logger.warning(f"Unknown check method for host {ip}, skipping.")
+                self.logger.warning(f"Unknown check method for host {host}, skipping.")
                 continue
 
             sleep(0.1)

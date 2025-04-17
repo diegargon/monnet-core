@@ -43,19 +43,19 @@ class SocketRawHandler:
             self.logger.error(f"Error verifying ICMP socket: {e}")
             return False
 
-    def send_packet(self, ip: str, packet):
+    def send_packet(self, host: str, packet):
         """Envía un paquete a la IP especificada."""
         try:
             if not self.socket:
                 self.logger.error("Socket is not created or is not valid")
                 return False
-            self.socket.sendto(packet, (ip, 0))
+            self.socket.sendto(packet, (host, 0))
         except Exception as e:
-            self.logger.error(f"Error sending packet to {ip}: {e}")
+            self.logger.error(f"Error sending packet to {host}: {e}")
             return False
         return True
 
-    def receive_packet(self, expected_ip):
+    def receive_packet(self, expected_host:str):
         """Recibe un paquete desde el socket."""
         try:
             if not self.socket:
@@ -80,12 +80,12 @@ class SocketRawHandler:
                     return buffer, from_ip[0]
 
                 # Verificar si el paquete es de la IP esperada
-                if from_ip[0] == expected_ip:
-                    self.logger.debug(f"Valid packet received from expected IP: {expected_ip}")
+                if from_ip[0] == expected_host:
+                    self.logger.debug(f"Valid packet received from expected IP: {expected_host}")
                     return buffer, from_ip[0]
 
                 # Ignorar paquetes de IPs no esperadas
-                self.logger.info(f"Discarding unexpected packet from {from_ip[0]}, expected: {expected_ip}")
+                self.logger.info(f"Discarding unexpected packet from {from_ip[0]}, expected: {expected_host}")
 
         except socket.timeout:
             current_timeout = self.socket.gettimeout()  # self.socket es tu socket
@@ -97,6 +97,13 @@ class SocketRawHandler:
             return None, None
         finally:
             self.socket = None
+
+    def resolve_host(self, host: str) -> str:
+        """Resuelve un dominio a una dirección IP."""
+        try:
+            return socket.gethostbyname(host)
+        except socket.gaierror as e:
+            raise RuntimeError(f"Failed to resolve host {host}: {e}")
 
     def close_socket(self):
         """Cierra el socket."""
