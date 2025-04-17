@@ -6,6 +6,8 @@ Monnet Shared: Config
 import os
 import json
 
+from constants.log_level import SYSLOG_LEVELS
+
 def load_config(file_path: str) -> dict:
     """Load JSON config"""
 
@@ -112,6 +114,13 @@ def validate_agent_config(config: dict):
     missing_keys = [key for key in required_keys if not config.get(key)]
     if missing_keys:
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
+
+    # Validate log_level
+    log_level = config.get("log_level", "info")
+    if log_level not in SYSLOG_LEVELS:
+        config["log_level"] = "info"
+    else:
+        config["log_level"] = log_level
 
     return True
 

@@ -15,6 +15,8 @@ import argparse
 # Third Party
 import daemon
 
+from shared.mconfig import load_config, validate_agent_config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
@@ -40,19 +42,40 @@ def main():
     logger = Logger()
     ctx.set_logger(logger)
 
-    logger.log(f"Init Monnet Agent service... {agent_config.AGENT_VERSION}", "info")
+    logger.info(f"Init Monnet Agent service... {agent_config.AGENT_VERSION}")
+
+    # Cargar configuración antes de instanciar MonnetAgent
+    try:
+        config = load_config(agent_config.CONFIG_AGENT_PATH)
+    except RuntimeError as e:
+        logger.err(f"Error loading config: {e}")
+        sys.exit(1)
+
+    try:
+        validate_agent_config(config)
+    except ValueError as e:
+        logger.err(f"Validation error: {e}")
+        sys.exit(1)
+    except RuntimeError as e:
+        logger.err(f"Unexpected error during validation: {e}")
+        sys.exit(1)
+
+    log_level = config.get("log_level", "info")
+    logger.info(f"Setting log level to: {log_level}")
+    logger.set_min_log_level(log_level)
+    ctx.set_config(config)
 
     agent = MonnetAgent(ctx)
 
     if args.no_daemon:
-        logger.log("Running in foreground mode", "info")
+        logger.info("Running in foreground mode")
         with daemon.DaemonContext(
             detach_process=False,   # Avoid background
         ):
             agent.run()
     else:
         with daemon.DaemonContext():
-            logger.log("Running in daemon mode", "info")
+            logger.info("Running in daemon mode")
             agent.run()
 
 if __name__ == "__main__":

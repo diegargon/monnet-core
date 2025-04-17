@@ -2,6 +2,7 @@
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
 
+TODO: Remove redundance
 """
 
 class LogLevel:
@@ -26,3 +27,15 @@ class LogLevel:
     CRITICAL = 2
     ALERT = 1
     EMERGENCY = 0
+
+# Mapping of log level names to syslog constants
+SYSLOG_LEVELS = {
+    "debug": 7,
+    "info": 6,
+    "notice": 5,
+    "warning": 4,
+    "err": 3,
+    "crit": 2,
+    "alert": 1,
+    "emerg": 0,
+}

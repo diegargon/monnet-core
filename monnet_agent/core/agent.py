@@ -23,16 +23,17 @@ from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification, send_request, validate_response
-from shared.mconfig import load_config, validate_agent_config, update_config
+from shared.app_context import AppContext
+from shared.mconfig import update_config
 
 
 class MonnetAgent:
-    def __init__(self, ctx):
+    def __init__(self, ctx: AppContext):
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.running = True
         ctx.set_var("running", True)
-        self.config = None
+        self.config = ctx.get_config()
         self.datastore = Datastore(ctx)
         self.event_processor = EventProcessor(ctx)
         self.last_cpu_times = psutil.cpu_times()
@@ -40,26 +41,10 @@ class MonnetAgent:
 
     def initialize(self):
         """Initialize the Monnet Agent"""
-        self.logger.log("Init monnet linux agent", "info")
-
-        # Load config from file
-        try:
-            self.config = load_config(agent_config.CONFIG_AGENT_PATH)
-        except RuntimeError as e:
-            self.logger.log(f"Error loading config: {e}", "err")
-            return False
+        self.logger.debug("Starting Agent Core")
 
         if not self.config:
-            self.logger.log("Cant load config. Finishing", "err")
-            return False
-
-        try:
-            validate_agent_config(self.config)
-        except ValueError as e:
-            self.logger.log(f"Validation error: {e}", "err")
-            return False
-        except RuntimeError as e:
-            self.logger.log(f"Unexpected error during validation: {e}", "err")
+            self.logger.err("Cant load config. Finishing")
             return False
 
         self.config["interval"] = self.config["default_interval"]
@@ -73,7 +58,7 @@ class MonnetAgent:
     def run(self):
         """Main agent loop"""
         if not self.initialize():
-            self.logger.log("Initialization failed. Exiting...", "err")
+            self.logger.err("Initialization failed. Exiting...")
             return False
 
         while self.running:
@@ -83,7 +68,7 @@ class MonnetAgent:
             try:
                 host_logs = self.logger.pop_logs(count=10)
             except Exception as e:
-                self.logger.log(f"Error while collecting host logs: {e}", "err")
+                self.logger.err(f"Error while collecting host logs: {e}")
                 host_logs = []
 
             # Ensure system_metrics and host_logs are not empty before merging
