@@ -131,10 +131,9 @@ class HostsScanner:
                         continue
                     # Get first element since return a list
                     new_host_status = host_status_retry_result[0]
+                    host_status["retries"] = new_host_status.get("retries", 1)
                     if new_host_status["online"] == 1:
                         host_status["online"] = 1
-                        host_status["retries"] = new_host_status.get("retries", 0)
                         host_status["latency"] = new_host_status.get("latency")
                         break
-                    host_status["retries"] = new_host_status.get("retries", 0)
                     sleep(0.2)
