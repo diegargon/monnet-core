@@ -2,7 +2,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway
+Monnet Gateway - DBManager
 
 # Example usage
 if __name__ == "__main__":
@@ -111,6 +111,34 @@ class DBManager:
         except Exception as e:
             self.rollback()
             raise RuntimeError(f"Transaction failed: {e}") from e
+
+    def insert(self, table: str, data: dict) -> int:
+        """
+        Inserta un registro en la tabla especificada.
+        Args:
+            table (str): Nombre de la tabla.
+            data (dict): Diccionario con los datos a insertar.
+        Returns:
+            int: ID del registro insertado.
+        """
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join(f"%({key})s" for key in data.keys())
+        query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
+        return self.execute(query, data, return_lastrowid=True)
+
+    def update(self, table: str, data: dict, where: dict) -> None:
+        """
+        Actualiza un registro en la tabla especificada.
+        Args:
+            table (str): Nombre de la tabla.
+            data (dict): Diccionario con los datos a actualizar.
+            where (dict): Condiciones para el `WHERE`.
+        """
+        set_clause = ", ".join(f"{key} = %({key})s" for key in data.keys())
+        where_clause = " AND ".join(f"{key} = %({key})s" for key in where.keys())
+        query = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
+        params = {**data, **where}
+        self.execute(query, params)
 
     def execute(self, query: str, params: Union[Tuple, List] = None) -> int:
         """
