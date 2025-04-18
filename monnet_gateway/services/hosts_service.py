@@ -106,17 +106,17 @@ class HostService:
         self.host_model.commit()
 
     def _host_events(self, host: dict, current_host: dict) -> None:
-        id = host["id"]
+        hid = host["id"]
         ip = host["ip"]
 
-        if host["online"] == 0 and current_host["online"] == 1:
+        if host.get("online") == 0 and current_host.get("online") == 1:
             self.event_host.event(
-                id,
-                f"Host become online {ip}",
+                hid,
+                f'Host become online {ip}',
                 LogType.EVENT,
                 EventType.HOST_BECOME_ON
             )
-        if host["online"] == 1 and current_host["online"] == 0:
+        if host.get("online") == 1 and current_host.get("online") == 0:
             if "always_on" in host["misc"] and host["misc"]["always_on"]:
                 log_type = LogType.EVENT_ALERT
                 current_host["alert"] = 1
@@ -124,11 +124,38 @@ class HostService:
                 log_type = LogType.EVENT
 
             self.event_host.event(
-                id,
-                f"Host become offline {ip}",
+                hid,
+                f'Host become offline {ip}',
                 log_type,
                 EventType.HOST_BECOME_ON
             )
+        if "hostname" in current_host and host["hostname"] != current_host["hostname"]:
+            current_host["warn"] = 1
+            self.event_host.event(
+                hid,
+                f'Host hostname changed {host["hostname"]} -> {current_host["hostname"]}',
+                LogType.EVENT_WARN,
+                EventType.HOST_INFO_CHANGE
+            )
+        if "misc" in current_host:
+            if "mac" in current_host["misc"] and host["misc"]["mac"] != current_host["misc"]["mac"]:
+                current_host["warn"] = 1
+                self.event_host.event(
+                    hid,
+                    f'Host MAC changed {host["misc"]["mac"]} -> {current_host["misc"]["mac"]}',
+                    LogType.EVENT_WARN,
+                    EventType.HOST_INFO_CHANGE
+                )
+            if (
+                "mac_vendor" in current_host["misc"] and
+                host["misc"]["mac_vendor"] != current_host["misc"]["mac_vendor"]
+            ):
+                self.event_host.event(
+                    hid,
+                    f'Host MAC vendor changed {host["misc"]["mac_vendor"]} -> {current_host["misc"]["mac_vendor"]}',
+                    LogType.EVENT,
+                    EventType.HOST_INFO_CHANGE
+                )
 
     def _collect_missing_details(self, existing_host: dict, set_data: dict) -> None:
         """
@@ -139,10 +166,11 @@ class HostService:
         """
         if not existing_host["hostname"]:
             set_data["hostname"] = get_hostname(existing_host["ip"])
-        if not "mac" in existing_host["misc"]:
-            set_data["mac"] = get_mac(existing_host["ip"])
-        if "mac" in set_data and set_data["mac"] is not None and not existing_host["misc"]["mac_vendor"]:
-            set_data["mac_vendor"] = get_org_from_mac(set_data["mac"])
+        if "misc" in existing_host:
+            if "mac" in existing_host["misc"]:
+                set_data["misc"]["mac"] = get_mac(existing_host["ip"])
+                if set_data["misc"]["mac"] is not None:
+                    set_data["misc"]["mac_vendor"] = get_org_from_mac(set_data["mac"])
 
     def _serialize_update_misc(self, existing_host: dict,  set_data: dict) -> None:
         """ Handle  update the 'misc' field merge existing and new data """
@@ -162,9 +190,7 @@ class HostService:
     def _serialize_misc(self, host: dict) -> None:
         """ Serialize the 'misc' field to JSON format."""
 
-        if "misc" in host:
-            if not isinstance(host["misc"], dict):
-                raise ValueError("'misc' field must be a dictionary.")
+        if "misc" in host and isinstance(host["misc"], dict):
             try:
                 host["misc"] = json.dumps(host["misc"])
             except (TypeError, ValueError) as e:

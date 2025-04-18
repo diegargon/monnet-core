@@ -74,9 +74,11 @@ def get_org_from_mac(mac: str) -> str | None:
             for row in reader:
                 if row["Assignment"].strip().upper() == mac_vendor.upper():
                     return row["Organization Name"].strip()
-    #except FileNotFoundError:
+    except FileNotFoundError:
+        return None
     #    print(f"Error: El archivo {oui_file} no existe.")
-    #except KeyError as e:
+    except KeyError as e:
+        return None
     #    print(f"Error: Falta la columna esperada en el archivo CSV: {e}")
     except Exception as e:
         return None

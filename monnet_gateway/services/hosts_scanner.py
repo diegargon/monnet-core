@@ -6,16 +6,13 @@ Monnet Gateway - Hosts Scanner
 """
 # Std
 from datetime import datetime, timezone
-from pprint import pprint
 from time import sleep
 from collections import defaultdict
 
 # Local
-
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.ports_service import PortsService
-from monnet_gateway.utils.myutils import pprint_table
 
 class HostsScanner:
     """
@@ -196,10 +193,7 @@ class HostsScanner:
         # Actualizar la base de datos
 
         for host_id, set_host in host_updates.items():
-            print(f"ID: {host_id}")
-            pprint(set_host)
             self.hosts_service.update(host_id, set_host)
 
         if port_updates:
-            pprint(port_updates)
             self.ports_service.update_ports(port_updates)

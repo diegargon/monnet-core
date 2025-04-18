@@ -58,12 +58,12 @@ if __name__ == "__main__":
         else:
             hosts_offline.append(host_status)
             count_offline += 1
-
+    """
     if hosts_online:
         pprint_table(hosts_online)
     if hosts_offline:
         pprint_table(hosts_offline)
-
+    """
     hosts_scanner.preup_hosts(hosts_status)
 
     end_time = time()
