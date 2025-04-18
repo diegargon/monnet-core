@@ -32,9 +32,8 @@ class HostsModel:
             dict: A dictionary representing the host, or None if not found.
         """
         query = "SELECT * FROM hosts WHERE id = %s"
-        result = self.db.fetchone(query, (host_id,))
 
-        return result
+        return self.db.fetchone(query, (host_id,))
 
     def insert_host(self, host: dict) -> int:
         """ Insert a new host """
@@ -42,11 +41,10 @@ class HostsModel:
         placeholders = ", ".join(["%s"] * len(host))
         values = tuple(host.values())
         query = f"INSERT INTO hosts ({columns}) VALUES ({placeholders})"
-        self.db.execute(query, values)
-        self.db.commit()
-        return self.db.cursor.lastrowid
 
-    def update_host(self, host_id: int, set_data: dict) -> None:
+        return self.db.execute(query, values)
+
+    def update_host(self, host_id: int, set_data: dict) -> int:
         """
         Update an existing host in the database.
 
@@ -64,5 +62,12 @@ class HostsModel:
         values = tuple(set_data.values())
         query = f"UPDATE hosts SET {columns} WHERE id = %s"
 
-        self.db.execute(query, values + (host_id,))
+        return self.db.execute(query, values + (host_id,))
+
+
+    def last_id(self) -> int:
+        """ Get last inserted id """
+        return self.db.cursor.lastrowid
+
+    def commit(self) -> None:
         self.db.commit()

@@ -19,22 +19,18 @@ from shared.app_context import AppContext
 class HostService:
     """Business logic for managing hosts"""
 
-    def __init__(self, ctx: AppContext, host_model: HostsModel):
+    def __init__(self, ctx: AppContext):
         self.ctx = ctx
-        self.host_model = host_model
+        self.host_model = HostsModel(ctx.get_database())
         self.event_host = EventHostService(ctx)
 
     def get_all(self) -> list[dict]:
-        """Retrieve all hosts and convert """
+        """Retrieve all hosts with deserialize misc' field."""
         hosts = self.host_model.get_all()
-        for host in hosts:
-            if "misc" in host and host["misc"]:
-                try:
-                    host["misc"] = json.loads(host["misc"])
-                except (TypeError, ValueError) as e:
-                    raise ValueError(f"Error deserializing 'misc' field for host {host['ip']}: {e}")
+        [self._deserialize_misc(host) for host in hosts]
 
         return hosts
+
 
     def get_by_id(self, host_id: int) -> dict:
         """
@@ -53,16 +49,11 @@ class HostService:
         if not host:
             raise ValueError(f"Host with ID {host_id} does not exist.")
 
-        # Deserialize the 'misc' field if it exists
-        if "misc" in host and host["misc"]:
-            try:
-                host["misc"] = json.loads(host["misc"])
-            except (TypeError, ValueError) as e:
-                raise ValueError(f"Error deserializing 'misc' field for host {host_id}: {e}")
+        self._deserialize_misc(host)
 
         return host
 
-    def insert(self, host: dict) -> int:
+    def add_host(self, host: dict) -> int:
         """
         Add a new host after validating the data.
 
@@ -85,13 +76,12 @@ class HostService:
         #    if any(h["mac"] == host["mac"] for h in existing_hosts):
         #        raise ValueError(f"Host with MAC {host['mac']} already exists.")
 
-        if "misc" in host and isinstance(host["misc"], dict):
-            try:
-                host["misc"] = json.dumps(host["misc"])
-            except (TypeError, ValueError) as e:
-                raise ValueError(f"Error serializing 'misc' field to JSON: {e}")
+        self._serialize_misc(host)
+        self.host_model.insert_host(host)
+        self.host_model.commit()
 
-        return self.host_model.insert_host(host)
+        return self.host_model.last_id()
+
 
     def update(self, host_id: int, set_data: dict) -> None:
         """
@@ -106,32 +96,16 @@ class HostService:
         """
 
         existing_host = self.get_by_id(host_id)
-
-        if not existing_host["hostname"]:
-            set_data["hostname"] = get_hostname(existing_host["ip"])
-        if not "mac" in existing_host["misc"]:
-            set_data["mac"] = get_mac(existing_host["ip"])
-        if "mac" in set_data and set_data["mac"] is not None and not existing_host["misc"]["mac_vendor"]:
-            set_data["mac_vendor"] = get_org_from_mac(set_data["mac"])
-
-        self.host_events(existing_host, set_data)
-
-        # Handle the 'misc' field: merge existing and new data
-        if "misc" in set_data:
-            if isinstance(set_data["misc"], dict) and set_data["misc"] is not None:
-                # Merge the existing 'misc' with the new data
-                existing_misc = existing_host.get("misc", {})
-                merged_misc = {**existing_misc, **set_data["misc"]}
-                try:
-                    set_data["misc"] = json.dumps(merged_misc)
-                except (TypeError, ValueError) as e:
-                    raise ValueError(f"Error serializing 'misc' field to JSON: {e}")
-            else:
-                raise ValueError("'misc' field must be a dictionary.")
-
+        # Colect set_data wit missing host detadetails
+        self._collect_missing_details(existing_host, set_data)
+        # Create events
+        self._host_events(existing_host, set_data)
+        # Serialize and merge the 'misc' field
+        self._serialize_update_misc(existing_host, set_data)
         self.host_model.update_host(host_id, set_data)
+        self.host_model.commit()
 
-    def host_events(self, host: dict, current_host: dict) -> None:
+    def _host_events(self, host: dict, current_host: dict) -> None:
         id = host["id"]
         ip = host["ip"]
 
@@ -155,3 +129,51 @@ class HostService:
                 log_type,
                 EventType.HOST_BECOME_ON
             )
+
+    def _collect_missing_details(self, existing_host: dict, set_data: dict) -> None:
+        """
+        Check if the host has missing details and update them if necessary.
+        Args:
+            existing_host (dict): The existing host data.
+            set_data (dict): The new data to be set.
+        """
+        if not existing_host["hostname"]:
+            set_data["hostname"] = get_hostname(existing_host["ip"])
+        if not "mac" in existing_host["misc"]:
+            set_data["mac"] = get_mac(existing_host["ip"])
+        if "mac" in set_data and set_data["mac"] is not None and not existing_host["misc"]["mac_vendor"]:
+            set_data["mac_vendor"] = get_org_from_mac(set_data["mac"])
+
+    def _serialize_update_misc(self, existing_host: dict,  set_data: dict) -> None:
+        """ Handle  update the 'misc' field merge existing and new data """
+
+        if "misc" in set_data:
+            if isinstance(set_data["misc"], dict) and set_data["misc"] is not None:
+                # Merge the existing 'misc' with the new data
+                existing_misc = existing_host.get("misc", {})
+                merged_misc = {**existing_misc, **set_data["misc"]}
+                try:
+                    set_data["misc"] = json.dumps(merged_misc)
+                except (TypeError, ValueError) as e:
+                    raise ValueError(f"Error serializing 'misc' field to JSON: {e}")
+            else:
+                raise ValueError("'misc' field must be a dictionary.")
+
+    def _serialize_misc(self, host: dict) -> None:
+        """ Serialize the 'misc' field to JSON format."""
+
+        if "misc" in host:
+            if not isinstance(host["misc"], dict):
+                raise ValueError("'misc' field must be a dictionary.")
+            try:
+                host["misc"] = json.dumps(host["misc"])
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"Error serializing 'misc' field to JSON: {e}")
+
+    def _deserialize_misc(self, host: dict) -> None:
+        """ Deserialize the 'misc' field from JSON format."""
+        if "misc" in host and host["misc"]:
+            try:
+                host["misc"] = json.loads(host["misc"])
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"Error deserializing 'misc' field: {e}")

@@ -21,8 +21,6 @@ class EventHostService:
             logger: Logger instance.
         """
         self.db = ctx.get_database()
-        if not self.db:
-            print("DATABASE is not set")
         self.logger = ctx.get_logger()
         self.event_host_model = EventHostModel(self.db)
 
@@ -64,5 +62,8 @@ class EventHostService:
             "event_type": event_type
         }
 
-        self.event_host_model.insert_event(log_data)
-        self.event_host_model.commit()
+        try:
+            self.event_host_model.insert_event(log_data)
+            self.event_host_model.commit()
+        except Exception as e:
+            self.logger.error(f"Failed to log event for Host ID {host_id}: {e}")

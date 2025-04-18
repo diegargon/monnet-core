@@ -128,7 +128,7 @@ class DBManager:
 
         return  self.cursor.lastrowid
 
-    def update(self, table: str, data: dict, where: dict) -> None:
+    def update(self, table: str, data: dict, where: dict) -> int:
         """
         Actualiza un registro en la tabla especificada.
         Args:
@@ -140,7 +140,8 @@ class DBManager:
         where_clause = " AND ".join(f"{key} = %({key})s" for key in where.keys())
         query = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
         params = {**data, **where}
-        self.execute(query, params)
+
+        return self.execute(query, params)
 
     def execute(self, query: str, params: Union[Tuple, List] = None) -> int:
         """

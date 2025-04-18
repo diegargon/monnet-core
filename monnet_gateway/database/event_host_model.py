@@ -13,14 +13,14 @@ class EventHostModel:
     Handles operations related to the `hosts_logs` table.
     """
 
-    def __init__(self, db_manager: DBManager):
+    def __init__(self, db: DBManager):
         """
         Initialize EventLogModel with a database manager.
 
         Args:
             db: Database manager instance.
         """
-        self.db = db_manager
+        self.db = db
 
     def insert_event(self, log_data: dict) -> int:
         """

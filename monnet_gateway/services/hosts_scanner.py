@@ -11,10 +11,10 @@ from time import sleep
 from collections import defaultdict
 
 # Local
-from monnet_gateway.database.ports_model import PortsModel
-from monnet_gateway.database.hosts_model import HostsModel
+
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.services.hosts_service import HostService
+from monnet_gateway.services.ports_service import PortsService
 from monnet_gateway.utils.myutils import pprint_table
 
 class HostsScanner:
@@ -27,9 +27,8 @@ class HostsScanner:
         self.logger = ctx.get_logger()
         self.network_scanner = NetworkScanner(ctx)
         self.db = ctx.get_database()
-        hosts_model = HostsModel(self.db)
-        self.ports_model = PortsModel(self.db)
-        self.hosts_service = HostService(ctx, hosts_model)
+        self.ports_service = PortsService(ctx)
+        self.hosts_service = HostService(ctx)
 
     def scan_hosts(self, all_hosts: dict):
         """
@@ -47,6 +46,9 @@ class HostsScanner:
         f_now_utc = now_utc.strftime('%Y-%m-%d %H:%M:%S')
 
         for host in all_hosts:
+            if not host:
+                continue
+
             ip_or_host = host['ip']
             check_method = host.get("check_method", 1)
             self.logger.debug(f"Scanning ip {ip_or_host}")
@@ -91,7 +93,7 @@ class HostsScanner:
                 ip_status.append(scan_result)
 
             elif check_method == 2:  # Ports
-                host_ports = self.ports_model.get_by_hid(host["id"], scan_type=1)
+                host_ports = self.ports_service.get_host_ports(host["id"], scan_type=1)
 
                 for host_port in host_ports:
                     protocol = host_port.get("protocol")
@@ -160,7 +162,7 @@ class HostsScanner:
                         break
                     sleep(0.2)
 
-    def update_hosts(self, hosts_status: list[dict]):
+    def preup_hosts(self, hosts_status: list[dict]):
         """
         Prepara los datos para actualizar el estado de los hosts y puertos.
         """
@@ -200,4 +202,4 @@ class HostsScanner:
 
         if port_updates:
             pprint(port_updates)
-            self.ports_model.update_ports(port_updates)
+            self.ports_service.update_ports(port_updates)

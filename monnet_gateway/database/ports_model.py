@@ -3,16 +3,19 @@
 
 Monnet Gateway - Ports Model
 
-S"""
+"""
+
+from monnet_gateway.database.dbmanager import DBManager
+
 
 class PortsModel:
-    def __init__(self, db_manager):
+    def __init__(self, db: DBManager):
         """
         Initialize PortsModel with a database manager.
         Args:
-            db_manager: Database manager instance.
+            db: Database manager instance.
         """
-        self.db_manager = db_manager
+        self.db = db
 
     def add(self, port_data: dict) -> int:
         """
@@ -28,7 +31,7 @@ class PortsModel:
             "ip_version", "custom_service", "service", "latency", "last_change"
         }
         filtered_data = {key: value for key, value in port_data.items() if key in valid_fields}
-        return self.db_manager.insert("ports", filtered_data)
+        return self.db.insert("ports", filtered_data)
 
     def update(self, port_id: int, port_data: dict) -> None:
         """
@@ -43,7 +46,7 @@ class PortsModel:
             "ip_version", "custom_service", "service", "latency", "last_change"
         }
         filtered_data = {key: value for key, value in port_data.items() if key in valid_fields}
-        self.db_manager.update("ports", filtered_data, {"id": port_id})
+        self.db.update("ports", filtered_data, {"id": port_id})
 
     def add_ports(self, ports_data: list[dict]) -> list[int]:
         """
@@ -58,10 +61,12 @@ class PortsModel:
             "ip_version", "custom_service", "service", "latency", "last_change"
         }
         inserted_ids = []
-        for port_data in ports_data:
-            filtered_data = {key: value for key, value in port_data.items() if key in valid_fields}
-            inserted_id = self.db_manager.insert("ports", filtered_data)
-            inserted_ids.append(inserted_id)
+        with self.db.transaction():
+            for port_data in ports_data:
+                filtered_data = {key: value for key, value in port_data.items() if key in valid_fields}
+                inserted_id = self.db.insert("ports", filtered_data)
+                inserted_ids.append(inserted_id)
+
         return inserted_ids
 
     def update_ports(self, ports_data: list[dict]) -> None:
@@ -79,7 +84,7 @@ class PortsModel:
                 raise ValueError("Each port_data must include an 'id' field for updates.")
             port_id = port_data["id"]
             filtered_data = {key: value for key, value in port_data.items() if key in valid_fields}
-            self.db_manager.update("ports", filtered_data, {"id": port_id})
+            self.db.update("ports", filtered_data, {"id": port_id})
 
     def get_all(self, scan_type: int = None) -> list[dict]:
         """
@@ -94,7 +99,7 @@ class PortsModel:
         if scan_type is not None:
             query += " WHERE scan_type = %(scan_type)s"
             params['scan_type'] = scan_type
-        return self.db_manager.fetchall(query, params)
+        return self.db.fetchall(query, params)
 
     def get_by_id(self, port_id: int, scan_type: int = None) -> dict:
         """
@@ -110,7 +115,8 @@ class PortsModel:
         if scan_type is not None:
             query += " AND scan_type = %(scan_type)s"
             params['scan_type'] = scan_type
-        return self.db_manager.fetchone(query, params)
+
+        return self.db.fetchone(query, params)
 
     def get_by_hid(self, hid: int, scan_type: int = None) -> list[dict]:
         """
@@ -126,4 +132,8 @@ class PortsModel:
         if scan_type is not None:
             query += " AND scan_type = %(scan_type)s"
             params['scan_type'] = scan_type
-        return self.db_manager.fetchall(query, params)
+
+        return self.db.fetchall(query, params)
+
+    def commit(self) -> None:
+        self.db.commit()

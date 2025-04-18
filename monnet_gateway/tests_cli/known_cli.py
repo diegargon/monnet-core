@@ -11,7 +11,6 @@ import sys
 from time import time, sleep
 
 # Local
-from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.tests_cli.common_cli import init_context
 from monnet_gateway.services.hosts_scanner import HostsScanner
@@ -28,8 +27,7 @@ if __name__ == "__main__":
     start_time = time()  # Start timing
 
     hosts_scanner = HostsScanner(ctx)
-    hosts_model = HostsModel(ctx.get_database())
-    hosts_service = HostService(ctx, hosts_model)
+    hosts_service = HostService(ctx)
     all_hosts = hosts_service.get_all()
 
     if not all_hosts:
@@ -66,7 +64,7 @@ if __name__ == "__main__":
     if hosts_offline:
         pprint_table(hosts_offline)
 
-    hosts_scanner.update_hosts(hosts_status)
+    hosts_scanner.preup_hosts(hosts_status)
 
     end_time = time()
     total_host = len(hosts_status)
