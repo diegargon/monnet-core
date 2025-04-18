@@ -14,8 +14,12 @@ from time import sleep
 from time import time
 
 # Local
+from constants.log_level import LogLevel
+from constants.log_type import LogType
+from constants.event_type import EventType
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.networking.net_utils import get_mac, get_org_from_mac, get_hostname
+from monnet_gateway.services.event_host import EventHostService
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.tests_cli.common_cli import init_context
@@ -37,19 +41,19 @@ if __name__ == "__main__":
     network_scanner = NetworkScanner(ctx)
     host_model = HostsModel(ctx.get_database())
     host_service = HostService(ctx, host_model)
+    event_host = EventHostService(ctx)
 
     logger = Logger()
 
     networks = networks_model.get_all()
 
+    # Real Discovery Test
     ip_list = network_scanner.get_discovery_ips(networks_model, host_model)
+
+    # Fake IP List Discover Test
     #ip_list = [
     #    "192.168.1.1",
-    #    "192.168.2.126",
-    #    "192.168.2.200",
     #]
-#    ping_status = network_scanner.ping('192.168.2.126')
-#    print(ping_status)
 
     discovery_host = []
 
@@ -73,6 +77,9 @@ if __name__ == "__main__":
                     "latency": ping_status["latency"],
                 },
             }
+            # Set default as name for network default 1
+            network_name = 'default'
+
             if mac_result is not None:
                 host_data["mac"] = mac_result
                 organization = get_org_from_mac(mac_result)
@@ -83,16 +90,29 @@ if __name__ == "__main__":
             for network in networks:
                 network_cidr = ipaddress.IPv4Network(network["network"], strict=False)
                 if host_ip in network_cidr:
-                    logger.debug(f"Ip discovery {host_ip} added to network {network['network']}")
+                    network_name = network['name']
                     host_data["network"] = network["id"]
                     break
 
-            if host_data["network"] == 1:
-                logger.warning(f"Ip discovery {host_ip} not match any network, added to default")
             hostname = get_hostname(str(host_ip))
             if hostname:
                 host_data["hostname"] = hostname
             discovery_host.append(host_data)
+            # Insert discovery_host, return the insert id
+            insert_id = host_service.insert(discovery_host)
+            if not insert_id:
+                print(f"Error insert on discovery host {discovery_host}")
+                continue
+
+            # Simulate an new host discovery event with a id 199
+            #insert_id = 199
+
+            event_host.event(
+                insert_id,
+                f"Found new host {ip} on network {network_name}",
+                LogType.EVENT_WARN,
+                EventType.NEW_HOST_DISCOVERY
+            )
         sleep(0.1)
 
     print(f"Scanned: ", len(ip_list))

@@ -124,7 +124,9 @@ class DBManager:
         columns = ", ".join(data.keys())
         placeholders = ", ".join(f"%({key})s" for key in data.keys())
         query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
-        return self.execute(query, data, return_lastrowid=True)
+        self.execute(query, data)
+
+        return  self.cursor.lastrowid
 
     def update(self, table: str, data: dict, where: dict) -> None:
         """

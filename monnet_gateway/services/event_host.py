@@ -5,11 +5,14 @@ Monnet Gateway - Event Log Service
 
 """
 
+from constants.log_level import LogLevel
+from constants.log_type import LogType
 from monnet_gateway.database.event_host_model import EventHostModel
+from shared.app_context import AppContext
 from shared.clogger import Logger
 
 class EventHostService:
-    def __init__(self, db_manager, logger: Logger):
+    def __init__(self, ctx: AppContext):
         """
         Initialize EventLogService with a database manager and logger.
 
@@ -17,12 +20,14 @@ class EventHostService:
             db_manager: Database manager instance.
             logger: Logger instance.
         """
-        self.event_host_model = EventHostModel(db_manager)
-        self.logger = logger
+        self.db = ctx.get_database()
+        if not self.db:
+            print("DATABASE is not set")
+        self.logger = ctx.get_logger()
+        self.event_host_model = EventHostModel(self.db)
 
-    def event_host(
+    def event(
         self,
-        log_level: int,
         host_id: int,
         msg: str,
         log_type: int = 0,
@@ -32,7 +37,6 @@ class EventHostService:
         Log a host event.
 
         Args:
-            log_level (int): Log level.
             host_id (int): Host ID.
             msg (str): Log message.
             log_type (int): Log type. Defaults to 0.
@@ -45,6 +49,13 @@ class EventHostService:
         else:
             msg_db = msg
 
+        if  log_type == LogType.EVENT_WARN:
+            log_level = LogLevel.WARNING
+        elif log_type == LogType.EVENT_ALERT:
+            log_level = LogLevel.ALERT
+        else:
+            log_level = LogLevel.NOTICE
+
         log_data = {
             "host_id": host_id,
             "level": log_level,
@@ -52,4 +63,6 @@ class EventHostService:
             "log_type": log_type,
             "event_type": event_type
         }
+
         self.event_host_model.insert_event(log_data)
+        self.event_host_model.commit()

@@ -34,3 +34,9 @@ class EventHostModel:
         """
 
         return self.db.insert("hosts_logs", log_data)
+
+    def commit(self) -> None:
+        """
+            Commit changes
+        """
+        self.db.commit()
