@@ -12,7 +12,9 @@ from collections import defaultdict
 
 # Local
 from monnet_gateway.database.ports_model import PortsModel
+from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
+from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.utils.myutils import pprint_table
 
 class HostsScanner:
@@ -25,7 +27,9 @@ class HostsScanner:
         self.logger = ctx.get_logger()
         self.network_scanner = NetworkScanner(ctx)
         self.db = ctx.get_database()
+        hosts_model = HostsModel(self.db)
         self.ports_model = PortsModel(self.db)
+        self.hosts_service = HostService(ctx, hosts_model)
 
     def scan_hosts(self, all_hosts: dict):
         """
@@ -160,7 +164,7 @@ class HostsScanner:
         """
         Prepara los datos para actualizar el estado de los hosts y puertos.
         """
-        host_updates = defaultdict(lambda: {"online": 0, "latency": None})
+        host_updates = defaultdict(lambda: {"online": 0, "misc": {"latency": 0}})
         port_updates = []
 
         for host_status in hosts_status:
@@ -170,10 +174,9 @@ class HostsScanner:
                 port_online = host_status.get("online", 0)
                 port_latency = host_status.get("latency")
 
-
                 if port_online == 1:
                     host_updates[host_id]["online"] = 1
-                    current_latency = host_updates[host_id]["latency"]
+                    current_latency = host_updates[host_id]["misc"]["latency"]
                     if port_latency is not None and (current_latency is None or port_latency < current_latency):
                         host_updates[host_id]["latency"] = port_latency
 
@@ -181,19 +184,20 @@ class HostsScanner:
                     "id": host_status.get("port_id"),
                     "online": port_online,
                     "latency": port_latency,
+                    "last_check": host_status.get("last_check")
                 })
             else:
-                current_host_online = host_status.get("online", 0)
+                host_updates[host_id]["online"] = host_status.get("online", 0)
 
-            host_updates[host_id]["online"] = current_host_online
-            host_updates[host_id]["latency"] = host_status.get("latency")
+            host_updates[host_id]["misc"]["latency"] = host_status.get("latency")
+            host_updates[host_id]["last_check"] = host_status.get("last_check")
         # Actualizar la base de datos
-        """
+
         for host_id, set_host in host_updates.items():
+            print(f"ID: {host_id}")
             pprint(set_host)
-            #self.hosts_service.update(host_id, set_host)
+            self.hosts_service.update(host_id, set_host)
 
         if port_updates:
             pprint(port_updates)
-            #self.ports_model.update_ports(port_updates)
-        """
+            self.ports_model.update_ports(port_updates)

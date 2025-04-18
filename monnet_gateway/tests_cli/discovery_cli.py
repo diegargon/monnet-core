@@ -14,7 +14,6 @@ from time import sleep
 from time import time
 
 # Local
-from constants.log_level import LogLevel
 from constants.log_type import LogType
 from constants.event_type import EventType
 from monnet_gateway.database.hosts_model import HostsModel
@@ -39,8 +38,8 @@ if __name__ == "__main__":
 
     networks_model = NetworksModel(ctx.get_database())
     network_scanner = NetworkScanner(ctx)
-    host_model = HostsModel(ctx.get_database())
-    host_service = HostService(ctx, host_model)
+    hosts_model = HostsModel(ctx.get_database())
+    host_service = HostService(ctx, hosts_model)
     event_host = EventHostService(ctx)
 
     logger = Logger()
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     networks = networks_model.get_all()
 
     # Real Discovery Test
-    ip_list = network_scanner.get_discovery_ips(networks_model, host_model)
+    ip_list = network_scanner.get_discovery_ips(networks_model, hosts_model)
 
     # Fake IP List Discover Test
     #ip_list = [

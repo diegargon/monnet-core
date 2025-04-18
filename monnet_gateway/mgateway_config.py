@@ -6,7 +6,7 @@ Monnet Gateway
 Config file
 """
 
-VERSION = "0.6"
+VERSION = "0.7"
 MINOR_VERSION = 7
 HOST = 'localhost'
 PORT = 65432

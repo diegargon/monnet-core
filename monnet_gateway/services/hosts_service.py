@@ -9,7 +9,12 @@ Monnet Gateway - HostService Class
 import json
 
 # Local
+from constants.log_type import LogType
+from constants.event_type import EventType
 from monnet_gateway.database.hosts_model import HostsModel
+from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
+from monnet_gateway.services.event_host import EventHostService
+
 from shared.app_context import AppContext
 class HostService:
     """Business logic for managing hosts"""
@@ -17,6 +22,7 @@ class HostService:
     def __init__(self, ctx: AppContext, host_model: HostsModel):
         self.ctx = ctx
         self.host_model = host_model
+        self.event_host = EventHostService(ctx)
 
     def get_all(self) -> list[dict]:
         """Retrieve all hosts and convert """
@@ -101,9 +107,18 @@ class HostService:
 
         existing_host = self.get_by_id(host_id)
 
+        if not existing_host["hostname"]:
+            set_data["hostname"] = get_hostname(existing_host["ip"])
+        if not "mac" in existing_host["misc"]:
+            set_data["mac"] = get_mac(existing_host["ip"])
+        if "mac" in set_data and set_data["mac"] is not None and not existing_host["misc"]["mac_vendor"]:
+            set_data["mac_vendor"] = get_org_from_mac(set_data["mac"])
+
+        self.host_events(existing_host, set_data)
+
         # Handle the 'misc' field: merge existing and new data
         if "misc" in set_data:
-            if isinstance(set_data["misc"], dict):
+            if isinstance(set_data["misc"], dict) and set_data["misc"] is not None:
                 # Merge the existing 'misc' with the new data
                 existing_misc = existing_host.get("misc", {})
                 merged_misc = {**existing_misc, **set_data["misc"]}
@@ -115,3 +130,28 @@ class HostService:
                 raise ValueError("'misc' field must be a dictionary.")
 
         self.host_model.update_host(host_id, set_data)
+
+    def host_events(self, host: dict, current_host: dict) -> None:
+        id = host["id"]
+        ip = host["ip"]
+
+        if host["online"] == 0 and current_host["online"] == 1:
+            self.event_host.event(
+                id,
+                f"Host become online {ip}",
+                LogType.EVENT,
+                EventType.HOST_BECOME_ON
+            )
+        if host["online"] == 1 and current_host["online"] == 0:
+            if "always_on" in host["misc"] and host["misc"]["always_on"]:
+                log_type = LogType.EVENT_ALERT
+                current_host["alert"] = 1
+            else:
+                log_type = LogType.EVENT
+
+            self.event_host.event(
+                id,
+                f"Host become offline {ip}",
+                log_type,
+                EventType.HOST_BECOME_ON
+            )
