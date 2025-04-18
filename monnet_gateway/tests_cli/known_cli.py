@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway CLI TEST
+Monnet Gateway - Scan known host CLI TEST
 
 """
 # Std
@@ -65,6 +65,8 @@ if __name__ == "__main__":
         pprint_table(hosts_online)
     if hosts_offline:
         pprint_table(hosts_offline)
+
+    hosts_scanner.update_hosts(hosts_status)
 
     end_time = time()
     total_host = len(hosts_status)

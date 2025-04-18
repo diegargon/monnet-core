@@ -5,11 +5,12 @@ Monnet Gateway - HostService Class
 
 """
 
+# Std
 import json
+
+# Local
 from monnet_gateway.database.hosts_model import HostsModel
 from shared.app_context import AppContext
-
-
 class HostService:
     """Business logic for managing hosts"""
 

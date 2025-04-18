@@ -5,11 +5,15 @@ Monnet Gateway - Hosts Scanner
 
 """
 # Std
+from datetime import datetime, timezone
+from pprint import pprint
 from time import sleep
+from collections import defaultdict
 
 # Local
 from monnet_gateway.database.ports_model import PortsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
+from monnet_gateway.utils.myutils import pprint_table
 
 class HostsScanner:
     """
@@ -35,6 +39,9 @@ class HostsScanner:
 
         ip_status = []
 
+        now_utc = datetime.now(timezone.utc)
+        f_now_utc = now_utc.strftime('%Y-%m-%d %H:%M:%S')
+
         for host in all_hosts:
             ip_or_host = host['ip']
             check_method = host.get("check_method", 1)
@@ -47,6 +54,14 @@ class HostsScanner:
                     timeout = 0.3
             else:
                 timeout = 0.3
+
+            if  "disable_ping" in host and host["disable_ping"] == 1 and check_method == 1:
+                continue
+
+            # If host agent is installed and host its online skip ping
+            if host["online"] == 1 and "agent_installed" in host and host["agent_installed"]:
+                continue
+
             self.logger.debug(f"Check method {check_method}")
 
             if check_method == 1:  # Ping
@@ -55,7 +70,8 @@ class HostsScanner:
                     "ip": host["ip"],
                     "host": ip_or_host,
                     "online": 0,
-                    "check_method": check_method
+                    "check_method": check_method,
+                    "last_check": f_now_utc
                 }
                 if "hostname" in host:
                     scan_result["hostname"] = host["hostname"]
@@ -79,9 +95,11 @@ class HostsScanner:
                     scan_result = {
                         "id": host["id"],
                         "ip": host["ip"],
+                        "port_id": host_port["id"],
                         "online": 0,
                         "check_method": check_method,
                         "port": pnumber,
+                        "last_check": f_now_utc,
                         "error": None
                     }
 
@@ -137,3 +155,45 @@ class HostsScanner:
                         host_status["latency"] = new_host_status.get("latency")
                         break
                     sleep(0.2)
+
+    def update_hosts(self, hosts_status: list[dict]):
+        """
+        Prepara los datos para actualizar el estado de los hosts y puertos.
+        """
+        host_updates = defaultdict(lambda: {"online": 0, "latency": None})
+        port_updates = []
+
+        for host_status in hosts_status:
+            host_id = host_status["id"]
+
+            if "port" in host_status:
+                port_online = host_status.get("online", 0)
+                port_latency = host_status.get("latency")
+
+
+                if port_online == 1:
+                    host_updates[host_id]["online"] = 1
+                    current_latency = host_updates[host_id]["latency"]
+                    if port_latency is not None and (current_latency is None or port_latency < current_latency):
+                        host_updates[host_id]["latency"] = port_latency
+
+                port_updates.append({
+                    "id": host_status.get("port_id"),
+                    "online": port_online,
+                    "latency": port_latency,
+                })
+            else:
+                current_host_online = host_status.get("online", 0)
+
+            host_updates[host_id]["online"] = current_host_online
+            host_updates[host_id]["latency"] = host_status.get("latency")
+        # Actualizar la base de datos
+        """
+        for host_id, set_host in host_updates.items():
+            pprint(set_host)
+            #self.hosts_service.update(host_id, set_host)
+
+        if port_updates:
+            pprint(port_updates)
+            #self.ports_model.update_ports(port_updates)
+        """
