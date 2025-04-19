@@ -9,7 +9,7 @@ from monnet_gateway.tests_cli.common_cli import init_context
 
 
 ctx = init_context("/opt/monnet-core")
-ctx.get_logger().log("Starting discovery CLI", "info")
+ctx.get_logger().log("Starting test_config CLI", "info")
 
 
 config = Config(ctx)
