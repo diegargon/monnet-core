@@ -15,7 +15,7 @@ from typing import List, Optional
 import yaml
 
 # Local
-from monnet_gateway.mgateway_config import GW_VERSION, GW_VERSION_MINOR
+from monnet_gateway.mgateway_config import GW_F_VERSION
 from shared.app_context import AppContext
 
 def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
@@ -57,7 +57,7 @@ def _response_success(command: str, data:dict):
         dict: response
     """
     response = {
-        "version": str(GW_VERSION) + '.' + str(GW_VERSION_MINOR),
+        "version": str(GW_F_VERSION),
         "status": "success",
         "command": command,
         "result": data
@@ -75,7 +75,7 @@ def _response_error(command: str, message: str):
             dict: response
     """
     response = {
-        "version": str(GW_VERSION) + '.' + str(GW_VERSION_MINOR),
+        "version": str(GW_F_VERSION),
         "status": "error",
         "command": command,
         "message": message

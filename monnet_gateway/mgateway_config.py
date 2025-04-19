@@ -1,13 +1,13 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway
-
-Config file
+Monnet Gateway - Config file
 """
 
-GW_VERSION = "0.7"
+GW_VERSION = "0.8"
 GW_VERSION_MINOR = 9
+GW_F_VERSION =  str(GW_VERSION) + "." + str(GW_VERSION_MINOR)
+
 HOST = 'localhost'
 PORT = 65432
 PORT_TEST = 65433
