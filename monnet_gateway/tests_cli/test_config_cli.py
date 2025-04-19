@@ -28,7 +28,7 @@ for key, value in config.db_config.items():
 print("**** TESTING CONFIGURATION KEYS ****")
 # Test updating a file-based configuration key
 try:
-    config.update_file_config_key("test_file_key", "test_file_value", create_key=True)
+    config.update_file_key("test_file_key", "test_file_value", create_key=True)
     print(f"Updated file-based config: test_file_key = {config.get('test_file_key')}")
 except Exception as e:
     print(f"Failed to update file-based config: {e}")
@@ -36,7 +36,7 @@ except Exception as e:
 
 # Test updating a database-based configuration key
 try:
-    config.update_db_config_key("test_db_key", "test_db_value", create_key=True)
+    config.update_db_key("test_db_key", "test_db_value", create_key=True)
     print(f"Updated database config: test_db_key = {config.get('test_db_key')}")
 except Exception as e:
     print(f"Failed to update database config: {e}")
@@ -44,7 +44,7 @@ except Exception as e:
 # DO NOT TEST THIS - Need ctype check for update a nested key
 # Test updating a database-based configuration key with a nested structure
 #try:
-#    config.update_db_config_key("test_db_key", {"nested": "value"})
+#    config.update_db_key("test_db_key", {"nested": "value"})
 #    print(f"Updated database config: test_db_key = {config.get('test_db_key')}")
 #except Exception as e:
 #    print(f"Failed to update database config: {e}")

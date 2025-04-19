@@ -30,6 +30,7 @@ sys.path.append(str(BASE_DIR))
 if __name__ == "__main__":
     ctx = init_context("/opt/monnet-core")
     ctx.get_logger().log("Starting discovery CLI", "info")
+    config = ctx.get_config()
 
     start_time = time()  # Start timing
 
@@ -99,6 +100,11 @@ if __name__ == "__main__":
         insert_ids = host_service.add_hosts(discovery_host)
     except ValueError as e:
         print(f"Error inserting discovery hosts: {e}")
+
+    try:
+        config.update_db_key("discovery_last_run", utc_date_now())
+    except Exception as e:
+        print(f"Error updating discovery_last_run: {e}")
 
     print(f"Scanned: ", len(ip_list))
     print(f"Discovery hosts: ",  len(discovery_host) )

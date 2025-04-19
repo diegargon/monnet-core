@@ -46,7 +46,7 @@ class Config:
         # Check database config first, then file config
         return self.db_config.get(key, self.file_config.get(key, default))
 
-    def update_file_config_key(self, key: str, value, create_key: bool = False):
+    def update_file_key(self, key: str, value, create_key: bool = False):
         """
         Update a key-value pair in the file-based configuration and save it to the file.
 
@@ -72,7 +72,7 @@ class Config:
         except Exception as e:
             raise RuntimeError(f"Error saving configuration: {e}")
 
-    def update_db_config_key(self, key: str, value, create_key: bool = False):
+    def update_db_key(self, key: str, value, create_key: bool = False):
         """
         Update a key-value pair in the database-based configuration.
 
