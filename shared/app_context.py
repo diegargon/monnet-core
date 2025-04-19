@@ -5,6 +5,10 @@ Monnet Shared: Context
 
 """
 
+from monnet_gateway.database.dbmanager import DBManager
+from shared.clogger import Logger
+
+
 class AppContext:
     """
     Class AppContext
@@ -52,7 +56,7 @@ class AppContext:
         """
         return key in self._variables
 
-    def set_database(self, db_manager) -> None:
+    def set_database(self, db_manager: DBManager) -> None:
         """
         Set database manager
         Args:
@@ -60,7 +64,7 @@ class AppContext:
         """
         self._database = db_manager
 
-    def get_database(self):
+    def get_database(self) -> DBManager:
         """
         Get database manager
         Returns:
@@ -100,7 +104,7 @@ class AppContext:
         """
         return self._config is not None
 
-    def set_logger(self, logger) -> None:
+    def set_logger(self, logger: Logger) -> None:
         """
         Set logger
         Args:
@@ -108,7 +112,7 @@ class AppContext:
         """
         self._logger = logger
 
-    def get_logger(self):
+    def get_logger(self) -> Logger:
         """
         Get Logger
         Returns:
