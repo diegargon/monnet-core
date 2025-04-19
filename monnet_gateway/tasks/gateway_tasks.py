@@ -15,6 +15,7 @@ from shared.app_context import AppContext
 from monnet_gateway.tasks.discovery import DiscoveryHostsTask
 from monnet_gateway.tasks.known_checker import HostsCheckerTask
 from monnet_gateway.tasks.ansible_runner import AnsibleTask
+from monnet_gateway.tasks.prune_task import PruneTask
 
 class TaskSched:
     """Clase para ejecutar una tarea periódica."""
@@ -34,12 +35,14 @@ class TaskSched:
                 "discovery_hosts":  60,
                 "hosts_checker":  60,
                 "ansible": 60,
+                "prune": 86400,  # 1 day in seconds
             }
 
             self.last_run_time = {
                 "discovery_hosts": 0,
                 "hosts_checker": 0,
                 "ansible": 0,
+                "prune": 0,
             }
 
             # Avoid parallel task
@@ -47,11 +50,13 @@ class TaskSched:
                 "discovery_hosts": threading.Lock(),
                 "hosts_checker": threading.Lock(),
                 "ansible": threading.Lock(),
+                "prune": threading.Lock(),
             }
 
             self.discovery_hosts = DiscoveryHostsTask(ctx)
             self.hosts_checker = HostsCheckerTask(ctx)
             self.ansible = AnsibleTask(ctx)
+            self.prune_task = PruneTask(ctx)
 
             # Launch Thread
             self.thread = threading.Thread(target=self.run_task, daemon=True)
@@ -105,6 +110,16 @@ class TaskSched:
                         self.last_run_time["ansible"] = current_time
                     finally:
                         self.task_locks["ansible"].release()
+
+            # Ejecutar PruneTask si ha pasado el intervalo
+            if current_time - self.last_run_time["prune"] >= self.task_intervals["prune"]:
+                if self.task_locks["prune"].acquire(blocking=False):
+                    try:
+                        self.logger.debug("Running PruneTask...")
+                        self.prune_task.run()
+                        self.last_run_time["prune"] = current_time
+                    finally:
+                        self.task_locks["prune"].release()
 
             sleep(1)
 
