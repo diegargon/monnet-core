@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway
+Monnet Gateway - Task Scheduler
 
 """
 
@@ -18,11 +18,11 @@ from monnet_gateway.tasks.ansible_runner import AnsibleTask
 from monnet_gateway.tasks.prune_task import PruneTask
 
 class TaskSched:
-    """Clase para ejecutar una tarea periódica."""
+    """Class to execute a periodic task."""
     def __init__(self, ctx: AppContext):
         self.logger = ctx.get_logger()
         try:
-            self.logger.info("Initialice TaskSched...")
+            self.logger.info("Initialize TaskSched...")
             if not ctx.has_var("task_interval"):
                 ctx.set_var("task_interval", DEFAULT_INTERVAL)
                 self.logger.warning(
@@ -65,15 +65,15 @@ class TaskSched:
             self.logger.error(f"Error initialice TaskSched: {e}")
 
     def start(self):
-        """Inicia el hilo de la tarea periódica."""
+        """Starts the periodic task thread."""
         self.logger.debug("Starting TaskSched...")
         self.thread.start()
 
     def run_task(self):
         """
-        Método que ejecuta la tarea periódica.
+        Method that executes the periodic task.
 
-        Tiene que ejecutar:
+        It must execute:
             monnet-cli
             monnet-discovery
             Ansible Tasks
@@ -81,7 +81,7 @@ class TaskSched:
         while not self.stop_event.is_set():
             current_time = time()
 
-            # Ejecutar DiscoveryTask si ha pasado el intervalo
+            # Run DiscoveryTask if the interval has passed
             if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
                 if self.task_locks["discovery_hosts"].acquire(blocking=False):
                     try:
@@ -91,7 +91,7 @@ class TaskSched:
                     finally:
                         self.task_locks["discovery_hosts"].release()
 
-            # Ejecutar HostCheckerTask si ha pasado el intervalo
+            # Run HostCheckerTask if the interval has passed
             if current_time - self.last_run_time["hosts_checker"] >= self.task_intervals["hosts_checker"]:
                 if self.task_locks["hosts_checker"].acquire(blocking=False):
                     try:
@@ -101,7 +101,7 @@ class TaskSched:
                     finally:
                         self.task_locks["hosts_checker"].release()
 
-            # Ejecutar AnsibleTask si ha pasado el intervalo
+            # Run AnsibleTask if the interval has passed
             if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
                 if self.task_locks["ansible"].acquire(blocking=False):
                     try:
@@ -111,7 +111,7 @@ class TaskSched:
                     finally:
                         self.task_locks["ansible"].release()
 
-            # Ejecutar PruneTask si ha pasado el intervalo
+            # Run PruneTask if the interval has passed
             if current_time - self.last_run_time["prune"] >= self.task_intervals["prune"]:
                 if self.task_locks["prune"].acquire(blocking=False):
                     try:
@@ -124,7 +124,7 @@ class TaskSched:
             sleep(1)
 
     def stop(self):
-        """Detiene la tarea periódica."""
+        """Stops the periodic task."""
         self.stop_event.set()
         if self.thread.is_alive():
             self.thread.join()
