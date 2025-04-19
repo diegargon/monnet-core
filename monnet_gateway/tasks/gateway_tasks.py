@@ -16,6 +16,7 @@ from monnet_gateway.tasks.discovery import DiscoveryHostsTask
 from monnet_gateway.tasks.known_checker import HostsCheckerTask
 from monnet_gateway.tasks.ansible_runner import AnsibleTask
 from monnet_gateway.tasks.prune_task import PruneTask
+from monnet_gateway.tasks.weekly_task import WeeklyTask
 
 class TaskSched:
     """Class to execute a periodic task."""
@@ -36,6 +37,7 @@ class TaskSched:
                 "hosts_checker":  60,
                 "ansible": 60,
                 "prune": 86400,  # 1 day in seconds
+                "weekly_task": 604800,  # 7 days in seconds
             }
 
             self.last_run_time = {
@@ -43,6 +45,7 @@ class TaskSched:
                 "hosts_checker": 0,
                 "ansible": 0,
                 "prune": 0,
+                "weekly_task": 0,
             }
 
             # Avoid parallel task
@@ -51,12 +54,14 @@ class TaskSched:
                 "hosts_checker": threading.Lock(),
                 "ansible": threading.Lock(),
                 "prune": threading.Lock(),
+                "weekly_task": threading.Lock(),
             }
 
             self.discovery_hosts = DiscoveryHostsTask(ctx)
             self.hosts_checker = HostsCheckerTask(ctx)
             self.ansible = AnsibleTask(ctx)
             self.prune_task = PruneTask(ctx)
+            self.weekly_task = WeeklyTask(ctx)
 
             # Launch Thread
             self.thread = threading.Thread(target=self.run_task, daemon=True)
@@ -120,6 +125,16 @@ class TaskSched:
                         self.last_run_time["prune"] = current_time
                     finally:
                         self.task_locks["prune"].release()
+
+            # Run WeeklyTask if the interval has passed
+            if current_time - self.last_run_time["weekly_task"] >= self.task_intervals["weekly_task"]:
+                if self.task_locks["weekly_task"].acquire(blocking=False):
+                    try:
+                        self.logger.debug("Running WeeklyTask...")
+                        self.weekly_task.run()
+                        self.last_run_time["weekly_task"] = current_time
+                    finally:
+                        self.task_locks["weekly_task"].release()
 
             sleep(1)
 
