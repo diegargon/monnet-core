@@ -62,7 +62,7 @@ class HostsScanner:
                 continue
 
             # If host agent is installed and host its online skip ping
-            if host["online"] == 1 and "agent_installed" in host and host["agent_installed"]:
+            if host.get("online") == 1 and host.get("misc", {}).get("agent_installed") == 1:
                 continue
 
             self.logger.debug(f"Check method {check_method}")
