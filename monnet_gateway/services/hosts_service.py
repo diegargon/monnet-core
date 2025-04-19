@@ -6,6 +6,7 @@ Monnet Gateway - HostService Class
 """
 
 # Std
+import ipaddress
 import json
 
 # Local
@@ -13,6 +14,7 @@ from constants.log_type import LogType
 from constants.event_type import EventType
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
+from monnet_gateway.services import event_host
 from monnet_gateway.services.event_host import EventHostService
 
 from shared.app_context import AppContext
@@ -21,6 +23,7 @@ class HostService:
 
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
+        self.logger = ctx.get_logger()
         self.host_model = HostsModel(ctx.get_database())
         self.event_host = EventHostService(ctx)
 
@@ -53,7 +56,7 @@ class HostService:
 
         return host
 
-    def add_host(self, host: dict) -> int:
+    def add_host(self, host: dict, commit: True) -> int:
         """
         Add a new host after validating the data.
 
@@ -69,6 +72,10 @@ class HostService:
             if field not in host:
                 raise ValueError(f"Missing required field: {field}")
 
+        try:
+            ipaddress.IPv4Address(host["ip"])
+        except ValueError:
+            raise ValueError(f"Invalid IP address: {host['ip']}")
 
         #existing_hosts = self.host_model.get_all()
         # check for duplicate MAC warn no error
@@ -78,9 +85,44 @@ class HostService:
 
         self._serialize_misc(host)
         self.host_model.insert_host(host)
-        self.host_model.commit()
+        if commit:
+            self.host_model.commit()
 
-        return self.host_model.last_id()
+        last_id = self.host_model.last_id()
+
+        self.event_host.event(
+            last_id,
+            f'Found new host {host["ip"]} on network {host["network"]}',
+            LogType.EVENT_WARN,
+            EventType.NEW_HOST_DISCOVERY
+        )
+
+        return last_id
+
+    def add_hosts(self, hosts: list[dict]) -> list[int]:
+        """
+        Add multiple hosts after validating the data.
+
+        Args:
+            hosts (list[dict]): List of host data to insert.
+
+        Returns:
+            list[int]: List of IDs of the inserted hosts.
+        """
+        inserted_ids = []
+
+        try:
+            for host in hosts:
+                # Reutilizar la lógica de add_host sin realizar commit
+                inserted_id = self.add_host(host, commit=False)
+                inserted_ids.append(inserted_id)
+            self.host_model.commit()
+        except Exception as e:
+            self.logger.error(f"Error inserting hosts: {e}")
+            self.host_model.rollback()
+            raise ValueError(f"Error inserting hosts: {e}")
+
+        return inserted_ids
 
 
     def update(self, host_id: int, set_data: dict) -> None:

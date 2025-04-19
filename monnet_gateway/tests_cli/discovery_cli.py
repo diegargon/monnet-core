@@ -10,13 +10,12 @@ import ipaddress
 from pathlib import Path
 from pprint import pprint
 import sys
-from time import sleep
 from time import time
 
 # Local
-from constants.log_type import LogType
-from constants.event_type import EventType
+
 from monnet_gateway.database.hosts_model import HostsModel
+from monnet_gateway.database.networks_model import NetworksModel
 from monnet_gateway.networking.net_utils import get_mac, get_org_from_mac, get_hostname
 from monnet_gateway.services.event_host import EventHostService
 from monnet_gateway.services.hosts_service import HostService
@@ -24,11 +23,9 @@ from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.tests_cli.common_cli import init_context
 from shared.time_utils import utc_date_now
 from shared.clogger import Logger
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
-
-# Local
-from monnet_gateway.database.networks_model import NetworksModel
 
 if __name__ == "__main__":
     ctx = init_context("/opt/monnet-core")
@@ -39,7 +36,7 @@ if __name__ == "__main__":
     networks_model = NetworksModel(ctx.get_database())
     network_scanner = NetworkScanner(ctx)
     hosts_model = HostsModel(ctx.get_database())
-    host_service = HostService(ctx, hosts_model)
+    host_service = HostService(ctx)
     event_host = EventHostService(ctx)
 
     logger = Logger()
@@ -87,32 +84,21 @@ if __name__ == "__main__":
 
             host_ip = ipaddress.IPv4Address(ping_status["ip"])
             for network in networks:
-                network_cidr = ipaddress.IPv4Network(network["network"], strict=False)
+                network_cidr = ipaddress.IPv4Network(network.get("network"), strict=False)
                 if host_ip in network_cidr:
-                    network_name = network['name']
-                    host_data["network"] = network["id"]
+                    network_name = network.get('name')
+                    host_data["network"] = network.get("id")
                     break
 
             hostname = get_hostname(str(host_ip))
             if hostname:
                 host_data["hostname"] = hostname
             discovery_host.append(host_data)
-            # Insert discovery_host, return the insert id
-            insert_id = host_service.insert(discovery_host)
-            if not insert_id:
-                print(f"Error insert on discovery host {discovery_host}")
-                continue
 
-            # Simulate an new host discovery event with a id 199
-            #insert_id = 199
-
-            event_host.event(
-                insert_id,
-                f"Found new host {ip} on network {network_name}",
-                LogType.EVENT_WARN,
-                EventType.NEW_HOST_DISCOVERY
-            )
-        sleep(0.1)
+    try:
+        insert_ids = host_service.add_hosts(discovery_host)
+    except ValueError as e:
+        print(f"Error inserting discovery hosts: {e}")
 
     print(f"Scanned: ", len(ip_list))
     print(f"Discovery hosts: ",  len(discovery_host) )
