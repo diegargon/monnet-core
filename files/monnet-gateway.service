@@ -10,7 +10,7 @@ Group=root
 Restart=always
 RestartSec=5
 StandardOutput=journal
-StandardError=syslog
+StandardError=inherit
 SyslogIdentifier=mgateway
 # Solo padre
 #KillMode=process

@@ -11,7 +11,7 @@ Group=root
 Restart=always
 RestartSec=5
 StandardOutput=journal
-StandardError=syslog
+StandardError=inherit
 SyslogIdentifier=monnet_agent
 
 [Install]
