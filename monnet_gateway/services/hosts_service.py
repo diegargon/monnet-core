@@ -30,7 +30,9 @@ class HostService:
     def get_all(self) -> list[dict]:
         """Retrieve all hosts with deserialize misc' field."""
         hosts = self.host_model.get_all()
-        [self._deserialize_misc(host) for host in hosts]
+        for host in hosts:
+            self._deserialize_misc(host)
+            self._set_display_name(host)
 
         return hosts
 
@@ -54,6 +56,7 @@ class HostService:
             return {}
 
         self._deserialize_misc(host)
+        self._set_display_name(host)
 
         return host
 
@@ -269,3 +272,21 @@ class HostService:
                 host["misc"] = json.loads(host["misc"])
             except (TypeError, ValueError) as e:
                 raise ValueError(f"Error deserializing 'misc' field: {e}")
+
+    def _set_display_name(self, host: dict) -> None:
+        """
+        Get the display name for a host.
+
+        Args:
+            host (dict): The host data.
+
+        Returns:
+            str: The display name for the host.
+        """
+
+        if "title" in host and host["title"]:
+            host["display_name"] = host["title"]
+        elif "hostname" in host and host["hostname"]:
+            host["display_name"] = host["hostname"]
+        else:
+            host["display_name"] = host["ip"]
