@@ -25,6 +25,20 @@ it configures a systemd service by copying a configuration file and setting the 
 
 Also install requeriment.txt withint virtual environment
 
+## Configure Monnet Gateway access to database
+
+```
+/etc/monnet/config-db.json
+{
+    "host": "localhost",
+    "port": 3306,
+    "database": "monnet",
+    "user": "usuario",
+    "password": "mypass",
+    "python_driver": "mysql-connector"
+}
+```
+
 ## Configure Ansible Support
 
 Ansible server listens on localhost only; You must install ansible on the same system

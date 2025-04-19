@@ -10,32 +10,25 @@ import sys
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import mgateway_config
 from shared.clogger import Logger
-from shared.file_config import load_file_config, validate_db_config
 from shared.app_context import AppContext
+from monnet_gateway.services.config import Config
 
 def init_context(base_dir):
     """
     Initialize the application context and database connection.
     """
-    try:
-        # Load configuration
-        config_data = load_file_config(mgateway_config.CONFIG_DB_PATH)
-        validate_db_config(config_data)
-    except (RuntimeError, ValueError) as e:
-        print(f"Configuration error: {e}")
-        sys.exit(1)
-
     # Initialize application context
     ctx = AppContext(base_dir)
     clogger = Logger()
     ctx.set_logger(clogger)
 
-    # Initialize database connection
+    # Initialize Config and load configurations
     try:
-        db = DBManager(config_data)
-        ctx.set_database(db)
-    except RuntimeError as e:
-        print(f"Database connection error: {e}")
+        config = Config(ctx, mgateway_config.CONFIG_DB_PATH)
+        config.load_db_config()
+        ctx.set_config(config)
+    except (RuntimeError, ValueError) as e:
+        print(f"Configuration error: {e}")
         sys.exit(1)
 
     return ctx
