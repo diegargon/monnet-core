@@ -153,4 +153,5 @@ class Config:
                     self.db_config[row["ckey"]] = row["cvalue"]  # Fallback to raw value if not JSON
             self.logger.info("Database configuration loaded successfully.")
         except Exception as e:
+
             self.logger.error(f"Failed to load configuration from database: {e}")

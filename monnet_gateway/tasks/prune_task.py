@@ -55,8 +55,3 @@ class PruneTask:
         query = "DELETE FROM reports WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear reports, affected rows: {affected}")
-
-    def __del__(self):
-        """ Ensure the database connection is closed."""
-        if hasattr(self, 'db') and self.db:
-            self.db.close()

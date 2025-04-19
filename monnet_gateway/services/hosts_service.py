@@ -12,6 +12,7 @@ import json
 # Local
 from constants.log_type import LogType
 from constants.event_type import EventType
+from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
 from monnet_gateway.services import event_host
@@ -24,7 +25,9 @@ class HostService:
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
         self.logger = ctx.get_logger()
-        self.host_model = HostsModel(ctx.get_database())
+        self.db = DBManager(ctx.get_config())
+
+        self.host_model = HostsModel(self.db)
         self.event_host = EventHostService(ctx)
 
     def get_all(self) -> list[dict]:

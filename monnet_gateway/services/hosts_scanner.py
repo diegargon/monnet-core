@@ -10,6 +10,7 @@ from time import sleep
 from collections import defaultdict
 
 # Local
+from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.ports_service import PortsService
@@ -23,7 +24,7 @@ class HostsScanner:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.network_scanner = NetworkScanner(ctx)
-        self.db = ctx.get_database()
+        self.db = DBManager(ctx.get_config())
         self.ports_service = PortsService(ctx)
         self.hosts_service = HostService(ctx)
 

@@ -21,7 +21,7 @@ from monnet_gateway.database.networks_model import NetworksModel
 if __name__ == "__main__":
     print("Loading Configuration")
     ctx = init_context("/opt/monnet-core")
-    db = ctx.get_database()
+    db = DBManager(ctx.get_config())
 
     networks = NetworksModel(db)
     try:
@@ -30,3 +30,4 @@ if __name__ == "__main__":
         pprint_table(all_networks)
     except RuntimeError as e:
         print(f"Database query error: {e}")
+    db.close()

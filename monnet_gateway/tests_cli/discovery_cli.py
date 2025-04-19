@@ -14,6 +14,7 @@ from time import time
 
 # Local
 
+from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
 from monnet_gateway.networking.net_utils import get_mac, get_org_from_mac, get_hostname
@@ -31,12 +32,12 @@ if __name__ == "__main__":
     ctx = init_context("/opt/monnet-core")
     ctx.get_logger().log("Starting discovery CLI", "info")
     config = ctx.get_config()
-
+    db = DBManager(ctx.get_config())
     start_time = time()  # Start timing
 
-    networks_model = NetworksModel(ctx.get_database())
+    networks_model = NetworksModel(db)
     network_scanner = NetworkScanner(ctx)
-    hosts_model = HostsModel(ctx.get_database())
+    hosts_model = HostsModel(db)
     host_service = HostService(ctx)
     event_host = EventHostService(ctx)
 

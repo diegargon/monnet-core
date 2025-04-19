@@ -10,6 +10,7 @@ from pathlib import Path
 from pprint import pprint
 import sys
 
+from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.tests_cli.common_cli import init_context
 from monnet_gateway.utils.myutils import pprint_table
@@ -20,7 +21,7 @@ sys.path.append(str(BASE_DIR))
 if __name__ == "__main__":
     print("Init monnet hosts test CLI")
     ctx = init_context("/opt/monnet-core")
-    db = ctx.get_database()
+    db = DBManager(ctx.get_config())
 
     hosts = HostsModel(db)
     try:
@@ -38,3 +39,4 @@ if __name__ == "__main__":
         pprint_table(all_hosts)
     except RuntimeError as e:
         print(f"Database query error: {e}")
+    db.close()

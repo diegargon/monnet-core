@@ -15,7 +15,7 @@ from monnet_gateway.services.config import Config
 
 def init_context(base_dir):
     """
-    Initialize the application context and database connection.
+    Initialize the application context
     """
     # Initialize application context
     ctx = AppContext(base_dir)
@@ -29,8 +29,5 @@ def init_context(base_dir):
     except (RuntimeError, ValueError) as e:
         print(f"Configuration error: {e}")
         sys.exit(1)
-
-    if not ctx.has_database():
-        ctx.set_database(DBManager(config))
 
     return ctx

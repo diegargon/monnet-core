@@ -194,10 +194,19 @@ class DBManager:
 
     def close(self):
         """Close the database connection."""
-        if self.cursor:
-            self.cursor.close()
-        if self.conn:
-            self.conn.close()
+        try:
+            if getattr(self, 'cursor', None) is not None:
+                self.cursor.close()
+        except Exception as e:
+            raise RuntimeError(f"Error closing cursor: {e}") from e
+        try:
+            if getattr(self, 'conn', None) is not None:
+                self.conn.close()
+        except Exception as e:
+            raise RuntimeError(f"Error closing connection: {e}") from e
+
+        self.cursor = None
+        self.conn = None
 
     def __enter__(self):
         return self

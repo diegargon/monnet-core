@@ -56,30 +56,6 @@ class AppContext:
         """
         return key in self._variables
 
-    def set_database(self, db_manager: DBManager) -> None:
-        """
-        Set database manager
-        Args:
-            db_manager: Database manager instance
-        """
-        self._database = db_manager
-
-    def get_database(self) -> DBManager:
-        """
-        Get database manager
-        Returns:
-            Database manager instance or None
-        """
-        return self._database
-
-    def has_database(self) -> bool:
-        """
-        Check if database manager is set
-        Returns:
-            bool: True if database is set, False otherwise
-        """
-        return self._database is not None
-
     def set_config(self, config) -> None:
         """
         Set config

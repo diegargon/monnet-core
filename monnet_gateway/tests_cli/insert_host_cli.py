@@ -5,13 +5,14 @@ Monnet Gateway CLI TEST
 
 """
 # Local
+from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.tests_cli.common_cli import init_context
 
 
 print("Init monnet hosts test CLI")
 ctx = init_context("/opt/monnet-core")
-db = ctx.get_database()
+db = DBManager(ctx.get_config())
 
 host_service = HostService(ctx)
 

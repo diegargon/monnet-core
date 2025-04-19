@@ -23,9 +23,8 @@ except RuntimeError as e:
 
 ctx = AppContext("/opt/monnet-core")
 
-db_manager = DBManager(mgateway_config)
-ctx.set_database(db_manager)
-hosts_model = HostsModel(db_manager)
+db = DBManager(mgateway_config)
+hosts_model = HostsModel(db)
 host_service = HostService(ctx, hosts_model)
 
 host_data = {
@@ -38,6 +37,7 @@ host_data = {
 
 try:
     host_service.update(199, host_data)
-
 except ValueError as e:
     print(f"Error al actualizar el host: {e}")
+
+db.close()

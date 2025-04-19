@@ -178,8 +178,3 @@ class TaskSched:
             self.thread.join()
         self.logger.info("TaskSched stopped.")
 
-    def __del__(self):
-        """Ensure the database connection is closed."""
-        self.logger.info("Task sched destructor called.")
-        if hasattr(self, 'db') and self.db:
-            self.db.close()
