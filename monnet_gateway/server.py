@@ -13,7 +13,7 @@ import socket
 import threading
 
 # Local
-from monnet_gateway.mgateway_config import HOST, PORT, PORT_TEST, VERSION, MINOR_VERSION
+from monnet_gateway.mgateway_config import HOST, PORT, PORT_TEST, GW_VERSION, GW_VERSION_MINOR
 from monnet_gateway.handlers.handler_client import handle_client
 from shared.app_context import AppContext
 
@@ -40,7 +40,7 @@ def run_server(ctx: AppContext):
         server_socket.settimeout(1.0)
         server_socket.bind((HOST, port))
         server_socket.listen()
-        logger.log(f"v{VERSION}.{MINOR_VERSION}: Waiting for connection on {HOST}:{port}...", "info")
+        logger.log(f"v{GW_VERSION}.{GW_VERSION_MINOR}: Waiting for connection on {HOST}:{port}...", "info")
 
         while not stop_event.is_set():
             try:

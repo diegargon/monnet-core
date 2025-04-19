@@ -6,12 +6,12 @@ Monnet Gateway
 Config file
 """
 
-VERSION = "0.7"
-MINOR_VERSION = 8
+GW_VERSION = "0.7"
+GW_VERSION_MINOR = 8
 HOST = 'localhost'
 PORT = 65432
 PORT_TEST = 65433
-CONFIG_MGATEWAY_PATH = "/etc/monnet/mgateway-config"
+GW_CONFIG_PATH = "/etc/monnet/mgateway-config"
 CONFIG_DB_PATH = "/etc/monnet/config-db.json"
 
 TASK_INTERVAL = 10  # Seconds
