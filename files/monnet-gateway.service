@@ -15,7 +15,7 @@ SyslogIdentifier=mgateway
 # Solo padre
 #KillMode=process
 # Tiemp Espera reinicio
-#TimeoutStopSec=15
+TimeoutStopSec=15
 
 [Install]
 WantedBy=multi-user.target

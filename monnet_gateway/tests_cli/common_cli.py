@@ -30,4 +30,7 @@ def init_context(base_dir):
         print(f"Configuration error: {e}")
         sys.exit(1)
 
+    if not ctx.has_database():
+        ctx.set_database(DBManager(config))
+
     return ctx

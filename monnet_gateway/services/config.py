@@ -4,10 +4,13 @@
 Monnet Gateway - Unified Config
 """
 
+# Std
 import os
 import json
-from shared.app_context import AppContext
 
+# Local
+from shared.app_context import AppContext
+from monnet_gateway.database.dbmanager import DBManager
 class Config:
     """
     Configuration class for the Monnet Gateway.
@@ -24,13 +27,8 @@ class Config:
         self.logger.debug(f"Loading configuration from file: {file_path}")
         self._load_file_config(file_path)
 
-        # Initialize database connection using file-based configuration
-        if not ctx.has_database():
-            from monnet_gateway.database.dbmanager import DBManager
-            self.db = DBManager(self.file_config)
-            ctx.set_database(self.db)
-        else:
-            self.db = ctx.get_database()
+        # Initialize database connection
+        self.db = DBManager(self.file_config)
 
         self._load_db_config()
         self.ctx.set_config(self)

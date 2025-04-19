@@ -7,6 +7,7 @@ This code is just a basic/preliminary draft.
 
 """
 
+import json
 import signal
 import sys
 import os
@@ -19,6 +20,10 @@ from time import sleep
 # Third party
 import daemon
 
+from monnet_gateway import mgateway_config
+from monnet_gateway.database.dbmanager import DBManager
+from monnet_gateway.services.config import Config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
@@ -26,7 +31,7 @@ sys.path.append(str(BASE_DIR))
 from monnet_gateway.handlers.handler_ansible import extract_pb_metadata
 from shared.app_context import AppContext
 from shared.clogger import Logger
-from monnet_gateway.mgateway_config import TASK_INTERVAL
+from monnet_gateway.mgateway_config import CONFIG_DB_PATH, TASK_INTERVAL
 from monnet_gateway.server import run_server, stop_server
 from monnet_gateway.tasks.gateway_tasks import TaskSched
 
@@ -47,12 +52,18 @@ def signal_handler(sig: signal.Signals, frame: types.FrameType, ctx: AppContext)
     logger.log(f"Monnet Gateway server shutdown... signal received {sig}", "info")
     logger.log(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}", "debug")
     logger.log(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}", "debug")
-    if not stop_event.is_set():
-        stop_event.set()
-        stop_server()
+    try:
+        if not stop_event.is_set():
+            stop_event.set()
+            stop_server()
 
-    if server_thread is not None:
-        server_thread.join()
+        if server_thread is not None:
+            server_thread.join()
+
+        if task_thread is not None:
+            task_thread.stop()
+    except Exception as e:
+        logger.log(f"Error during shutdown: {e}", "err")
 
 def run(ctx: AppContext):
     """
@@ -77,8 +88,10 @@ def run(ctx: AppContext):
         logger.log("Stopping server...", "info")
     finally:
         stop_event.set()
-        server_thread.join()
-        task_thread.stop()
+        if server_thread is not None:
+            server_thread.join()
+        if task_thread is not None:
+            task_thread.stop()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -109,8 +122,13 @@ def main():
     ctx.set_var('stop_event', stop_event)
     ctx.set_var('task_interval', TASK_INTERVAL)
 
+    # Initialize Logger
     logger = Logger()
     ctx.set_logger(logger)
+
+    # Initialize Config
+    config = Config(ctx, mgateway_config.CONFIG_DB_PATH)
+    ctx.set_config(config)
 
     # Setting up signal handlers
     signal.signal(signal.SIGTERM, lambda sig, frame: signal_handler(sig, frame, ctx))

@@ -54,12 +54,18 @@ def run_server(ctx: AppContext):
                 raise e
     except Exception as e:
         logger.log(f"Error in the server: {str(e)}", "err")
-        error_message = {"status": "error", "message": f"Server error: {str(e)}"}
-        logger.log(json.dumps(error_message), "debug")
+        # Attempt to respond to the client if a connection exists
+        try:
+            if 'conn' in locals() and conn:
+                error_message = {"status": "error", "message": f"Server error: {str(e)}"}
+                conn.sendall(json.dumps(error_message).encode('utf-8'))
+                conn.close()
+        except Exception as send_error:
+            logger.warning(f"Failed to send error response to client: {str(send_error)}")
     finally:
         if server_socket:
             server_socket.close()
-            server_socket = None  # Ensure the socket is set to None after closing
+            server_socket = None
 
 def stop_server():
     """

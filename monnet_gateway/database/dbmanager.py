@@ -1,4 +1,3 @@
-
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
@@ -56,9 +55,9 @@ class DBManager:
 
 
         try:
-            if self.config['python_driver'] == "mysql-connector":
+            if self.config.get('python_driver') == "mysql-connector":
                 self._connect_mysql_connector()
-            elif self.config['python_driver'] == "pymysql":
+            elif self.config.get('python_driver') == "pymysql":
                 self._connect_pymysql()
             else:
                 raise ValueError("Unsupported driver. Use 'mysql-connector' or 'pymysql'.")
@@ -70,11 +69,11 @@ class DBManager:
         try:
             mysql_connector = importlib.import_module("mysql.connector")
             self.conn = mysql_connector.connect(
-                host=self.config['host'],
-                port=self.config['port'],
-                user=self.config['user'],
-                password=self.config['password'],
-                database=self.config['database']
+                host=self.config.get('host'),
+                port=self.config.get('port'),
+                user=self.config.get('user'),
+                password=self.config.get('password'),
+                database=self.config.get('database')
             )
             # Return results as dictionaries
             self.cursor = self.conn.cursor(dictionary=True)
@@ -89,11 +88,11 @@ class DBManager:
         try:
             pymysql = importlib.import_module("pymysql")
             self.conn = pymysql.connect(
-                host=self.config['host'],
-                port=self.config['port'],
-                user=self.config['user'],
-                password=self.config['password'],
-                database=self.config['database']
+                host=self.config.get('host'),
+                port=self.config.get('port'),
+                user=self.config.get('user'),
+                password=self.config.get('password'),
+                database=self.config.get('database')
             )
             # Return results as dictionaries
             self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)

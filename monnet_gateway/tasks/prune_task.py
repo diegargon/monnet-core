@@ -5,6 +5,7 @@ Monnet Gateway - Prune Task
 
 """
 
+from monnet_gateway.database.dbmanager import DBManager
 from shared.app_context import AppContext
 
 class PruneTask:
@@ -12,7 +13,7 @@ class PruneTask:
     def __init__(self, ctx: AppContext):
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
-        self.db = ctx.get_database()
+        self.db = DBManager(self.config)
 
     def run(self):
         """Executes the cleanup task."""
@@ -23,6 +24,7 @@ class PruneTask:
             self.clear_hosts_logs()
             self.clear_reports()
             self.db.commit()
+            self.db.close()
         except Exception as e:
             self.logger.error(f"Error during PruneTask: {e}")
 
@@ -53,3 +55,8 @@ class PruneTask:
         query = "DELETE FROM reports WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear reports, affected rows: {affected}")
+
+    def __del__(self):
+        """ Ensure the database connection is closed."""
+        if hasattr(self, 'db') and self.db:
+            self.db.close()
