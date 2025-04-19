@@ -19,7 +19,7 @@ class Config:
         self.db = ctx.get_database()
         self.config = {}
 
-    def load_config(self):
+    def load_db_config(self):
         """
         Load configuration from database.
         """

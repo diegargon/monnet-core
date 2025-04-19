@@ -24,7 +24,7 @@ class SendMailService:
 
         # Load configuration using Config class
         config = Config(ctx)
-        config.load_config()
+        config.load_db_config()
 
         self.smtp_server = config.get('mail_host', 'localhost')
         self.smtp_port = config.get('mail_port', 25)

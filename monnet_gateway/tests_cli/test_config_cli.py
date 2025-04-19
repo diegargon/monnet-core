@@ -13,7 +13,7 @@ ctx.get_logger().log("Starting test_config CLI", "info")
 
 
 config = Config(ctx)
-config.load_config()
+config.load_db_config()
 
 
 for key in config.config.keys():

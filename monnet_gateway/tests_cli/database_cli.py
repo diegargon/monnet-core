@@ -14,14 +14,14 @@ sys.path.append(str(BASE_DIR))
 
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import mgateway_config
-from shared.file_config import load_config, validate_db_config
+from shared.file_config import load_file_config, validate_db_config
 from shared.app_context import AppContext
 
 if __name__ == "__main__":
     print("Loading Configuration")
     try:
         # Cargar la configuracion desde el archivo
-        mgateway_config = load_config(mgateway_config.CONFIG_DB_PATH)
+        mgateway_config = load_file_config(mgateway_config.CONFIG_DB_PATH)
     except RuntimeError as e:
         print(f"Error loading configuration: {e}")
         sys.exit(1)

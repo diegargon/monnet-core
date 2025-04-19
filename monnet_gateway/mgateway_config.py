@@ -7,7 +7,7 @@ Config file
 """
 
 GW_VERSION = "0.7"
-GW_VERSION_MINOR = 8
+GW_VERSION_MINOR = 9
 HOST = 'localhost'
 PORT = 65432
 PORT_TEST = 65433

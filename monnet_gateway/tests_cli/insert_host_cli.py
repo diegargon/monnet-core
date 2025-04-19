@@ -11,11 +11,11 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway import mgateway_config
-from shared.file_config import load_config
+from shared.file_config import load_file_config
 from shared.app_context import AppContext
 
 try:
-    mgateway_config = load_config(mgateway_config.CONFIG_DB_PATH)
+    mgateway_config = load_file_config(mgateway_config.CONFIG_DB_PATH)
 except RuntimeError as e:
     print(f"Error loading configuration: {e}")
     sys.exit(1)

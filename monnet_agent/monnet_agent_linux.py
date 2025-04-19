@@ -15,7 +15,7 @@ import argparse
 # Third Party
 import daemon
 
-from shared.file_config import load_config, validate_agent_config
+from shared.file_config import load_file_config, validate_agent_config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -46,7 +46,7 @@ def main():
 
     # Cargar configuración antes de instanciar MonnetAgent
     try:
-        config = load_config(agent_config.CONFIG_AGENT_PATH)
+        config = load_file_config(agent_config.CONFIG_AGENT_PATH)
     except RuntimeError as e:
         logger.err(f"Error loading config: {e}")
         sys.exit(1)

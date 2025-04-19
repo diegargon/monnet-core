@@ -8,7 +8,7 @@ import json
 
 from constants.log_level import SYSLOG_LEVELS
 
-def load_config(file_path: str) -> dict:
+def load_file_config(file_path: str) -> dict:
     """Load JSON config"""
 
     if not os.path.isfile(file_path) or not os.access(file_path, os.R_OK):
