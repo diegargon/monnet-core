@@ -8,45 +8,15 @@ Monnet Gateway CLI TEST
 from pathlib import Path
 import sys
 
+from monnet_gateway.tests_cli.common_cli import init_context
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
-from monnet_gateway.database.dbmanager import DBManager
-from monnet_gateway import mgateway_config
-from shared.file_config import load_file_config, validate_db_config
-from shared.app_context import AppContext
-
 if __name__ == "__main__":
-    print("Loading Configuration")
-    try:
-        # Cargar la configuracion desde el archivo
-        mgateway_config = load_file_config(mgateway_config.CONFIG_DB_PATH)
-    except RuntimeError as e:
-        print(f"Error loading configuration: {e}")
-        sys.exit(1)
+    ctx = init_context("/opt/monnet-core")
+    ctx.get_logger().log("Starting test_config CLI", "info")
 
-    if not mgateway_config:
-        print("Cant load config. Finishing")
-        sys.exit(1)
-
-    try:
-        validate_db_config(mgateway_config)
-    except ValueError as e:
-        print(f"Configuration validation error: {e}")
-        sys.exit(1)
-
-    ctx = AppContext("/opt/monnet-core")
-
-    # Iniciar la conexión solo una vez y almacenarla en el contexto
-    try:
-        db = DBManager(mgateway_config)
-        ctx.set_database(db)
-    except RuntimeError as e:
-        print(f"Database connection error: {e}")
-        sys.exit(1)
-
-    # Example obtain and use instance
     db = ctx.get_database()
     if db:
         try:
