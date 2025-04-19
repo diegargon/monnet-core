@@ -2,6 +2,7 @@
 Monnet Gateway - Test DB Config
 """
 
+from monnet_gateway.mgateway_config import CONFIG_DB_PATH
 from monnet_gateway.services.config import Config
 from monnet_gateway.tests_cli.common_cli import init_context
 
@@ -9,8 +10,7 @@ ctx = init_context("/opt/monnet-core")
 ctx.get_logger().log("Starting test_config CLI", "info")
 
 # Initialize Config
-config = Config(ctx, "/etc/monnet/config-db.json")
-config.load_db_config()
+config = Config(ctx, CONFIG_DB_PATH)
 
 # Print all file-based configuration values
 ctx.get_logger().log("Loaded file-based configuration values:", "info")

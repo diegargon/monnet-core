@@ -29,7 +29,9 @@ class Config:
             ctx.set_database(self.db)
         else:
             self.db = ctx.get_database()
-        self._load_db_config
+
+        self._load_db_config()
+        self.ctx.set_config(self)
 
     def get(self, key: str, default=None):
         """

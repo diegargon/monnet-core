@@ -14,6 +14,7 @@ from email.mime.multipart import MIMEMultipart
 import ssl
 
 # Local
+from monnet_gateway.mgateway_config import CONFIG_DB_PATH
 from shared.app_context import AppContext
 from monnet_gateway.services.config import Config
 
@@ -23,8 +24,12 @@ class SendMailService:
         self.logger = ctx.get_logger()
 
         # Load configuration using Config class
-        config = Config(ctx)
-        config.load_db_config()
+        if ctx.has_config():
+            config = ctx.get_config()
+            print("Config loaded from context:", config)
+        else:
+            config = Config(ctx, CONFIG_DB_PATH)
+            ctx.set_config(config)
 
         self.smtp_server = config.get('mail_host', 'localhost')
         self.smtp_port = config.get('mail_port', 25)
@@ -43,6 +48,7 @@ class SendMailService:
         :param subject: Subject of the email.
         :param body: Body of the email.
         """
+
         try:
             msg = MIMEMultipart()
             msg['From'] = sender or self.mail_from
@@ -80,3 +86,16 @@ class SendMailService:
             server.login(self.username, self.password)
         else:
             raise ValueError("Unsupported authentication type. Only LOGIN and PLAIN are supported.")
+
+    """
+    def _dump_config(self):
+        return {
+            'smtp_server': self.smtp_server,
+            'smtp_port': self.smtp_port,
+            'username': self.username,
+            'password': self.password,
+            'mail_auth_type': self.mail_auth_type,
+            'smtp_security': self.smtp_security,
+            'mail_from': self.mail_from,
+        }
+    """

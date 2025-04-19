@@ -25,7 +25,6 @@ def init_context(base_dir):
     # Initialize Config and load configurations
     try:
         config = Config(ctx, mgateway_config.CONFIG_DB_PATH)
-        config.load_db_config()
         ctx.set_config(config)
     except (RuntimeError, ValueError) as e:
         print(f"Configuration error: {e}")
