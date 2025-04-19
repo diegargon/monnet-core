@@ -50,7 +50,8 @@ class HostService:
         """
         host = self.host_model.get_by_id(host_id)
         if not host:
-            raise ValueError(f"Host with ID {host_id} does not exist.")
+            self.logger.warning(f"Host with ID {host_id} does not exist.")
+            return {}
 
         self._deserialize_misc(host)
 
@@ -139,14 +140,15 @@ class HostService:
         """
 
         existing_host = self.get_by_id(host_id)
-        # Colect set_data wit missing host detadetails
-        self._collect_missing_details(existing_host, set_data)
-        # Create events
-        self._host_events(existing_host, set_data)
-        # Serialize and merge the 'misc' field
-        self._serialize_update_misc(existing_host, set_data)
-        self.host_model.update_host(host_id, set_data)
-        self.host_model.commit()
+        if existing_host:
+            # Colect set_data wit missing host detadetails
+            self._collect_missing_details(existing_host, set_data)
+            # Create events
+            self._host_events(existing_host, set_data)
+            # Serialize and merge the 'misc' field
+            self._serialize_update_misc(existing_host, set_data)
+            self.host_model.update_host(host_id, set_data)
+            self.host_model.commit()
 
     def _host_events(self, host: dict, current_host: dict) -> None:
         hid = host["id"]
