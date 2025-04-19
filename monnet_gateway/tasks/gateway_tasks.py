@@ -33,11 +33,11 @@ class TaskSched:
             self.stop_event = ctx.get_var("stop_event")
 
             self.task_intervals = {
-                "discovery_hosts":  60,
-                "hosts_checker":  60,
-                "ansible": 60,
-                "prune": 86400,  # 1 day in seconds
-                "weekly_task": 604800,  # 7 days in seconds
+                "discovery_hosts":  60 * 20,    # 20 minutes
+                "hosts_checker":  60 * 5,       # 5 minutes
+                "ansible": 60,                  # 1 minute
+                "prune": 86400,                 # 1 day
+                "weekly_task": 604800,          # 7 days
             }
 
             self.last_run_time = {
