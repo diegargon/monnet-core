@@ -15,7 +15,7 @@ import argparse
 # Third Party
 import daemon
 
-from shared.mconfig import load_config, validate_agent_config
+from shared.file_config import load_config, validate_agent_config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))

@@ -11,7 +11,7 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway import mgateway_config
-from shared.mconfig import load_config
+from shared.file_config import load_config
 from shared.app_context import AppContext
 
 try:

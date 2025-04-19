@@ -14,7 +14,7 @@ sys.path.append(str(BASE_DIR))
 
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import mgateway_config
-from shared.mconfig import load_config, validate_db_config
+from shared.file_config import load_config, validate_db_config
 from shared.app_context import AppContext
 
 if __name__ == "__main__":

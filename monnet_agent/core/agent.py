@@ -24,7 +24,7 @@ from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification, send_request, validate_response
 from shared.app_context import AppContext
-from shared.mconfig import update_config
+from shared.file_config import update_config
 
 
 class MonnetAgent:
