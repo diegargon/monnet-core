@@ -152,6 +152,8 @@ class HostService:
         hid = host["id"]
         ip = host["ip"]
 
+        disable_alarms = host.get("misc", {}).get("disable_alarms") == 1
+
         if host.get("online") == 0 and current_host.get("online") == 1:
             self.event_host.event(
                 hid,
@@ -159,8 +161,10 @@ class HostService:
                 LogType.EVENT,
                 EventType.HOST_BECOME_ON
             )
+
+
         if host.get("online") == 1 and current_host.get("online") == 0:
-            if "always_on" in host["misc"] and host["misc"]["always_on"]:
+            if not disable_alarms and host.get("misc", {}).get("always_on"):
                 log_type = LogType.EVENT_ALERT
                 current_host["alert"] = 1
             else:
@@ -170,25 +174,40 @@ class HostService:
                 hid,
                 f'Host become offline {ip}',
                 log_type,
-                EventType.HOST_BECOME_ON
+                EventType.HOST_BECOME_OFF
             )
+
         if "hostname" in current_host and host["hostname"] != current_host["hostname"]:
             current_host["warn"] = 1
+
+            if disable_alarms:
+                log_type = LogType.EVENT
+            else:
+                current_host["warn"] = 1
+                log_type = LogType.EVENT_WARN
+
             self.event_host.event(
                 hid,
-                f'Host hostname changed {host["hostname"]} -> {current_host["hostname"]}',
-                LogType.EVENT_WARN,
+                f'Host hostname changed {host.get("hostname")} -> {current_host.get("hostname")}',
+                log_type,
                 EventType.HOST_INFO_CHANGE
             )
+
         if "misc" in current_host:
             if "mac" in current_host["misc"] and host["misc"]["mac"] != current_host["misc"]["mac"]:
-                current_host["warn"] = 1
+                if not disable_alarms:
+                    current_host["warn"] = 1
+                    log_type = LogType.EVENT_WARN
+                else:
+                    log_type = LogType.EVENT
+
                 self.event_host.event(
                     hid,
                     f'Host MAC changed {host["misc"]["mac"]} -> {current_host["misc"]["mac"]}',
-                    LogType.EVENT_WARN,
+                    log_type,
                     EventType.HOST_INFO_CHANGE
                 )
+
             if (
                 "mac_vendor" in current_host["misc"] and
                 host["misc"]["mac_vendor"] != current_host["misc"]["mac_vendor"]
@@ -222,6 +241,8 @@ class HostService:
             if isinstance(set_data["misc"], dict) and set_data["misc"] is not None:
                 # Merge the existing 'misc' with the new data
                 existing_misc = existing_host.get("misc", {})
+                if not isinstance(existing_misc, dict):
+                    raise ValueError("'misc' field in existing_host must be a dictionary.")
                 merged_misc = {**existing_misc, **set_data["misc"]}
                 try:
                     set_data["misc"] = json.dumps(merged_misc)
