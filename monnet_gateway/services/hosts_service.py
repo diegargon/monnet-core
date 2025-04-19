@@ -56,12 +56,13 @@ class HostService:
 
         return host
 
-    def add_host(self, host: dict, commit: True) -> int:
+    def add_host(self, host: dict, commit: bool = True) -> int:
         """
         Add a new host after validating the data.
 
         Args:
             host (dict): Host data to insert.
+            commit (bool): Whether to commit the transaction. Default is True.
 
         Returns:
             int: ID of the inserted host.

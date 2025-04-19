@@ -10,7 +10,10 @@ ctx = init_context("/opt/monnet-core")
 ctx.get_logger().log("Starting test_config CLI", "info")
 
 # Initialize Config
-config = Config(ctx, CONFIG_DB_PATH)
+if ctx.has_config():
+    config = ctx.get_config()
+else:
+    config = Config(ctx, CONFIG_DB_PATH)
 
 # Print all file-based configuration values
 ctx.get_logger().log("Loaded file-based configuration values:", "info")
@@ -25,7 +28,7 @@ for key, value in config.db_config.items():
 print("**** TESTING CONFIGURATION KEYS ****")
 # Test updating a file-based configuration key
 try:
-    config.update_file_config_key("test_file_key", "test_file_value")
+    config.update_file_config_key("test_file_key", "test_file_value", create_key=True)
     print(f"Updated file-based config: test_file_key = {config.get('test_file_key')}")
 except Exception as e:
     print(f"Failed to update file-based config: {e}")
@@ -33,7 +36,7 @@ except Exception as e:
 
 # Test updating a database-based configuration key
 try:
-    config.update_db_config_key("test_db_key", "test_db_value")
+    config.update_db_config_key("test_db_key", "test_db_value", create_key=True)
     print(f"Updated database config: test_db_key = {config.get('test_db_key')}")
 except Exception as e:
     print(f"Failed to update database config: {e}")

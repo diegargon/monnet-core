@@ -4,28 +4,16 @@
 Monnet Gateway CLI TEST
 
 """
-
-import sys
-
-from monnet_gateway.database.dbmanager import DBManager
-from monnet_gateway.database.hosts_model import HostsModel
+# Local
 from monnet_gateway.services.hosts_service import HostService
-from monnet_gateway import mgateway_config
-from shared.file_config import load_file_config
-from shared.app_context import AppContext
+from monnet_gateway.tests_cli.common_cli import init_context
 
-try:
-    mgateway_config = load_file_config(mgateway_config.CONFIG_DB_PATH)
-except RuntimeError as e:
-    print(f"Error loading configuration: {e}")
-    sys.exit(1)
 
-ctx = AppContext("/opt/monnet-core")
+print("Init monnet hosts test CLI")
+ctx = init_context("/opt/monnet-core")
+db = ctx.get_database()
 
-db_manager = DBManager(mgateway_config)
-ctx.set_database(db_manager)
-hosts_model = HostsModel(db_manager)
-host_service = HostService(ctx, hosts_model)
+host_service = HostService(ctx)
 
 host_data = {
     "ip": "192.168.100.100",
@@ -40,7 +28,7 @@ host_data = {
 }
 
 try:
-    host_id = host_service.insert(host_data)
+    host_id = host_service.add_host(host_data)
     print(f"Host insertado con ID: {host_id}")
 except ValueError as e:
     print(f"Error al agregar el host: {e}")

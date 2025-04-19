@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 if __name__ == "__main__":
-    print("Init monnet linux agent")
+    print("Init monnet hosts test CLI")
     ctx = init_context("/opt/monnet-core")
     db = ctx.get_database()
 

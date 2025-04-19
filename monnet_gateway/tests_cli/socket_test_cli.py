@@ -15,10 +15,8 @@ def main():
             logging.basicConfig(level=logging.DEBUG)
             return logging.getLogger("SocketHandlerTest")
 
-    ctx = MockContext()
-
     # Crear instancia de SocketHandler
-    socket_handler = SocketHandler(ctx, timeout=5.0)
+    socket_handler = SocketHandler(timeout=5.0)
 
     print("=== Probando SocketHandler ===")
 
