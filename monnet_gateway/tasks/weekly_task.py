@@ -23,7 +23,7 @@ class WeeklyTask:
             updated = False
             hid = host.get("id")
             ip  = host.get("ip")
-            if not hid:
+            if not hid or not ip:
                 self.logger.error("Host ID and IP is missing. WeeklyTask cannot continue.")
                 continue
 
@@ -37,7 +37,7 @@ class WeeklyTask:
             hostname = get_hostname(ip)
             if hostname is not None and isinstance(hostname, str):
                 db_hostname = host.get("hostname", None)
-                if db_hostname is None and (db_hostname is None or db_hostname != hostname):
+                if not db_hostname or  db_hostname != hostname:
                     host["hostname"] = hostname
                     updated = True
 
@@ -45,7 +45,7 @@ class WeeklyTask:
             mac = get_mac(ip)
             if mac is not None and isinstance(mac, str):
                 db_mac = host.get("mac", None)
-                if mac is not None and (db_mac is None or db_mac != mac):
+                if not db_mac  or db_mac != mac:
                     host["mac"] = mac
                     updated = True
 
@@ -68,6 +68,8 @@ class WeeklyTask:
                 # Update the host in the database
                 try:
                     self.host_service.update(hid, host)
+                except ValueError as e:
+                    self.logger.error(f"Validation error updating host {hid}: {e}")
                 except Exception as e:
                     self.logger.error(f"Failed to update host {hid} in weekly tasks: {e}")
                     continue

@@ -43,8 +43,7 @@ class TaskSched:
                 "hosts_checker":  60 * 5,           # 5 minutes
                 "ansible": 60,                      # 1 minute
                 "prune": 60 * 60 * 24,              # 1 day
-                "weekly_task": 60,
-                #"weekly_task": 60 * 60 * 24 * 7,    # 1 week
+                "weekly_task": 60 * 60 * 24 * 7,    # 1 week
             }
 
             self.last_run_time = {
