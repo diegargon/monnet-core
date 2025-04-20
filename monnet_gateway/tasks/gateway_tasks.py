@@ -92,8 +92,8 @@ class TaskSched:
         while not self.stop_event.is_set():
             current_time = time()
 
-            # Collect and store logs
-            #self._store_logs()
+            # Send logs to the database
+            self._send_store_logs()
             try:
                 # Run DiscoveryTask if the interval has passed
                 if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
@@ -149,27 +149,33 @@ class TaskSched:
             except Exception as e:
                 self.logger.error(f"Error in TaskSched: {e}")
 
-    def _store_logs(self):
+    def _send_store_logs(self):
         """
         Collects logs from the Logger and inserts them into the system_logs table.
         """
-        self.logger.debug("Storing logs in system_logs table...")
+        # self.logger.debug("Storing logs in system_logs table...")
         try:
             logs = self.logger.pop_logs()
             if logs:
-                db = self
-                cursor = db.cursor()
-                for log in logs:
-                    cursor.execute(
-                        "INSERT INTO system_logs (level, msg) VALUES (%s, %s)",
-                        (log["level"], log["message"])
-                    )
-                db.commit()
+                with self.db.transaction():
+                    cursor = self.db.cursor
+                    for log in logs:
+                        if "level" not in log or "message" not in log:
+                            self.logger.error(f"Invalid log entry: {log}")
+                            continue
+                        cursor.execute(
+                            "INSERT INTO system_logs (level, msg) VALUES (%s, %s)",
+                            (log["level"], log["message"])
+                        )
+                    self.logger.info(f"Inserted {len(logs)} logs into system_logs table.")
+        except KeyError as e:
+            self.logger.error(f"KeyError while processing logs: {e}")
+        except AttributeError as e:
+            self.logger.error(f"AttributeError in _send_store_logs: {e}")
         except Exception as e:
             # Log errors directly to syslog to avoid recursive logging issues
             syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
             syslog.syslog(syslog.LOG_ERR, f"Error storing logs in system_logs table: {e}")
-
     def stop(self):
         """Stops the periodic task."""
         self.stop_event.set()
