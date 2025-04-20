@@ -75,12 +75,12 @@ class Logger:
         """
         return bool(self.recent_messages)
 
-    def pop_logs(self, count: int = 1) -> list:
+    def pop_logs(self, num_pop: int = 10) -> list:
         """
         Pops X number of oldest messages
 
         Args:
-            count (int): The number of messages to pop. Defaults to 1.
+            num_pop (int): The number of messages to pop. Defaults to 1.
 
         Returns:
             list: A list of the oldest log messages.
@@ -91,7 +91,7 @@ class Logger:
 
         popped_messages = []
 
-        for _ in range(min(count, len(self.recent_messages))):
+        for _ in range(min(num_pop, len(self.recent_messages))):
             popped_messages.append(self.recent_messages.pop(0))
 
         return popped_messages

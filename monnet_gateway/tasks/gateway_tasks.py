@@ -39,7 +39,8 @@ class TaskSched:
             self.stop_event = ctx.get_var("stop_event")
 
             self.task_intervals = {
-                "discovery_hosts":  60 * 20,        # 20 minutes
+                "send_logs": 20,                    # 20 seconds
+                "discovery_hosts":  60 * 22,        # 22 minutes
                 "hosts_checker":  60 * 5,           # 5 minutes
                 "ansible": 60,                      # 1 minute
                 "prune": 60 * 60 * 24,              # 1 day
@@ -47,6 +48,7 @@ class TaskSched:
             }
 
             self.last_run_time = {
+                "send_logs": 0,
                 "discovery_hosts": 0,
                 "hosts_checker": 0,
                 "ansible": 0,
@@ -56,6 +58,7 @@ class TaskSched:
 
             # Avoid parallel task
             self.task_locks = {
+                "send_logs": threading.Lock(),
                 "discovery_hosts": threading.Lock(),
                 "hosts_checker": threading.Lock(),
                 "ansible": threading.Lock(),
@@ -70,8 +73,12 @@ class TaskSched:
             self.weekly_task = WeeklyTask(ctx)
 
             # Launch Thread
-            self.thread = threading.Thread(target=self.run_task, daemon=True)
+            #self.thread = threading.Thread(target=self.run_task, daemon=True)
             self.logger.debug("TaskSched thread created.")
+        except KeyError as e:
+            self.logger.error(f"KeyError during TaskSched initialization: {e}")
+        except AttributeError as e:
+            self.logger.error(f"AttributeError during TaskSched initialization: {e}")
         except Exception as e:
             self.logger.error(f"Error initialice TaskSched: {e}")
 
@@ -92,28 +99,37 @@ class TaskSched:
         while not self.stop_event.is_set():
             current_time = time()
 
-            # Send logs to the database
-            self._send_store_logs()
             try:
+                # Insert logs in system_logs table
+                if current_time - self.last_run_time["send_logs"] >= self.task_intervals["send_logs"]:
+                    if self.task_locks["send_logs"].acquire(blocking=False):
+                        try:
+                            self._send_store_logs()
+                            self.last_run_time["send_logs"] = current_time
+                        finally:
+                            self.task_locks["send_logs"].release()
+
                 # Run DiscoveryTask if the interval has passed
                 if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
                     if self.task_locks["discovery_hosts"].acquire(blocking=False):
                         try:
-                            self.logger.debug("Running DiscoveryHostsTask...")
-                            # self.discovery_hosts.run()
+                            self.logger.notice("Running DiscoveryHostsTask...")
+                            self.discovery_hosts.run()
                             self.last_run_time["discovery_hosts"] = current_time
                         finally:
                             self.task_locks["discovery_hosts"].release()
+                            self.logger.notice("Finish DiscoveryHostsTask...")
 
                 # Run HostCheckerTask if the interval has passed
                 if current_time - self.last_run_time["hosts_checker"] >= self.task_intervals["hosts_checker"]:
                     if self.task_locks["hosts_checker"].acquire(blocking=False):
                         try:
-                            self.logger.debug("Running HostsCheckerTask...")
-                            # self.hosts_checker.run()
+                            self.logger.notice("Running known host checker...")
+                            self.hosts_checker.run()
                             self.last_run_time["hosts_checker"] = current_time
                         finally:
                             self.task_locks["hosts_checker"].release()
+                            self.logger.notice("Finish known host checker...")
 
                 # Run AnsibleTask if the interval has passed
                 if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
@@ -149,6 +165,28 @@ class TaskSched:
             except Exception as e:
                 self.logger.error(f"Error in TaskSched: {e}")
 
+        """
+        New run_task method with task scheduling
+        self._run_task("send_logs", self._send_store_logs)
+        self._run_task("discovery_hosts", self.discovery_hosts.run)
+        self._run_task("hosts_checker", self.hosts_checker.run)
+        self._run_task("ansible", self.ansible.run)
+        self._run_task("prune", self.prune_task.run)
+
+
+        def _run_task(self, task_name, task_function):
+            if current_time - self.last_run_time[task_name] >= self.task_intervals[task_name]:
+                if self.task_locks[task_name].acquire(blocking=False):
+                    try:
+                        self.logger.debug(f"Running {task_name}...")
+                        task_function()
+                        self.last_run_time[task_name] = current_time
+                    except Exception as e:
+                        self.logger.error(f"Error during {task_name}: {e}")
+                    finally:
+                        self.task_locks[task_name].release()
+        """
+
     def _send_store_logs(self):
         """
         Collects logs from the Logger and inserts them into the system_logs table.
@@ -179,7 +217,10 @@ class TaskSched:
     def stop(self):
         """Stops the periodic task."""
         self.stop_event.set()
-        if self.thread.is_alive():
-            self.thread.join()
-        self.logger.info("TaskSched stopped.")
+        try:
+            if self.thread.is_alive():
+                self.thread.join()
+            self.logger.info("TaskSched stopped.")
+        except Exception as e:
+            self.logger.error(f"Error stopping TaskSched: {e}")
 

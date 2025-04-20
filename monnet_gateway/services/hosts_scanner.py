@@ -32,10 +32,13 @@ class HostsScanner:
         """
         Scan a list of hosts
         """
-        self.logger.log("Scanning known hosts...", "info")
+        self.logger.debug("Scanning known hosts...")
 
         if not all_hosts:
-            self.logger.log("No hosts found to scan.", "notice")
+            self.logger.notice("No hosts found to scan.")
+            return []
+        if not isinstance(all_hosts, list):
+            self.logger.warning("Invalid list of known hosts.")
             return []
 
         ip_status = []
@@ -47,14 +50,23 @@ class HostsScanner:
             if not host:
                 continue
 
-            ip_or_host = host['ip']
+            id = host.get("id")
+            if not id or not isinstance(id, int):
+                self.logger.warning(f"Scan host wrong ID.")
+                continue
+
+            ip_or_host = host.get("ip")
+            if not ip_or_host:
+                self.logger.warning(f"Host id {id} has no IP or Domain address.")
+                continue
+
             check_method = host.get("check_method", 1)
             self.logger.debug(f"Scanning ip {ip_or_host}")
             if "misc" in host and isinstance(host["misc"], dict) and "timeout" in host["misc"]:
                 try:
-                    timeout = float(host["misc"]["timeout"])
+                    timeout = float(host.get("misc").get("timeout"))
                 except (ValueError, TypeError):
-                    self.logger.warning(f"Invalid timeout value for host {ip_or_host}, using default 0.3")
+                    self.logger.notice(f"Invalid timeout value for host {ip_or_host}, using default 0.3")
                     timeout = 0.3
             else:
                 timeout = 0.3
@@ -91,15 +103,21 @@ class HostsScanner:
                 ip_status.append(scan_result)
 
             elif check_method == 2:  # Ports
-                host_ports = self.ports_service.get_host_ports(host["id"], scan_type=1)
+                id = host.get("id")
+
+                if not id or not isinstance(id, int):
+                    self.logger.warning(f"Scan host (ports) wrong ID.")
+                    continue
+
+                host_ports = self.ports_service.get_host_ports(id, scan_type=1)
 
                 for host_port in host_ports:
                     protocol = host_port.get("protocol")
                     pnumber = host_port.get("pnumber")
                     scan_result = {
-                        "id": host["id"],
+                        "id": id,
                         "ip": host["ip"],
-                        "port_id": host_port["id"],
+                        "port_id": host_port.get("id"),
                         "online": 0,
                         "check_method": check_method,
                         "port": pnumber,
@@ -110,9 +128,13 @@ class HostsScanner:
                     self.logger.debug(f"Protocol {protocol}")
                     # For http/s check using hostname
                     if "hostname" in host and host["hostname"] and protocol > 3:
-                        ip_or_host = scan_result["host"] = host["hostname"]
+                        ip_or_host = scan_result["host"] = host.get("hostname")
                     else:
-                        ip_or_host = scan_result["host"] = host["ip"]
+                        ip_or_host = scan_result["host"] = host.get("ip")
+
+                    if not ip_or_host:
+                        self.logger.warning(f"Host id {id} has no IP or Domain address.")
+                        continue
 
                     if protocol == 1:                   # TCP Port
                         port_result = self.network_scanner.check_tcp_port(ip_or_host, pnumber, timeout)
@@ -130,7 +152,7 @@ class HostsScanner:
                     scan_result.update(port_result)
 
                     if "retries" in host:
-                        scan_result["retries"] = host["retries"] + 1
+                        scan_result["retries"] = host.get("retries") + 1
                     else:
                         scan_result["retries"] = 0
 
@@ -146,7 +168,7 @@ class HostsScanner:
 
     def retry_scan(self, hosts_status: list[dict], retries: int) -> None:
         for host_status in hosts_status:
-            if "change" in host_status and host_status["change"] == 1:
+            if "change" in host_status and host_status.get("change") == 1:
                 for attempt in range(1, retries + 1):
                     host_status_retry_result = self.scan_hosts([host_status])
                     if not host_status_retry_result:
@@ -168,7 +190,14 @@ class HostsScanner:
         port_updates = []
 
         for host_status in hosts_status:
-            host_id = host_status["id"]
+            host_id = host_status.get("id")
+            if not host_id or not isinstance(host_id, int):
+                self.logger.warning(f"Host status wrong ID.")
+                continue
+
+            # Makes sure host_status have misc dict
+            if not "misc" in host_status:
+                host_status["misc"] = {}
 
             if "port" in host_status:
                 port_online = host_status.get("online", 0)
@@ -176,7 +205,7 @@ class HostsScanner:
 
                 if port_online == 1:
                     host_updates[host_id]["online"] = 1
-                    current_latency = host_updates[host_id]["misc"]["latency"]
+                    current_latency = host_updates[host_id].get("misc", {}).get("latency")
                     if port_latency is not None and (current_latency is None or port_latency < current_latency):
                         host_updates[host_id]["latency"] = port_latency
 

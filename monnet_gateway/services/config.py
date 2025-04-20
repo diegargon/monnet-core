@@ -19,16 +19,12 @@ class Config:
     def __init__(self, ctx: AppContext, file_path: str):
         self.ctx = ctx
         self.logger = ctx.get_logger()
-        self.db = None
         self.file_config = {}
         self.db_config = {}
 
         # Load file-based configuration
         self.logger.debug(f"Loading configuration from file: {file_path}")
         self._load_file_config(file_path)
-
-        # Initialize database connection
-        self.db = DBManager(self.file_config)
 
         self._load_db_config()
         self.ctx.set_config(self)
@@ -78,12 +74,11 @@ class Config:
         :param value: The value to set for the key.
         :param create_key: Whether to create the key if it does not exist. Default is False.
         """
-        if not self.db:
-            raise RuntimeError("Database connection is not initialized.")
+        db = DBManager(self.file_config)
 
         try:
             query_check = "SELECT COUNT(*) as count FROM config WHERE ckey = %s"
-            result = self.db.fetchone(query_check, (key,))
+            result = db.fetchone(query_check, (key,))
             exists = result and result["count"] > 0
 
             if not exists and not create_key:
@@ -91,19 +86,21 @@ class Config:
 
             if exists:
                 query_update = "UPDATE config SET cvalue = %s WHERE ckey = %s"
-                self.db.execute(query_update, (json.dumps(value), key))
+                db.execute(query_update, (json.dumps(value), key))
             else:
                 query_insert = "INSERT INTO config (ckey, cvalue) VALUES (%s, %s)"
-                self.db.execute(query_insert, (key, json.dumps(value)))
+                db.execute(query_insert, (key, json.dumps(value)))
 
-            self.db.commit()
+            db.commit()
 
             self.db_config[key] = value
             self.logger.info(f"Configuration key '{key}' updated successfully in the database.")
         except Exception as e:
-            self.db.rollback()
+            db.rollback()
             self.logger.error(f"Failed to update configuration key '{key}' in the database: {e}")
             raise RuntimeError(f"Error updating database configuration: {e}")
+        finally:
+            db.close()
 
     def _load_file_config(self, file_path: str):
         """
@@ -141,10 +138,11 @@ class Config:
         Load additional configuration from the database.
         """
         self.logger.debug("Loading additional configuration from database...")
+        db = DBManager(self.file_config)
         try:
             query = "SELECT `ckey`, `cvalue` FROM config WHERE uid = 0"
-            results = self.db.fetchall(query)
-
+            results = db.fetchall(query)
+            db.close()
             # Parse cvalue as JSON and store in the database configuration dictionary
             for row in results:
                 try:
@@ -153,5 +151,4 @@ class Config:
                     self.db_config[row["ckey"]] = row["cvalue"]  # Fallback to raw value if not JSON
             self.logger.info("Database configuration loaded successfully.")
         except Exception as e:
-
             self.logger.error(f"Failed to load configuration from database: {e}")

@@ -18,7 +18,6 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
 from monnet_gateway.networking.net_utils import get_mac, get_org_from_mac, get_hostname
-from monnet_gateway.services.event_host import EventHostService
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.tests_cli.common_cli import init_context
@@ -39,8 +38,6 @@ if __name__ == "__main__":
     network_scanner = NetworkScanner(ctx)
     hosts_model = HostsModel(db)
     host_service = HostService(ctx)
-    event_host = EventHostService(ctx)
-
     logger = Logger()
 
     networks = networks_model.get_all()
