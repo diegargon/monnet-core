@@ -25,8 +25,8 @@ class HostService:
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
         self.logger = ctx.get_logger()
-        self.db = DBManager(ctx.get_config())
-
+        self.config = ctx.get_config()
+        self.db = DBManager(self.config)
         self.host_model = HostsModel(self.db)
         self.event_host = EventHostService(ctx)
 
@@ -34,7 +34,11 @@ class HostService:
         """Retrieve all hosts with deserialize misc' field."""
         hosts = self.host_model.get_all()
         for host in hosts:
-            self._deserialize_misc(host)
+            if "misc" in host and host["misc"]:
+                # Deserialize the 'misc' field
+                self._deserialize_misc(host)
+            else:
+                host["misc"] = {}
             self._set_display_name(host)
 
         return hosts
@@ -53,12 +57,19 @@ class HostService:
         Raises:
             ValueError: If the host does not exist.
         """
+        if host_id is None or not isinstance(host_id, int):
+            self.logger.warning(f"Invalid host ID in get by id: {host_id}")
+            return {}
         host = self.host_model.get_by_id(host_id)
         if not host:
             self.logger.warning(f"Host with ID {host_id} does not exist.")
             return {}
+        if "misc" in host and host["misc"]:
+            # Deserialize the 'misc' field
+            self._deserialize_misc(host)
+        else:
+            host["misc"] = {}
 
-        self._deserialize_misc(host)
         self._set_display_name(host)
 
         return host
@@ -84,8 +95,8 @@ class HostService:
             ipaddress.IPv4Address(host["ip"])
         except ValueError:
             raise ValueError(f"Invalid IP address: {host['ip']}")
-
-        self._serialize_misc(host)
+        if "misc" in host and isinstance(host["misc"], dict):
+            self._serialize_misc(host)
         self.host_model.insert_host(host)
         if commit:
             self.host_model.commit()
@@ -94,7 +105,7 @@ class HostService:
 
         self.event_host.event(
             last_id,
-            f'Found new host {host["ip"]} on network {host["network"]}',
+            f'Found new host {host.get("ip")} on network {host.get("network")}',
             LogType.EVENT_WARN,
             EventType.NEW_HOST_DISCOVERY
         )
@@ -138,6 +149,9 @@ class HostService:
         Raises:
             ValueError: If the host does not exist or if there are validation errors.
         """
+        if host_id is None or not isinstance(host_id, int):
+            self.logger.warning(f"Invalid host ID in update: {host_id}")
+            return
 
         existing_host = self.get_by_id(host_id)
         if existing_host:
@@ -150,7 +164,8 @@ class HostService:
                 # Create events
                 self._host_events(existing_host, set_data)
                 # Serialize and merge the 'misc' field
-                self._serialize_update_misc(existing_host, set_data)
+                if "misc" in set_data:
+                    self._serialize_update_misc(existing_host, set_data)
                 #self.logger.debug(f"Updating host {host_id} with data: {set_data}")
                 self.host_model.update_host(host_id, set_data)
                 self.host_model.commit()
@@ -158,10 +173,19 @@ class HostService:
                 self.logger.error(f"Error updating host {host_id}: {e}")
 
     def _host_events(self, host: dict, current_host: dict) -> None:
-        hid = host["id"]
-        ip = host["ip"]
+        hid = host.get("id", None)
+        ip = host.get("ip", None)
+        if ip is None:
+            self.logger.warning(f"Host IP is None, cannot create events for host {hid}")
+            return
+        if hid is None:
+            self.logger.warning(f"Host ID is None, cannot create events for host {ip}")
+            return
 
-        disable_alarms = host.get("misc", {}).get("disable_alarms") == 1
+        if "misc" in host and isinstance(host["misc"], dict):
+            disable_alarms = host.get("misc").get("disable_alarms") == 1
+        else:
+            disable_alarms = False
 
         if host.get("online") == 0 and current_host.get("online") == 1:
             self.event_host.event(
@@ -186,7 +210,7 @@ class HostService:
                 EventType.HOST_BECOME_OFF
             )
 
-        if "hostname" in current_host and host["hostname"] != current_host["hostname"]:
+        if "hostname" in current_host and host.get("hostname") != current_host.get("hostname"):
             current_host["warn"] = 1
 
             if disable_alarms:
@@ -202,8 +226,8 @@ class HostService:
                 EventType.HOST_INFO_CHANGE
             )
 
-        if "mac" in current_host and current_host["mac"] is not None:
-            if "mac" not in host or host["mac"] != current_host["mac"]:
+        if "mac" in current_host and current_host.get("mac") is not None:
+            if "mac" not in host or host.get("mac") != current_host.get("mac"):
                 if not disable_alarms:
                     current_host["warn"] = 1
                     log_type = LogType.EVENT_WARN
@@ -227,11 +251,11 @@ class HostService:
 
             if (
                 "mac_vendor" in current_host["misc"] and
-                current_host["misc"]["mac_vendor"] is not None
+                current_host.get("misc").get("mac_vendor") is not None
             ):
                 if (
                     "mac_vendor" not in host["misc"] or
-                    host["misc"]["mac_vendor"] != current_host["misc"]["mac_vendor"]
+                    host.get("misc").get("mac_vendor") != current_host.get("misc").get("mac_vendor")
                 ):
                     self.event_host.event(
                         hid,
@@ -251,18 +275,26 @@ class HostService:
             existing_host (dict): The existing host data.
             set_data (dict): The new data to be set.
         """
-        if not existing_host["hostname"]:
-            set_data["hostname"] = get_hostname(existing_host.get("ip"))
+        ip = existing_host.get("ip", None)
+        if ip is None:
+            self.logger.warning(f"Host IP is None, cannot collect missing details for host {existing_host.get('id')}")
+            return
+
+        if not existing_host.get("hostname"):
+            hostname = get_hostname(ip)
+            if hostname is not None and isinstance(hostname, str):
+                set_data["hostname"] = get_hostname(ip)
+
         if not existing_host["mac"]:
-            set_data["mac"] = get_mac(existing_host.get("ip"))
-        if "misc" in existing_host:
-            if "misc" in existing_host and isinstance(existing_host.get("misc"), dict):
-                if "misc" not in set_data:
-                    set_data["misc"] = {}
-                if set_data.get("mac") is not None:
-                    mac_vendor = get_org_from_mac(set_data.get("mac"))
-                    if mac_vendor is not None and isinstance(mac_vendor, str):
-                        set_data["misc"]["mac_vendor"] = mac_vendor
+            mac = get_mac(ip)
+            if mac is not None and isinstance(mac, str):
+                set_data["mac"] = mac
+                mac_vendor = get_org_from_mac(mac)
+                if mac_vendor is not None and isinstance(mac_vendor, str):
+                    if "misc" not in set_data:
+                        set_data["misc"] = {}
+                    set_data["misc"]["mac_vendor"] = mac_vendor
+
 
     def _serialize_update_misc(self, existing_host: dict,  set_data: dict) -> None:
         """ Handle  update the 'misc' field merge existing and new data """
@@ -289,7 +321,7 @@ class HostService:
 
         if "misc" in host and isinstance(host["misc"], dict):
             try:
-                host["misc"] = json.dumps(host["misc"])
+                host["misc"] = json.dumps(host.get("misc"))
             except (TypeError, ValueError) as e:
                 raise ValueError(f"Error serializing 'misc' field to JSON: {e}")
 
@@ -297,7 +329,7 @@ class HostService:
         """ Deserialize the 'misc' field from JSON format."""
         if "misc" in host and host["misc"]:
             try:
-                host["misc"] = json.loads(host["misc"])
+                host["misc"] = json.loads(host.get("misc"))
             except (TypeError, ValueError) as e:
                 raise ValueError(f"Error deserializing 'misc' field: {e}")
 
@@ -312,9 +344,9 @@ class HostService:
             str: The display name for the host.
         """
 
-        if "title" in host and host["title"]:
-            host["display_name"] = host["title"]
-        elif "hostname" in host and host["hostname"]:
-            host["display_name"] = host["hostname"]
+        if "title" in host and host.get("title"):
+            host["display_name"] = host.get("title")
+        elif "hostname" in host and host.get("hostname"):
+            host["display_name"] = host.get("hostname")
         else:
-            host["display_name"] = host["ip"]
+            host["display_name"] = host.get("ip")

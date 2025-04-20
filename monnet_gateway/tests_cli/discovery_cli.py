@@ -57,22 +57,26 @@ if __name__ == "__main__":
 
     for ip in ip_list:
         # print(f"Scanning {ip}...")
+        if ip is None:
+            logger.warning(f"IP not found in discovery")
+            continue
         ping_status = network_scanner.ping(ip, 0.3)
 
-        if (ping_status['online'] == 1):
+        if (ping_status.get("online") == 1):
             if 'latency' in ping_status:
-                ping_status['latency'] = round(ping_status['latency'], 3)
+                ping_status['latency'] = round(ping_status.get("latency"), 3)
 
             ping_status['last_seen'] = utc_date_now()
-            mac_result = get_mac(ping_status["ip"])
+
+            mac_result = get_mac(ip)
             host_data = {
-                "ip": ping_status["ip"],
-                "last_seen": ping_status["last_seen"],
+                "ip": ip,
+                "last_seen": ping_status.get("last_seen"),
                 "online": 1,
                 "network": 1, # default
                 "warn": 1, # New host discovery
                 "misc": {
-                    "latency": ping_status["latency"],
+                    "latency": ping_status.get("latency"),
                 },
             }
             # Set default as name for network default 1
@@ -82,13 +86,23 @@ if __name__ == "__main__":
                 host_data["mac"] = mac_result
                 organization = get_org_from_mac(mac_result)
                 if organization:
+                    if "misc" not in host_data:
+                        host_data["misc"] = {}
                     host_data["misc"]["mac_vendor"] = organization
+            try:
+                host_ip = ipaddress.IPv4Address(ip)
+            except ipaddress.AddressValueError:
+                logger.warning(f"Invalid IP address: {ip}")
+                continue
 
-            host_ip = ipaddress.IPv4Address(ping_status["ip"])
             for network in networks:
-                network_cidr = ipaddress.IPv4Network(network.get("network"), strict=False)
+                try:
+                    network_cidr = ipaddress.IPv4Network(network.get("network"), strict=False)
+                except ipaddress.AddressValueError:
+                    logger.warning(f"Invalid CIDR notation: {network.get('network')}")
+                    continue
                 if host_ip in network_cidr:
-                    network_name = network.get('name')
+                    network_name = network.get("name")
                     host_data["network"] = network.get("id")
                     break
 
