@@ -85,12 +85,6 @@ class HostService:
         except ValueError:
             raise ValueError(f"Invalid IP address: {host['ip']}")
 
-        #existing_hosts = self.host_model.get_all()
-        # check for duplicate MAC warn no error
-        #if "mac" in host:
-        #    if any(h["mac"] == host["mac"] for h in existing_hosts):
-        #        raise ValueError(f"Host with MAC {host['mac']} already exists.")
-
         self._serialize_misc(host)
         self.host_model.insert_host(host)
         if commit:
@@ -147,14 +141,21 @@ class HostService:
 
         existing_host = self.get_by_id(host_id)
         if existing_host:
-            # Colect set_data wit missing host detadetails
-            self._collect_missing_details(existing_host, set_data)
-            # Create events
-            self._host_events(existing_host, set_data)
-            # Serialize and merge the 'misc' field
-            self._serialize_update_misc(existing_host, set_data)
-            self.host_model.update_host(host_id, set_data)
-            self.host_model.commit()
+            try:
+                # display name is not a field in the database is generated on the fly
+                if "display_name" in set_data:
+                    del set_data["display_name"]
+                # Colect set_data wit missing host detadetails
+                self._collect_missing_details(existing_host, set_data)
+                # Create events
+                self._host_events(existing_host, set_data)
+                # Serialize and merge the 'misc' field
+                self._serialize_update_misc(existing_host, set_data)
+                #self.logger.debug(f"Updating host {host_id} with data: {set_data}")
+                self.host_model.update_host(host_id, set_data)
+                self.host_model.commit()
+            except Exception as e:
+                self.logger.error(f"Error updating host {host_id}: {e}")
 
     def _host_events(self, host: dict, current_host: dict) -> None:
         hid = host["id"]
@@ -201,8 +202,8 @@ class HostService:
                 EventType.HOST_INFO_CHANGE
             )
 
-        if "misc" in current_host:
-            if "mac" in current_host["misc"] and host["misc"]["mac"] != current_host["misc"]["mac"]:
+        if "mac" in current_host and current_host["mac"] is not None:
+            if "mac" not in host or host["mac"] != current_host["mac"]:
                 if not disable_alarms:
                     current_host["warn"] = 1
                     log_type = LogType.EVENT_WARN
@@ -211,21 +212,37 @@ class HostService:
 
                 self.event_host.event(
                     hid,
-                    f'Host MAC changed {host["misc"]["mac"]} -> {current_host["misc"]["mac"]}',
+                    (
+                        f'Host MAC changed {host.get("mac")} -> '
+                        f'{current_host.get("mac")}'
+                    ),
                     log_type,
                     EventType.HOST_INFO_CHANGE
                 )
 
+        if (
+            "misc" in host and isinstance(host["misc"], dict) and
+            "misc" in current_host and isinstance(current_host["misc"], dict)
+        ):
+
             if (
                 "mac_vendor" in current_host["misc"] and
-                host["misc"]["mac_vendor"] != current_host["misc"]["mac_vendor"]
+                current_host["misc"]["mac_vendor"] is not None
             ):
-                self.event_host.event(
-                    hid,
-                    f'Host MAC vendor changed {host["misc"]["mac_vendor"]} -> {current_host["misc"]["mac_vendor"]}',
-                    LogType.EVENT,
-                    EventType.HOST_INFO_CHANGE
-                )
+                if (
+                    "mac_vendor" not in host["misc"] or
+                    host["misc"]["mac_vendor"] != current_host["misc"]["mac_vendor"]
+                ):
+                    self.event_host.event(
+                        hid,
+                        (
+                            f'Host MAC vendor changed '
+                            f'{host.get("misc", {}).get("mac_vendor")} -> '
+                            f'{current_host.get("misc").get("mac_vendor")}'
+                        ),
+                        LogType.EVENT,
+                        EventType.HOST_INFO_CHANGE
+                    )
 
     def _collect_missing_details(self, existing_host: dict, set_data: dict) -> None:
         """
@@ -235,12 +252,17 @@ class HostService:
             set_data (dict): The new data to be set.
         """
         if not existing_host["hostname"]:
-            set_data["hostname"] = get_hostname(existing_host["ip"])
+            set_data["hostname"] = get_hostname(existing_host.get("ip"))
+        if not existing_host["mac"]:
+            set_data["mac"] = get_mac(existing_host.get("ip"))
         if "misc" in existing_host:
-            if "mac" in existing_host["misc"]:
-                set_data["misc"]["mac"] = get_mac(existing_host["ip"])
-                if set_data["misc"]["mac"] is not None:
-                    set_data["misc"]["mac_vendor"] = get_org_from_mac(set_data["mac"])
+            if "misc" in existing_host and isinstance(existing_host.get("misc"), dict):
+                if "misc" not in set_data:
+                    set_data["misc"] = {}
+                if set_data.get("mac") is not None:
+                    mac_vendor = get_org_from_mac(set_data.get("mac"))
+                    if mac_vendor is not None and isinstance(mac_vendor, str):
+                        set_data["misc"]["mac_vendor"] = mac_vendor
 
     def _serialize_update_misc(self, existing_host: dict,  set_data: dict) -> None:
         """ Handle  update the 'misc' field merge existing and new data """
@@ -253,6 +275,9 @@ class HostService:
                     raise ValueError("'misc' field in existing_host must be a dictionary.")
                 merged_misc = {**existing_misc, **set_data["misc"]}
                 try:
+                    # Temporaly clear mac from misc TODO Remove this
+                    if "mac" in merged_misc:
+                        del merged_misc["mac"]
                     set_data["misc"] = json.dumps(merged_misc)
                 except (TypeError, ValueError) as e:
                     raise ValueError(f"Error serializing 'misc' field to JSON: {e}")

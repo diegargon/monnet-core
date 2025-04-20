@@ -14,35 +14,47 @@ class WeeklyTask:
     def run(self):
         self.logger.info("Starting WeeklyTask...")
         hosts = self.host_service.get_all()
+        if not hosts:
+            self.logger.info("No hosts found.")
+            return
 
         for host in hosts:
             updated = False
 
             # Update hostname if missing
             if not host.get("hostname"):
-                hostname = get_hostname(host["ip"])
-                if hostname:
+                hostname = get_hostname(host.get("ip"))
+                if hostname is not None and isinstance(hostname, str):
                     host["hostname"] = hostname
                     updated = True
 
             # Update MAC if missing
-            if "misc" in host and not host["misc"].get("mac"):
+            if not host.get("mac"):
                 mac = get_mac(host["ip"])
-                if mac:
-                    host["misc"]["mac"] = mac
+                if mac is not None and isinstance(mac, str):
+                    host["mac"] = mac
                     updated = True
 
             # Update MAC vendor if missing
-            if "misc" in host:
-                mac = host["misc"].get("mac")
-                if mac and not host["misc"].get("mac_vendor"):
-                    mac_vendor = get_org_from_mac(mac)
-                    if mac_vendor:
-                        host["misc"]["mac_vendor"] = mac_vendor
-                        updated = True
+
+            if host.get("mac") is not None:
+                mac = host.get("mac")
+                if mac:
+                    # Asegurarse de que 'misc' sea un diccionario
+                    if not isinstance(host.get("misc"), dict):
+                        host["misc"] = {}
+
+                    # Verificar si 'mac_vendor' está ausente
+                    if not host["misc"].get("mac_vendor"):
+                        mac_vendor = get_org_from_mac(mac)
+                        if mac_vendor is not None and isinstance(mac_vendor, str):
+                            host["misc"]["mac_vendor"] = mac_vendor
+                            updated = True
 
             # Save updates to the database
             if updated:
-                self.host_service.update(host["id"], host)
+                #self.logger.info(f"Updating host {host}")
+                # Update the host in the database
+                self.host_service.update(host.get("id"), host)
 
         self.logger.info("WeeklyTask completed.")

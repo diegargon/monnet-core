@@ -39,11 +39,12 @@ class TaskSched:
             self.stop_event = ctx.get_var("stop_event")
 
             self.task_intervals = {
-                "discovery_hosts":  60 * 20,    # 20 minutes
-                "hosts_checker":  60 * 5,       # 5 minutes
-                "ansible": 60,                  # 1 minute
-                "prune": 86400,                 # 1 day
-                "weekly_task": 604800,          # 7 days
+                "discovery_hosts":  60 * 20,        # 20 minutes
+                "hosts_checker":  60 * 5,           # 5 minutes
+                "ansible": 60,                      # 1 minute
+                "prune": 60 * 60 * 24,              # 1 day
+                "weekly_task": 60,
+                #"weekly_task": 60 * 60 * 24 * 7,    # 1 week
             }
 
             self.last_run_time = {
@@ -70,7 +71,7 @@ class TaskSched:
             self.weekly_task = WeeklyTask(ctx)
 
             # Launch Thread
-            #self.thread = threading.Thread(target=self.run_task, daemon=True)
+            self.thread = threading.Thread(target=self.run_task, daemon=True)
             self.logger.debug("TaskSched thread created.")
         except Exception as e:
             self.logger.error(f"Error initialice TaskSched: {e}")
@@ -93,7 +94,7 @@ class TaskSched:
             current_time = time()
 
             # Collect and store logs
-            self._store_logs()
+            #self._store_logs()
             try:
                 # Run DiscoveryTask if the interval has passed
                 if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
@@ -126,7 +127,6 @@ class TaskSched:
                             self.task_locks["ansible"].release()
 
                 # Run PruneTask if the interval has passed
-
                 if current_time - self.last_run_time["prune"] >= self.task_intervals["prune"]:
                     if self.task_locks["prune"].acquire(blocking=False):
                         try:

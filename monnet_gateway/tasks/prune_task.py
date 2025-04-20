@@ -13,12 +13,13 @@ class PruneTask:
     def __init__(self, ctx: AppContext):
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
-        self.db = DBManager(self.config)
-
+        self.db = None
     def run(self):
         """Executes the cleanup task."""
         self.logger.info("Running PruneTask...")
         try:
+            if not self.db or self.db is not isinstance(self.db, DBManager):
+                self.db = DBManager(self.config)
             self.clear_stats()
             self.clear_system_logs()
             self.clear_hosts_logs()
