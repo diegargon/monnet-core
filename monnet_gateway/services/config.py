@@ -143,12 +143,19 @@ class Config:
             query = "SELECT `ckey`, `cvalue` FROM config WHERE uid = 0"
             results = db.fetchall(query)
             db.close()
-            # Parse cvalue as JSON and store in the database configuration dictionary
             for row in results:
+                value_raw = row.get("cvalue")
+                key = row.get("ckey")
+
+                if value_raw is None or value_raw.strip() == "":
+                    continue
                 try:
-                    self.db_config[row["ckey"]] = json.loads(row["cvalue"])
+                    value = json.loads(value_raw)
+                    if value in (None, "", {}, []):
+                        continue
+                    self.db_config[row["ckey"]] = value
                 except json.JSONDecodeError:
-                    self.db_config[row["ckey"]] = row["cvalue"]  # Fallback to raw value if not JSON
+                    self.db_config[row["ckey"]] = row["cvalue"]
             self.logger.info("Database configuration loaded successfully.")
         except Exception as e:
             self.logger.error(f"Failed to load configuration from database: {e}")
