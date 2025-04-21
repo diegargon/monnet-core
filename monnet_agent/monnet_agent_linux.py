@@ -44,7 +44,7 @@ def main():
 
     logger.info(f"Init Monnet Agent service... {agent_config.AGENT_VERSION}")
 
-    # Cargar configuración antes de instanciar MonnetAgent
+    # Load configuration before instantiating MonnetAgent
     try:
         config = load_file_config(agent_config.CONFIG_AGENT_PATH)
     except RuntimeError as e:

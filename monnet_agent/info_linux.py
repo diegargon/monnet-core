@@ -2,7 +2,6 @@
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
 Monnet Agent
-
 """
 
 # Standard
@@ -11,8 +10,6 @@ import socket
 import subprocess
 import re
 import shutil
-from typing import Dict
-
 
 def get_cpus():
     """ Get number of CPUs """
@@ -66,12 +63,12 @@ def get_load_avg():
     """Returns the system load average from /proc/loadavg.
 
     Returns:
-        dict: Diccionario con los promedios de carga y uso de CPU.
+        dict: Dictionary with load averages and CPU usage.
 
     Raises:
-        FileNotFoundError: Si /proc/loadavg no existe (no es un sistema Linux).
-        ValueError: Si el formato del archivo es incorrecto.
-        Exception: Para otros errores inesperados.
+        FileNotFoundError: If /proc/loadavg does not exist (not a Linux system).
+        ValueError: If the file format is incorrect.
+        Exception: For other unexpected errors.
     """
     try:
         with open("/proc/loadavg", "r", encoding='utf-8') as f:
@@ -98,15 +95,15 @@ def get_load_avg():
 
 def get_memory_info():
     """
-    Obtain memory info from /proc/meminfo
+    Obtain memory info from /proc/meminfo.
 
     Returns:
-        dict: Dictionary with memory information in MB and percentages
+        dict: Dictionary with memory information in MB and percentages.
 
     Raises:
-        FileNotFoundError: If /proc/meminfo doesn't exist
-        OSError: If there are problems reading the file
-        ValueError: If data format is invalid
+        FileNotFoundError: If /proc/meminfo does not exist.
+        OSError: If there are problems reading the file.
+        ValueError: If the data format is invalid.
     """
     if not os.path.exists("/proc/meminfo"):
         raise FileNotFoundError("/proc/meminfo does not exist")
@@ -144,14 +141,14 @@ def get_memory_info():
 
 def get_disks_info():
     """
-    Obtain disks info from /proc/mounts
+    Obtain disk info from /proc/mounts.
 
     Returns:
-        dict: Disk partitions info with keys: "disksinfo" (list of dicts)
+        dict: Disk partitions info with keys: "disksinfo" (list of dicts).
 
     Raises:
-        FileNotFoundError: If /proc/mounts doesn't exist
-        OSError: If there are problems reading the file or getting stats
+        FileNotFoundError: If /proc/mounts does not exist.
+        OSError: If there are problems reading the file or getting stats.
     """
     if not os.path.exists("/proc/mounts"):
         raise FileNotFoundError("/proc/mounts does not exist")
@@ -203,15 +200,15 @@ def get_disks_info():
 
 def get_uptime():
     """
-    Get system uptime in seconds from /proc/uptime
+    Get system uptime in seconds from /proc/uptime.
 
     Returns:
-        float: Uptime in seconds
+        float: Uptime in seconds.
 
     Raises:
-        FileNotFoundError: If /proc/uptime doesn't exist
-        ValueError: If data format is invalid
-        OSError: For other file reading errors
+        FileNotFoundError: If /proc/uptime does not exist.
+        ValueError: If the data format is invalid.
+        OSError: For other file reading errors.
     """
     try:
         with open('/proc/uptime', 'r', encoding='utf-8') as f:
@@ -231,15 +228,15 @@ def get_uptime():
 
 def read_cpu_stats():
     """
-    Read CPU statistics from /proc/stat
+    Read CPU statistics from /proc/stat.
 
     Returns:
-        tuple: (user, nice, system, idle, iowait) CPU time values
+        tuple: (user, nice, system, idle, iowait) CPU time values.
 
     Raises:
-        FileNotFoundError: If /proc/stat doesn't exist
-        ValueError: If data format is invalid
-        OSError: For other I/O related errors
+        FileNotFoundError: If /proc/stat doesn't exist.
+        ValueError: If data format is invalid.
+        OSError: For other I/O related errors.
     """
     if not os.path.exists("/proc/stat"):
         raise FileNotFoundError("/proc/stat does not exist")
@@ -258,32 +255,27 @@ def read_cpu_stats():
     except (OSError, ValueError) as e:
         raise type(e)(f"Error reading CPU stats: {e}") from e
 
-def get_iowait(last_cpu_times: Dict[str, int], current_cpu_times: Dict[str, int]) -> float:
+def get_iowait(last_cpu_times, current_cpu_times):
     """
-    Calculate IO wait/delay percentage.
+    Calculate the percentage of I/O wait time.
 
     Args:
-        last_cpu_times (dict): Dictionary with previous CPU times (keys: 'user', 'nice', 'system', 'idle', 'iowait').
-        current_cpu_times (dict): Dictionary with current CPU times (keys: 'user', 'nice', 'system', 'idle', 'iowait').
+        last_cpu_times (scputimes): Previous CPU times.
+        current_cpu_times (scputimes): Current CPU times.
 
     Returns:
-        float: IO wait percentage.
-
-    Raises:
-        KeyError: If required keys are missing in the dictionaries.
-        ValueError: If total CPU time difference is zero.
+        float: Calculated I/O wait percentage.
     """
-    # Validate required keys
-    required_keys = {'user', 'nice', 'system', 'idle', 'iowait'}
-    if not required_keys.issubset(last_cpu_times.keys()) or not required_keys.issubset(current_cpu_times.keys()):
-        raise KeyError(f"Both dictionaries must contain the keys: {required_keys}")
 
     # Calcular diferencias acumulativas
-    user_diff = current_cpu_times.get('user', 0) - last_cpu_times.get('user', 0)
-    nice_diff = current_cpu_times.get('nice', 0) - last_cpu_times.get('nice', 0)
-    system_diff = current_cpu_times.get('system', 0) - last_cpu_times.get('system', 0)
-    idle_diff = current_cpu_times.get('idle', 0) - last_cpu_times.get('idle', 0)
-    iowait_diff = current_cpu_times.get('iowait', 0) - last_cpu_times.get('iowait', 0)
+    user_diff = current_cpu_times.user - last_cpu_times.user
+    nice_diff = current_cpu_times.nice - last_cpu_times.nice
+    system_diff = current_cpu_times.system - last_cpu_times.system
+    idle_diff = current_cpu_times.idle - last_cpu_times.idle
+    iowait_diff = (
+        (current_cpu_times.iowait - last_cpu_times.iowait)
+        if hasattr(current_cpu_times, 'iowait') else 0
+    )
 
     # Suma total de diferencias
     total_diff = user_diff + nice_diff + system_diff + idle_diff + iowait_diff
@@ -299,15 +291,15 @@ def get_iowait(last_cpu_times: Dict[str, int], current_cpu_times: Dict[str, int]
 
 def get_listen_ports_info():
     """
-    Fetch active listening ports using `ss` command
+    Fetch active listening ports using the `ss` command.
 
     Returns:
-        dict: {"listen_ports_info": [list of port dictionaries]}
+        dict: {"listen_ports_info": [list of port dictionaries]}.
 
     Raises:
-        FileNotFoundError: If `ss` command is not available
-        subprocess.CalledProcessError: If `ss` command fails
-        Exception: For other unexpected errors
+        FileNotFoundError: If the `ss` command is not available.
+        subprocess.CalledProcessError: If the `ss` command fails.
+        Exception: For other unexpected errors.
     """
     ports_flattened = []
     seen_ports = set()
@@ -381,14 +373,15 @@ def get_listen_ports_info():
 
 def is_system_shutting_down():
     """
-    Detect if the system is shutting down by checking systemd status
+    Detect if the system is shutting down by checking systemd status.
 
     Returns:
-        bool: True if system is in stopping state, False otherwise
+        bool: True if the system is in a stopping state, False otherwise.
 
     Raises:
-        FileNotFoundError: If systemctl command is not available
-        subprocess.CalledProcessError: If systemctl command fails
+        FileNotFoundError: If the systemctl command is not available.
+        subprocess.CalledProcessError: If the systemctl command fails.
+        RuntimeError: For unexpected errors.
     """
     if not shutil.which("systemctl"):
         raise FileNotFoundError("systemctl command not found")
@@ -411,6 +404,8 @@ def is_system_shutting_down():
         )
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.strip() if e.stderr else "Unknown error occurred"
-        raise subprocess.CalledProcessError(e.returncode, e.cmd, error_message) from e
+        raise subprocess.CalledProcessError(
+            e.returncode, e.cmd, error_message
+        ) from e
     except Exception as e:
         raise RuntimeError(f"Unexpected error while checking system status: {str(e)}") from e

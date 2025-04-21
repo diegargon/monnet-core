@@ -1,10 +1,8 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Agent - core
-
+Monnet Agent - Core Agent Main Loop
 """
-
 
 from datetime import datetime
 import signal
@@ -26,7 +24,6 @@ from monnet_agent.notifications import send_notification, send_request, validate
 from shared.app_context import AppContext
 from shared.file_config import update_config
 
-
 class MonnetAgent:
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
@@ -40,30 +37,58 @@ class MonnetAgent:
 
 
     def initialize(self):
-        """Initialize the Monnet Agent"""
+        """Initialize the Monnet Agent."""
         self.logger.debug("Starting Agent Core")
 
         if not self.config:
-            self.logger.err("Cant load config. Finishing")
+            self.logger.err("Cannot load config. Exiting")
             return False
 
         self.config["interval"] = self.config["default_interval"]
-        self.ctx.set_config(self.config)
-        self._setup_handlers()
-        self._setup_tasksched()
-        self._send_starting_notification()
+        try:
+            self.ctx.set_config(self.config)
+        except Exception as e:
+            self.logger.err(f"Error setting config: {e}")
+            return False
+        try:
+            self._setup_handlers()
+        except Exception as e:
+            self.logger.err(f"Error setting up handlers: {e}")
+            return False
+
+        try:
+            self._setup_tasksched()
+        except Exception as e:
+            self.logger.err(f"Error setting up task scheduler: {e}")
+            return False
+        try:
+            self._send_starting_notification()
+        except Exception as e:
+            self.logger.err(f"Error sending starting notification: {e}")
+            return False
 
         return True
 
     def run(self):
-        """Main agent loop"""
+        """Main agent loop."""
         if not self.initialize():
             self.logger.err("Initialization failed. Exiting...")
             return False
+        else:
+            self.logger.info("Initialization successful. Starting main loop...")
 
         while self.running:
             current_time = time.time()
-            system_metrics = self._collect_system_data()
+            try:
+                system_metrics = self._collect_system_data()
+            except (FileNotFoundError, ValueError, OSError) as e:
+                self.logger.warning(f"Error collecting system data: {e}")
+                system_metrics = {}
+            except Exception as e:
+                self.logger.err(f"Unexpected error while collecting system data: {e}")
+                system_metrics = {}
+
+            self.logger.debug(f"System metrics collected: {system_metrics}")  # Add debug log
 
             try:
                 host_logs = self.logger.pop_logs()
@@ -79,7 +104,8 @@ class MonnetAgent:
                 data_values['host_logs_count'] = len(host_logs)
                 data_values["host_logs"] = host_logs
 
-            self._send_ping(data_values)
+            self.logger.debug(f"Data values prepared for ping: {data_values}")  # Add debug log
+            self._send_ping(data_values)  # Ensure this is being called
             self._process_events()
 
             self.running = self.ctx.get_var("running")
@@ -90,7 +116,7 @@ class MonnetAgent:
         return True
 
     def _send_starting_notification(self):
-        """Send initial notification with system info"""
+        """Send initial notification with system info."""
         self.logger.log("Sending starting notification", "info")
         try:
             uptime = info_linux.get_uptime()
@@ -112,7 +138,7 @@ class MonnetAgent:
         send_notification(self.ctx, 'starting', starting_data)
 
     def _collect_system_data(self) -> Dict[str, Any]:
-        """Collect system metrics and return as dictionary"""
+        """Collect system metrics and return as a dictionary."""
         system_metrics = {}
 
         # Get system info
@@ -161,10 +187,11 @@ class MonnetAgent:
         return system_metrics
 
     def _send_ping(self, data_values: Dict[str, Any]):
-        """Send ping to server with collected data"""
+        """Send ping to the server with collected data."""
         self.logger.log("Preparing to send ping to server", "debug")
 
         if not data_values:
+            self.logger.debug("No data values to send in ping")
             data_values = {}
 
         self.logger.log(f"Ping data: {data_values}", "debug")
@@ -182,7 +209,7 @@ class MonnetAgent:
             self.logger.log("No response received from server", "err")
 
     def _handle_valid_response(self, response: Dict[str, Any]):
-        """Handle valid server response"""
+        """Handle valid server response."""
         data = response.get("data", {})
         new_interval = response.get("refresh")
 
@@ -211,36 +238,36 @@ class MonnetAgent:
         """
 
     def _process_events(self):
-        """Process and send events"""
+        """Process and send events."""
         events = self.event_processor.process_changes(self.datastore)
         for event in events:
             self.logger.logpo(f"Sending event: {event}", "debug")
             send_notification(self.ctx, event["name"], event["data"])
 
     def _setup_handlers(self):
-        """Setup signal handlers"""
+        """Setup signal handlers."""
         signal.signal(signal.SIGINT, lambda signum, frame: handle_signal(signum, frame, self.ctx))
         signal.signal(signal.SIGTERM, lambda signum, frame: handle_signal(signum, frame, self.ctx))
 
     def _sleep_interval(self, start_time: float):
-        """Sleep for remaining interval time"""
+        """Sleep for the remaining interval time."""
         end_time = time.time()
         duration = end_time - start_time
         sleep_time = max(0, self.config["interval"] - duration)
         self.logger.log(
-            f"Loop time {duration:.2f} + Sleeping {sleep_time:.2f} (seconds).",
+            f"Loop time {duration:.2f} + Sleeping {sleep_time:.2f} seconds.",
             "debug"
         )
         time.sleep(sleep_time)
 
     def _setup_tasksched(self):
-        """Setup Task Scheduler"""
+        """Setup Task Scheduler."""
 
         agent_tasks.check_listen_ports(self.ctx, self.datastore, send_notification, startup=1)
         agent_tasks.send_stats(self.ctx, self.datastore, send_notification)
 
     def stop(self):
-        """Stop the agent gracefully"""
+        """Stop the agent gracefully."""
         self.running = False
         self.ctx.set_var("running", False)
 

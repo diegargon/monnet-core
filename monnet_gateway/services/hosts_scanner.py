@@ -30,7 +30,7 @@ class HostsScanner:
 
     def scan_hosts(self, all_hosts: dict):
         """
-        Scan a list of hosts
+        Scan a list of hosts.
         """
         self.logger.debug("Scanning known hosts...")
 
@@ -57,7 +57,7 @@ class HostsScanner:
 
             ip_or_host = host.get("ip")
             if not ip_or_host:
-                self.logger.warning(f"Host id {id} has no IP or Domain address.")
+                self.logger.warning(f"Host id {id} has no IP or domain address.")
                 continue
 
             check_method = host.get("check_method", 1)
@@ -78,7 +78,7 @@ class HostsScanner:
             if host.get("online") == 1 and host.get("misc", {}).get("agent_installed") == 1:
                 continue
 
-            self.logger.debug(f"Check method {check_method}")
+            #self.logger.debug(f"Check method {check_method}")
 
             if check_method == 1:  # Ping
                 scan_result = {
@@ -184,7 +184,7 @@ class HostsScanner:
 
     def preup_hosts(self, hosts_status: list[dict]):
         """
-        Prepara los datos para actualizar el estado de los hosts y puertos.
+        Prepare data to update the status of hosts and ports.
         """
         host_updates = defaultdict(lambda: {"online": 0, "misc": {"latency": 0}})
         port_updates = []
@@ -220,7 +220,7 @@ class HostsScanner:
 
             host_updates[host_id]["misc"]["latency"] = host_status.get("latency")
             host_updates[host_id]["last_check"] = host_status.get("last_check")
-        # Actualizar la base de datos
+        # Update the database
 
         for host_id, set_host in host_updates.items():
             self.hosts_service.update(host_id, set_host)

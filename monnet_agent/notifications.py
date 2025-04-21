@@ -9,26 +9,26 @@ Notifications
     validate_response
     get_meta
 """
-
+# Std
 import ssl
 import http.client
 import json
-from shared.app_context import AppContext
-import shared.time_utils as time_utils
 import uuid
 
 # Local
 import info_linux
+from shared.app_context import AppContext
+import shared.time_utils as time_utils
 from monnet_agent import agent_config
 
 def get_meta(ctx: AppContext):
     """
-    Builds metadata
+    Build metadata.
 
     Args:
-        ctx (AppContext): Context
+        ctx (AppContext): Context.
     Returns:
-        dict: Dict with metadata
+        dict: Dictionary with metadata.
     """
 
     timestamp = time_utils.get_datetime()
@@ -56,13 +56,14 @@ def get_meta(ctx: AppContext):
 
 def send_notification(ctx: AppContext, name: str, data: dict):
     """
-        Send notification to server.
-        Args:
-            ctx (AppContext): Context
-            name (str): Name of the notification
-            data (dict): Extra data to send
-        Return:
-            None
+    Send notification to the server.
+
+    Args:
+        ctx (AppContext): Context.
+        name (str): Name of the notification.
+        data (dict): Extra data to send.
+    Returns:
+        None.
     """
     config = ctx.get_config()
     logger = ctx.get_logger()
@@ -102,9 +103,9 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             if connection:
                 connection.close()
             """
-                We dont want keep that key due interference with dict comparison current/last
-                TODO: find a safe way
-                WARNING: No modify the data here of something that going to have a comparison
+                We don't want to keep that key due to interference with dict comparison current/last.
+                TODO: Find a safe way.
+                WARNING: Do not modify the data here if it will be compared later.
             """
             if "name" in data:
                 data.pop("name")
@@ -115,15 +116,15 @@ def send_notification(ctx: AppContext, name: str, data: dict):
 
 def send_request(ctx: AppContext, cmd="ping", data=None):
     """
-    Send request to server.
+    Send a request to the server.
 
     Args:
-        ctx (AppContext): Context
-        cmd (str): Command
-        data (dict): Extra data
+        ctx (AppContext): Context.
+        cmd (str): Command.
+        data (dict): Extra data.
 
     Returns:
-        dict or None: Server response or None if error
+        dict or None: Server response or None if an error occurs.
     """
     config = ctx.get_config()
     logger = ctx.get_logger()
@@ -154,13 +155,14 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
 
     connection = None
     try:
-        logger.log(f"Attempting to send request to {server_host} with endpoint {server_endpoint}", "debug")
+        logger.debug(f"Attempting to send request to {server_host} with endpoint {server_endpoint}")
+        logger.debug(f"Payload: {payload}")
+
         # Accept all certs
         context = ssl._create_unverified_context() if ignore_cert else None
 
         connection = http.client.HTTPSConnection(server_host, context=context)
         headers = {"Content-Type": "application/json"}
-        logger.log(f"Sending payload: {payload}", "debug")
         connection.request("POST", server_endpoint, body=json.dumps(payload), headers=headers)
 
         # Response
@@ -175,8 +177,6 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
                     return json.loads(raw_data)
                 except json.JSONDecodeError as e:
                     logger.log(f"Error decoding JSON response: {e} Raw data: {raw_data}", "err")
-            else:
-                logger.log("Empty response from server", "err")
         else:
             logger.log(f"HTTP Error: {response.status} {response.reason}, Raw data: {raw_data}", "err")
 
@@ -195,14 +195,14 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
 
 def validate_response(ctx: AppContext, response, token):
     """
-    Basic response validation
+    Basic response validation.
 
     Args:
-        ctx (AppContext): Context
-        response (dict): Response from server
-        token (str): Token
+        ctx (AppContext): Context.
+        response (dict): Response from the server.
+        token (str): Token.
     Returns:
-        None
+        None.
     """
     logger = ctx.get_logger()
 

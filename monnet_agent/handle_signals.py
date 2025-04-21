@@ -54,11 +54,14 @@ def handle_signal(signum, frame, ctx: AppContext):
         logger.log("Systemd not available - skipping shutdown check", "notice")
         _is_system_shutdown = False
     except subprocess.CalledProcessError as e:
-        error_message = e.stderr if e.stderr else "Unknown error while checking system status"
+        error_message = e.stderr.strip() if e.stderr else "Unknown error while checking system status"
         logger.log(f"Failed to check system status: {error_message}", "err")
+        logger.log(f"Command: {e.cmd}", "debug")
+        logger.log(f"Return code: {e.returncode}", "debug")
         _is_system_shutdown = False
     except Exception as e:
         logger.log(f"Unexpected error while checking system status: {str(e)}", "err")
+        logger.log(f"Exception type: {type(e).__name__}", "debug")
         _is_system_shutdown = False
 
     if _is_system_shutdown:
