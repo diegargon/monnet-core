@@ -66,7 +66,7 @@ class MonnetAgent:
             system_metrics = self._collect_system_data()
 
             try:
-                host_logs = self.logger.pop_logs(count=10)
+                host_logs = self.logger.pop_logs()
             except Exception as e:
                 self.logger.err(f"Error while collecting host logs: {e}")
                 host_logs = []
