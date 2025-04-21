@@ -11,6 +11,7 @@ import socket
 import subprocess
 import re
 import shutil
+from typing import Dict
 
 
 def get_cpus():
@@ -27,12 +28,17 @@ def get_hostname():
 
 def get_ip_address(hostname):
     """
-        GET IP Address
-        TODO: get interface/default route address
+    Get IP Address
     """
-    return socket.gethostbyname(hostname)
+    try:
+        return socket.gethostbyname(hostname)
+    except socket.gaierror as e:
+        raise ValueError(f"Unable to resolve hostname '{hostname}': {e}") from e
 
 def cpu_usage(cpu_load):
+    if not isinstance(cpu_load, (int, float)) or cpu_load < 0:
+        raise ValueError("cpu_load must be a non-negative number")
+
     total_cpus = get_cpus()
     if total_cpus == 0:
         return False
@@ -111,7 +117,6 @@ def get_memory_info():
             for line in f:
                 key, value = line.split(":")
                 meminfo[key.strip()] = int(value.split()[0]) * 1024  # Convert to bytes
-
     except (OSError, ValueError) as e:
         raise type(e)(f"Error processing /proc/meminfo: {e}") from e
 
@@ -253,23 +258,32 @@ def read_cpu_stats():
     except (OSError, ValueError) as e:
         raise type(e)(f"Error reading CPU stats: {e}") from e
 
-
-def get_iowait(last_cpu_times, current_cpu_times):
+def get_iowait(last_cpu_times: Dict[str, int], current_cpu_times: Dict[str, int]) -> float:
     """
-    Io wait/delay calculation
-    :return: Percent IO Wait within call median
+    Calculate IO wait/delay percentage.
 
+    Args:
+        last_cpu_times (dict): Dictionary with previous CPU times (keys: 'user', 'nice', 'system', 'idle', 'iowait').
+        current_cpu_times (dict): Dictionary with current CPU times (keys: 'user', 'nice', 'system', 'idle', 'iowait').
+
+    Returns:
+        float: IO wait percentage.
+
+    Raises:
+        KeyError: If required keys are missing in the dictionaries.
+        ValueError: If total CPU time difference is zero.
     """
+    # Validate required keys
+    required_keys = {'user', 'nice', 'system', 'idle', 'iowait'}
+    if not required_keys.issubset(last_cpu_times.keys()) or not required_keys.issubset(current_cpu_times.keys()):
+        raise KeyError(f"Both dictionaries must contain the keys: {required_keys}")
 
     # Calcular diferencias acumulativas
-    user_diff = current_cpu_times.user - last_cpu_times.user
-    nice_diff = current_cpu_times.nice - last_cpu_times.nice
-    system_diff = current_cpu_times.system - last_cpu_times.system
-    idle_diff = current_cpu_times.idle - last_cpu_times.idle
-    iowait_diff = (
-        (current_cpu_times.iowait - last_cpu_times.iowait)
-        if hasattr(current_cpu_times, 'iowait') else 0
-    )
+    user_diff = current_cpu_times.get('user', 0) - last_cpu_times.get('user', 0)
+    nice_diff = current_cpu_times.get('nice', 0) - last_cpu_times.get('nice', 0)
+    system_diff = current_cpu_times.get('system', 0) - last_cpu_times.get('system', 0)
+    idle_diff = current_cpu_times.get('idle', 0) - last_cpu_times.get('idle', 0)
+    iowait_diff = current_cpu_times.get('iowait', 0) - last_cpu_times.get('iowait', 0)
 
     # Suma total de diferencias
     total_diff = user_diff + nice_diff + system_diff + idle_diff + iowait_diff
@@ -391,8 +405,9 @@ def is_system_shutting_down():
 
     except subprocess.TimeoutExpired:
         raise subprocess.CalledProcessError(
-            -1, ["systemctl", "is-system-running"],
-            "Command timed out"
+            returncode=-1,
+            cmd=["systemctl", "is-system-running"],
+            stderr="Command timed out"
         )
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.strip() if e.stderr else "Unknown error occurred"

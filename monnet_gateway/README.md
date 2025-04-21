@@ -18,12 +18,23 @@ git clone https://github.com/diegargon/monnet-core.git
 cd monnet-core/monnet_gateway
 chmod +x install.bash
 ./install.bash
-
 ```
+
 The install script sets up a virtual Python environment for an application in a specific directory (/opt/monnet-core/monnet_gateway).
 it configures a systemd service by copying a configuration file and setting the proper permissions. Finally, it configures ansible to use JSON-formatted output by modifying its configuration file.
 
 Also install requeriment.txt withint virtual environment
+
+## Upgrading
+
+Use update.bash, will sync the git repo and do the necesary tasks
+
+```
+cd monnet-core/monnet_gateway
+chmod +x install.bash
+./install.bash
+```
+
 
 ## Configure Monnet Gateway access to database
 
