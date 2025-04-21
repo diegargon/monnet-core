@@ -37,7 +37,7 @@ def get_mac(ip):
     return None
 
 
-def _format_mac_vendor(mac: str) -> str | None:
+def _format_mac_vendor(mac: str):
     # Remove any non-alphanumeric characters
     cleaned_mac = re.sub(r'[^a-fA-F0-9]', '', mac)
 
@@ -49,7 +49,7 @@ def _format_mac_vendor(mac: str) -> str | None:
 
     return formatted_mac
 
-def get_org_from_mac(mac: str) -> str | None:
+def get_org_from_mac(mac: str):
     """
     Busca la organización asociada a una dirección MAC en el archivo OUI.
 
@@ -86,7 +86,7 @@ def get_org_from_mac(mac: str) -> str | None:
 
     return None
 
-def get_hostname(ip: str) -> str | None:
+def get_hostname(ip: str):
     """
     Obtiene el hostname asociado a una dirección IP.
 

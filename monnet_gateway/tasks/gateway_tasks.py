@@ -73,7 +73,7 @@ class TaskSched:
             self.weekly_task = WeeklyTask(ctx)
 
             # Launch Thread
-            #self.thread = threading.Thread(target=self.run_task, daemon=True)
+            self.thread = threading.Thread(target=self.run_task, daemon=True)
             self.logger.debug("TaskSched thread created.")
         except KeyError as e:
             self.logger.error(f"KeyError during TaskSched initialization: {e}")
