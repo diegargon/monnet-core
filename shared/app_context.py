@@ -5,9 +5,7 @@ Monnet Shared: Context
 
 """
 
-from monnet_gateway.database.dbmanager import DBManager
 from shared.clogger import Logger
-
 
 class AppContext:
     """
@@ -23,7 +21,6 @@ class AppContext:
             workdir(str): Working Directory
         """
         self.workdir = workdir
-        self._database = None
         self._logger = None
         self._config = None
         self._pb_metadata = {}
@@ -60,7 +57,7 @@ class AppContext:
         """
         Set config
         Args:
-            db_manager: Database manager instance
+            Config instance or none
         """
         self._config = config
 
