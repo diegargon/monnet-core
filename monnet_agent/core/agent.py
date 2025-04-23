@@ -79,6 +79,8 @@ class MonnetAgent:
 
         while self.running:
             current_time = time.time()
+
+            # Collect data
             try:
                 system_metrics = self._collect_system_data()
             except (FileNotFoundError, ValueError, OSError) as e:
@@ -88,7 +90,7 @@ class MonnetAgent:
                 self.logger.err(f"Unexpected error while collecting system data: {e}")
                 system_metrics = {}
 
-            self.logger.debug(f"System metrics collected: {system_metrics}")  # Add debug log
+            self.logger.debug(f"System metrics collected: {system_metrics}")
 
             try:
                 host_logs = self.logger.pop_logs()
@@ -96,7 +98,7 @@ class MonnetAgent:
                 self.logger.err(f"Error while collecting host logs: {e}")
                 host_logs = []
 
-            # Ensure system_metrics and host_logs are not empty before merging
+            # Check if we have any data to send
             data_values = {}
             if system_metrics:
                 data_values.update(system_metrics)
@@ -104,8 +106,8 @@ class MonnetAgent:
                 data_values['host_logs_count'] = len(host_logs)
                 data_values["host_logs"] = host_logs
 
-            self.logger.debug(f"Data values prepared for ping: {data_values}")  # Add debug log
-            self._send_ping(data_values)  # Ensure this is being called
+            self.logger.debug(f"Data values prepared for ping: {data_values}")
+            self._send_ping(data_values)
             self._process_events()
 
             self.running = self.ctx.get_var("running")
