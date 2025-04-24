@@ -6,7 +6,7 @@ Monnet Shared: Time Utilities
 """
 
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo  # Replacing pytz
+from zoneinfo import ZoneInfo
 
 def get_datetime():
     """
