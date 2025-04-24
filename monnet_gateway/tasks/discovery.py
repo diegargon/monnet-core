@@ -6,7 +6,7 @@ Monnet Gateway
 """
 
 import ipaddress
-from time import time
+from time import sleep, time
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
@@ -98,6 +98,7 @@ class DiscoveryHostsTask:
                 if hostname:
                     host_data["hostname"] = hostname
                 discovery_host.append(host_data)
+                sleep(0.1)
 
         try:
             host_service.add_hosts(discovery_host)
