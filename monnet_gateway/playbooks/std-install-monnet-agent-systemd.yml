@@ -4,6 +4,7 @@
 # desc: "Install Monnet Agent on systemd distributions"
 # os: { linux, posix }
 # tags: { monnet, systemd }
+# reqs: { pythoon3.9 }
 ---
 - name: Install Monnet Agent on systemd
   hosts: all
@@ -22,6 +23,22 @@
     - name: Print OS family with a message
       ansible.builtin.debug:
         msg: "The OS family of this host is: {{ ansible_os_family }}"
+
+    - name: Check Python version
+      command: python3 --version
+      register: python_version_output
+      failed_when: python_version_output.rc != 0
+
+    - name: Print Python version output
+      debug:
+        msg: "Python version output: {{ python_version_output.stdout }}"
+
+    - name: Ensure Python version is at least 3.9
+      ansible.builtin.fail:
+        msg: "Python version must be at least 3.9. Found: {{ python_version_output.stdout }}"
+      when: python_version_output.stdout | regex_search('Python ([0-9]+)\.([0-9]+)') is not defined or
+            (python_version_output.stdout | regex_search('Python ([0-9]+)\.([0-9]+)') | regex_replace('Python ', '') | split('.') | map('int') | first < 3 or
+             python_version_output.stdout | regex_search('Python ([0-9]+)\.([0-9]+)') | regex_replace('Python ', '') | split('.') | map('int') | last < 9)
 
     - name: Install Python libs requeriments on Debian-based systems
       ansible.builtin.package:
