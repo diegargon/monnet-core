@@ -11,6 +11,7 @@ from collections import defaultdict
 
 # Local
 from monnet_gateway.database.dbmanager import DBManager
+from monnet_gateway.database.stats_model import StatsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.ports_service import PortsService
@@ -27,6 +28,7 @@ class HostsScanner:
         self.db = DBManager(ctx.get_config())
         self.ports_service = PortsService(ctx)
         self.hosts_service = HostService(ctx)
+        self.stats_model = StatsModel(self.db)
 
     def scan_hosts(self, all_hosts: dict):
         """
@@ -188,6 +190,7 @@ class HostsScanner:
         """
         host_updates = defaultdict(lambda: {"online": 0, "misc": {"latency": 0}})
         port_updates = []
+        stats_updates = {}
 
         for host_status in hosts_status:
             host_id = host_status.get("id")
@@ -202,7 +205,6 @@ class HostsScanner:
             if "port" in host_status:
                 port_online = host_status.get("online", 0)
                 port_latency = host_status.get("latency")
-
                 if port_online == 1:
                     host_updates[host_id]["online"] = 1
                     current_latency = host_updates[host_id].get("misc", {}).get("latency")
@@ -218,12 +220,26 @@ class HostsScanner:
             else:
                 host_updates[host_id]["online"] = host_status.get("online", 0)
 
+
             host_updates[host_id]["misc"]["latency"] = host_status.get("latency")
             host_updates[host_id]["last_check"] = host_status.get("last_check")
-        # Update the database
+            # Stats update
+            stats_updates[host_id] = {
+                "type": 1,
+                "host_id": host_id,
+                "value": host_status.get("latency"),
+                "date": host_status.get("last_check")
+            }
+
 
         for host_id, set_host in host_updates.items():
             self.hosts_service.update(host_id, set_host)
 
         if port_updates:
             self.ports_service.update_ports(port_updates)
+
+        if stats_updates:
+            self.logger.debug(f"stats_updates: {stats_updates}");
+            # Convert stats_updates to a list of dictionaries
+            stats_data = list(stats_updates.values())
+            self.stats_model.update_stats_bulk(stats_data)

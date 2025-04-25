@@ -184,6 +184,20 @@ class DBManager:
         except Exception as e:
             raise RuntimeError(f"Query execution failed: {e}") from e
 
+    def executemany(self, query: str, params: List[Tuple]) -> int:
+        """
+        Execute a query with multiple sets of parameters.
+
+        :param query: SQL query to execute.
+        :param params: List of parameter tuples for the query.
+        :return: Number of affected rows.
+        """
+        try:
+            self.cursor.executemany(query, params)
+            return self.cursor.rowcount
+        except Exception as e:
+            raise RuntimeError(f"Bulk query execution failed: {e}") from e
+
     def commit(self):
         """Commit the current transaction."""
         self.conn.commit()

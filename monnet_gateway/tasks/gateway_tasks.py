@@ -7,7 +7,7 @@ Monnet Gateway - Task Scheduler
 
 import threading
 from time import sleep, time
-import syslog  # Add this import for direct syslog logging
+import syslog
 
 DEFAULT_INTERVAL = 60
 
@@ -115,8 +115,8 @@ class TaskSched:
                         try:
                             self.logger.notice("Running DiscoveryHostsTask...")
                             self.discovery_hosts.run()
-                            self.last_run_time["discovery_hosts"] = current_time
                         finally:
+                            self.last_run_time["discovery_hosts"] = current_time
                             self.task_locks["discovery_hosts"].release()
                             self.logger.notice("Finish DiscoveryHostsTask...")
 
@@ -126,8 +126,8 @@ class TaskSched:
                         try:
                             self.logger.notice("Running known host checker...")
                             self.hosts_checker.run()
-                            self.last_run_time["hosts_checker"] = current_time
                         finally:
+                            self.last_run_time["hosts_checker"] = current_time
                             self.task_locks["hosts_checker"].release()
                             self.logger.notice("Finish known host checker...")
 
@@ -137,8 +137,8 @@ class TaskSched:
                         try:
                             self.logger.debug("Running AnsibleTask...")
                             # self.ansible.run()
-                            self.last_run_time["ansible"] = current_time
                         finally:
+                            self.last_run_time["ansible"] = current_time
                             self.task_locks["ansible"].release()
 
                 # Run PruneTask if the interval has passed
