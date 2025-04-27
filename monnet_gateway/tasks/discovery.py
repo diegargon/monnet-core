@@ -33,6 +33,8 @@ class DiscoveryHostsTask:
         host_service = HostService(self.ctx)
         networks = networks_model.get_all()
 
+        # Move 0.0.0.0/24 to the end of the list to match as default network
+        networks = sorted(networks, key=lambda net: net.get("network") == "0.0.0.0/0")
         ip_list = network_scanner.get_discovery_ips(networks_model, hosts_model)
 
         discovery_host = []
@@ -61,8 +63,6 @@ class DiscoveryHostsTask:
                         "latency": ping_status.get("latency"),
                     },
                 }
-                # Set default as name for network default 1
-                network_name = 'default'
 
                 if mac_result and isinstance(mac_result, str):
                     host_data["mac"] = mac_result
@@ -90,9 +90,13 @@ class DiscoveryHostsTask:
                         continue
 
                     if host_ip in network_cidr:
-                        network_name = network.get("name")
+                        logmsg = f"Discover IP {host_ip} belongs to network {network.get('name')} ({network_cidr})"
+                        self.logger.notice(logmsg)
                         host_data["network"] = network.get("id")
                         break
+                else:
+                    self.logger.warning(f"IP {host_ip} does not belong to any configured network. Assigning to default.")
+                    host_data["network"] = 1  # Default network
 
                 hostname = get_hostname(str(host_ip))
                 if hostname:

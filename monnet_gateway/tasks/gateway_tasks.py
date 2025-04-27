@@ -113,23 +113,23 @@ class TaskSched:
                 if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
                     if self.task_locks["discovery_hosts"].acquire(blocking=False):
                         try:
-                            self.logger.notice("Running DiscoveryHostsTask...")
+                            self.logger.debug("Running DiscoveryHostsTask...")
                             self.discovery_hosts.run()
                         finally:
                             self.last_run_time["discovery_hosts"] = current_time
                             self.task_locks["discovery_hosts"].release()
-                            self.logger.notice("Finish DiscoveryHostsTask...")
+                            self.logger.debug("Finish DiscoveryHostsTask...")
 
                 # Run HostCheckerTask if the interval has passed
                 if current_time - self.last_run_time["hosts_checker"] >= self.task_intervals["hosts_checker"]:
                     if self.task_locks["hosts_checker"].acquire(blocking=False):
                         try:
-                            self.logger.notice("Running known host checker...")
+                            self.logger.debug("Running known host checker...")
                             self.hosts_checker.run()
                         finally:
                             self.last_run_time["hosts_checker"] = current_time
                             self.task_locks["hosts_checker"].release()
-                            self.logger.notice("Finish known host checker...")
+                            self.logger.debug("Finish known host checker...")
 
                 # Run AnsibleTask if the interval has passed
                 if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
