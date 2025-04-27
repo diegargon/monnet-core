@@ -45,10 +45,12 @@ class AnsibleTask:
 
             elif trigger_type == 4:
                 crontime = task.get("crontime")
+                last_triggered = task.get("last_triggered")
                 if crontime and croniter.is_valid(crontime):
                     cron = croniter(crontime, now)
                     next_cron_time = cron.get_next(datetime)
-                    if now >= next_cron_time:
+                    last_cron_time = cron.get_prev(datetime)
+                    if now >= next_cron_time or (last_triggered is not None and last_triggered < last_cron_time):
                         self.logger.info(f"Running task: {task['task_name']} at crontime={crontime}")
                         #run_ansible_playbook(task)
 
@@ -63,6 +65,7 @@ class AnsibleTask:
                             self.logger.debug(
                                 f"Updated task {task['id']} with last_triggered={now}"
                             )
+
                     else:
                         self.logger.debug(
                             f"Task {task['task_name']} with trigger_type=4 will run at {next_cron_time}"
