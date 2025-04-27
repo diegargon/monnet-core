@@ -63,6 +63,10 @@ class AnsibleTask:
                             self.logger.debug(
                                 f"Updated task {task['id']} with last_triggered={now}"
                             )
+                    else:
+                        self.logger.debug(
+                            f"Task {task['task_name']} with trigger_type=4 will run at {next_cron_time}"
+                        )
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
                 self.logger.info(f"Running task: {task['task_name']}")
