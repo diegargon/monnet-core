@@ -5,11 +5,17 @@ Monnet Gateway
 
 """
 
+# Std
+
+from datetime import datetime, timedelta
+
+# Third-party
+from croniter import croniter
+
+# Local
 from shared.app_context import AppContext
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
-from monnet_gateway.database.dbmanager import DBManager  # Import DBManager
-from datetime import datetime, timedelta
-from croniter import croniter
+from monnet_gateway.database.dbmanager import DBManager
 
 class AnsibleTask:
     """Ejecuta tareas Ansible según la configuración en la base de datos."""
@@ -36,7 +42,7 @@ class AnsibleTask:
 
             if trigger_type == 1:
                 self.logger.info(f"Running task: {task['task_name']}")
-                #run_ansible_playbook(task)
+                #run_ansible_playbook(task['playbook']))
 
                 with self.db.transaction():
                     # Delete task after execution
@@ -52,7 +58,7 @@ class AnsibleTask:
                     last_cron_time = cron.get_prev(datetime)
                     if now >= next_cron_time or (last_triggered is not None and last_triggered < last_cron_time):
                         self.logger.info(f"Running task: {task['task_name']} at crontime={crontime}")
-                        #run_ansible_playbook(task)
+                        #run_ansible_playbook(task['playbook']))
 
                         with self.db.transaction():
                             self.db.update(
@@ -73,7 +79,7 @@ class AnsibleTask:
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
                 self.logger.info(f"Running task: {task['task_name']}")
-                #run_ansible_playbook(task)
+                #run_ansible_playbook(task['playbook']))
 
                 # Calculate new triggers
                 new_last_triggered = now

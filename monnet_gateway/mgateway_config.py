@@ -5,7 +5,7 @@ Monnet Gateway - Config file
 """
 
 GW_VERSION = "0.8"
-GW_VERSION_MINOR = 17
+GW_VERSION_MINOR = 19
 GW_F_VERSION =  str(GW_VERSION) + "." + str(GW_VERSION_MINOR)
 
 HOST = 'localhost'
