@@ -18,7 +18,7 @@ from shared.app_context import AppContext
 class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls, mock_load_file_config, mock_db_manager):
+    def setUpClass(cls):
         """Configure the environment to start the server once"""
 
         cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
