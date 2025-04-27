@@ -15,11 +15,11 @@ from constants import EventType
 
 class EventProcessor:
     """
-        Event Processor. Process and track the events avoid spamming
+        Event Processor. Process and track the events to avoid spamming
     """
     def __init__(self, ctx: AppContext):
         """
-        Inicializa el procesador de eventos.
+        Initializes the event processor.
         """
         self.ctx = ctx
         self.logger = ctx.get_logger()
@@ -35,14 +35,14 @@ class EventProcessor:
 
     def process_changes(self, datastore) -> List[Dict[str, Any]]:
         """
-        Procesa los cambios en los datos del Datastore
-        Devuelve una lista de eventos que no hayan sido enviados recientemente o hayan expirado.
+        Processes changes in the datastore.
+        Returns a list of events that have not been sent recently or have expired.
         """
         events = []
         current_time = time.time()
         # Event > Iowait threshold
         iowait = datastore.get_data("last_iowait")
-        if iowait is not None and iowait > agent_config.WARN_THRESHOLD:  # Verifica que no sea None
+        if iowait is not None and iowait > agent_config.WARN_THRESHOLD:  # Check that it is not None
             event_id = "high_io_delay"
             if event_id not in self.event_start_times:
                 self.event_start_times[event_id] = current_time
@@ -132,7 +132,7 @@ class EventProcessor:
                 # If the memory usage is below the threshold, remove the event start time
                 self.event_start_times.pop("high_memory_usage", None)
 
-        # Evento: Disk threshold
+        # Event: Disk threshold
         disk_info = datastore.get_data("last_disk_info")
         if isinstance(disk_info, dict) and "disksinfo" in disk_info:
             for stats in disk_info["disksinfo"]:
@@ -172,7 +172,7 @@ class EventProcessor:
 
     def _should_send_event(self, event_id: str, current_time: float) -> bool:
         """
-        Verify if we send the event (time mark)
+        Verify if we should send the event (time mark)
         """
         last_time = self.processed_events.get(event_id)
         return last_time is None or (current_time - last_time > self.event_expiration)
