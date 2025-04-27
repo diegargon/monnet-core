@@ -21,6 +21,7 @@ class TestMonnetGateway(unittest.TestCase):
     @classmethod
     @patch('monnet_gateway.database.dbmanager.DBManager')
     @patch('monnet_gateway.services.config.Config._load_file_config')
+    @patch('monnet_gateway.mgateway.mgateway_config.CONFIG_DB_PATH', new='/tmp/mock-config-db.json')
     def setUpClass(cls, mock_load_file_config, mock_db_manager):
         """Configure the environment to start the server once"""
         # Mock the database connection
