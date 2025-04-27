@@ -1,6 +1,4 @@
 """
-@copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
-
 Just initial Near do nothing test
 """
 # Standard
@@ -8,68 +6,63 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 import subprocess
-
-#import socket
-import sys
 import os
 import signal
 import time
 import select
-from pathlib import Path
 
 # Local
+from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from shared.app_context import AppContext
-# Modificar sys.path para incluir el directorio monnet_gateway
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
 
 class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        """Configurar el entorno para iniciar el servidor una vez"""
-        cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
-        assert os.path.exists(cls.server_script), f"El script no existe: {cls.server_script}"
-        print(f"Usando el script del servidor: {cls.server_script}")
+    @patch('monnet_gateway.database.dbmanager.DBManager')
+    def setUpClass(cls, mock_db_manager):
+        """Configure the environment to start the server once"""
+        # Mock the database connection
+        mock_db_instance = MagicMock(spec=DBManager)
+        mock_db_manager.return_value = mock_db_instance
 
-        # Iniciar el servidor en un subproceso
+        cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
+        assert os.path.exists(cls.server_script), f"The script does not exist: {cls.server_script}"
+        print(f"Using server script: {cls.server_script}")
+
+        # Start the server in a subprocess
         cls.server_process = subprocess.Popen(
             ["python3", cls.server_script, "--working-dir", os.getcwd(), "--no-daemon"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        time.sleep(2)  # Dar tiempo para que el servidor inicie
+        time.sleep(2)  # Allow time for the server to start
 
-        """ Verificar que arranco """
+        """ Verify it started """
         if cls.server_process.poll() is not None:
             stdout, stderr = cls.server_process.communicate()
             raise RuntimeError(
-                f"El servidor no se inició correctamente:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}\n"
-                f"Directorio actual: {os.getcwd()}"
+                f"The server did not start correctly:\nSTDOUT: {stdout.decode()}\nSTDERR: {stderr.decode()}\n"
+                f"Current directory: {os.getcwd()}"
             )
 
     @classmethod
     def tearDownClass(cls):
-        """Detener el servidor después de todas las pruebas"""
-        if cls.server_process.poll() is None:  # Si el proceso sigue activo
+        """Stop the server after all tests"""
+        if cls.server_process.poll() is None:  # If the process is still active
             os.kill(cls.server_process.pid, signal.SIGTERM)
             cls.server_process.wait()
 
     def test_server_is_running(self):
-        """Verificar que el servidor sigue ejecutándose después de iniciarlo"""
+        """Check that the server is still running after starting it"""
         self.assertIsNone(
             self.server_process.poll(),
-            "El servidor no está corriendo después de iniciarlo"
+            "The server is not running after being started"
         )
 
     def test_server_no_output(self):
-        """Comprobar que el servidor no produce salida inesperada al iniciarse"""
-        # Esperar un breve momento para verificar salida
+        """Check that the server does not produce unexpected output upon startup"""
+        # Wait a short moment to check output
         time.sleep(3)
 
         stdout_lines = []
@@ -77,7 +70,7 @@ class TestMonnetGateway(unittest.TestCase):
 
         start_time = time.time()
         while time.time() - start_time < 3:
-            # Usamos select para verificar si hay datos para leer sin bloquear
+            # Use select to check if there is data to read without blocking
             readable, _, _ = select.select([self.server_process.stdout, self.server_process.stderr], [], [], 0.1)
 
             for stream in readable:
@@ -93,10 +86,10 @@ class TestMonnetGateway(unittest.TestCase):
 
             time.sleep(0.1)
 
-        self.assertEqual(b"".join(stdout_lines), b"", "El servidor produjo salida inesperada en stdout")
-        self.assertEqual(b"".join(stderr_lines), b"", "El servidor produjo errores en stderr")
+        self.assertEqual(b"".join(stdout_lines), b"", "The server produced unexpected output on stdout")
+        self.assertEqual(b"".join(stderr_lines), b"", "The server produced errors on stderr")
 
-        # Imprimimos la salida si existe
+        # Print the output if it exists
         if stdout_lines:
             print("stdout server lines:")
             print(b"".join(stdout_lines).decode())
@@ -108,22 +101,22 @@ class TestMonnetGateway(unittest.TestCase):
     @patch('subprocess.Popen')
     def test_run_ansible_playbook_success(self, mock_subprocess):
         ctx = AppContext(os.getcwd())
-        # Simular un resultado exitoso de Ansible
-        mock_process = MagicMock()  # Creamos el mock del proceso
-        mock_process.returncode = 0  # El código de salida es 0 (éxito)
+        # Simulate a successful Ansible result
+        mock_process = MagicMock()  # Create the mock process
+        mock_process.returncode = 0  # The exit code is 0 (success)
         mock_process.communicate.return_value = (
             b'{"status": "success", "result": {"custom_stats": {}, "global_custom_stats": {}}}',
             b"")
 
-        # Cuando se llame a subprocess.Popen, devolveremos nuestro mock del proceso
+        # When subprocess.Popen is called, we will return our mock process
         mock_subprocess.return_value = mock_process
 
-        # Llamar a la función
+        # Call the function
         result = run_ansible_playbook(ctx, "test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
 
         result_dict = json.loads(result)
-        print("Resultado completo:", result_dict)
-        # Validar el resultado
+        print("Complete result:", result_dict)
+        # Validate the result
         self.assertEqual(result_dict['status'], 'success')
         self.assertEqual(result_dict['result']['custom_stats'], {})
         self.assertEqual(result_dict['result']['global_custom_stats'], {})
@@ -131,10 +124,10 @@ class TestMonnetGateway(unittest.TestCase):
 """
     @patch('subprocess.run')
     def test_run_ansible_playbook_failure(self, mock_subprocess):
-        # Simular un error en Ansible
+        # Simulate an error in Ansible
         mock_subprocess.return_value = MagicMock(returncode=1, stdout=b"", stderr=b"Error ejecutando Ansible")
 
-        # Validar que se lance una excepción
+        # Validate that an exception is raised
         with self.assertRaises(Exception):
             run_ansible_playbook("test_playbook.yml", {"var1": "value1"})
 """
