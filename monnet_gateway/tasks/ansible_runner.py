@@ -9,7 +9,7 @@ from shared.app_context import AppContext
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from monnet_gateway.database.dbmanager import DBManager  # Import DBManager
 from datetime import datetime, timedelta
-from croniter import croniter  # Import croniter for parsing cron expressions
+from croniter import croniter
 
 class AnsibleTask:
     """Ejecuta tareas Ansible según la configuración en la base de datos."""
