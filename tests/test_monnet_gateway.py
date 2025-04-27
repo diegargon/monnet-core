@@ -15,10 +15,12 @@ import select
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from shared.app_context import AppContext
+
 class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
+    @patch('monnet_gateway.database.dbmanager.DBManager._connect', return_value=None)
+    def setUpClass(cls, mock_db_connect):
         """Configure the environment to start the server once"""
 
         cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
