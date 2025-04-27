@@ -30,6 +30,7 @@ class TestDatastoreCRUD:
 
 class TestDatastorePersistence:
     def test_auto_save(self, datastore, temp_json_file, mock_logger):
+        assert datastore.logger is mock_logger
         datastore.save_interval = 0.10  # Force quick save
         datastore.last_save = time.time() - 0.11  # Expire the last save
         assert datastore.update_data("test", {"value": 1}) is True
