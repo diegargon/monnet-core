@@ -25,7 +25,12 @@ class EventProcessor:
         self.logger = ctx.get_logger()
         # Dict  processed events with time stamp
         self.processed_events: Dict[str, float] = {}
+        # Used to track the start time of events, to avoid alert if the event
+        # is still active after the THRESHOLD_DURATION
+
+        self.event_start_times: Dict[str, float] = {}
         self.event_expiration = agent_config.EVENT_EXPIRATION
+        self.threshold_duration = agent_config.THRESHOLD_DURATION  
 
     def process_changes(self, datastore) -> List[Dict[str, Any]]:
         """
@@ -36,80 +41,95 @@ class EventProcessor:
         current_time = time.time()
         # Event > Iowait threshold
         iowait = datastore.get_data("last_iowait")
-        if iowait  > agent_config.WARN_THRESHOLD:
+        if iowait is not None and iowait > agent_config.WARN_THRESHOLD:  # Verifica que no sea None
             event_id = "high_io_delay"
-            if iowait > agent_config.ALERT_THRESHOLD :
-                log_level = LogLevel.ALERT# globals.LT_EVENT_ALERT
-            else:
-                log_level = LogLevel.WARNING
-            event_type = EventType.HIGH_IOWAIT
+            if event_id not in self.event_start_times:
+                self.event_start_times[event_id] = current_time
+            elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
+                if iowait > agent_config.ALERT_THRESHOLD:
+                    log_level = LogLevel.ALERT
+                else:
+                    log_level = LogLevel.WARNING
+                event_type = EventType.HIGH_IOWAIT
 
-            if self._should_send_event(event_id, current_time) :
-                events.append({
-                    "name": "high_iowait",
-                    "data": {
-                        "iowait": iowait,
-                        "event_value": iowait,
-                        "log_level": log_level,
-                        "event_type": event_type
+                if self._should_send_event(event_id, current_time):
+                    events.append({
+                        "name": "high_iowait",
+                        "data": {
+                            "iowait": iowait,
+                            "event_value": iowait,
+                            "log_level": log_level,
+                            "event_type": event_type
                         }
-                })
-                self._mark_event(event_id, current_time)
+                    })
+                    self._mark_event(event_id, current_time)
+        else:
+            # If the iowait is below the threshold, remove the event start time
+            self.event_start_times.pop("high_io_delay", None)
 
-        # Event: > CPU threshold
         load_avg = datastore.get_data("last_load_avg")
         # logpo("Load avg", load_avg, "debug")
-        if load_avg and "loadavg" in load_avg :
+        if load_avg and "loadavg" in load_avg:
             loadavg_data = load_avg["loadavg"]
             if (
                 loadavg_data.get("usage") is not None
                 and loadavg_data.get("usage") > agent_config.WARN_THRESHOLD
             ):
-
-                if loadavg_data.get("usage") > agent_config.ALERT_THRESHOLD :
-                    log_level = LogLevel.ALERT
-                else:
-                    log_level = LogLevel.WARNING
-
-                event_type = EventType.HIGH_CPU_USAGE
                 event_id = "high_cpu_usage"
+                if event_id not in self.event_start_times:
+                    self.event_start_times[event_id] = current_time
+                elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
+                    if loadavg_data.get("usage") > agent_config.ALERT_THRESHOLD:
+                        log_level = LogLevel.ALERT
+                    else:
+                        log_level = LogLevel.WARNING
+                    event_type = EventType.HIGH_CPU_USAGE
 
-                if self._should_send_event(event_id, current_time):
-                    events.append({
-                        "name": "high_cpu_usage",
-                        "data": {
-                            "cpu_usage": loadavg_data["usage"],
-                            "event_value": loadavg_data.get("usage"),
-                            "log_level": log_level,
-                            "event_type": event_type}
-                    })
-                    self._mark_event(event_id, current_time)
+                    if self._should_send_event(event_id, current_time):
+                        events.append({
+                            "name": "high_cpu_usage",
+                            "data": {
+                                "cpu_usage": loadavg_data["usage"],
+                                "event_value": loadavg_data.get("usage"),
+                                "log_level": log_level,
+                                "event_type": event_type
+                            }
+                        })
+                        self._mark_event(event_id, current_time)
+            else:
+                # If the CPU usage is below the threshold, remove the event start time
+                self.event_start_times.pop("high_cpu_usage", None)
 
         # Event: > Memory threshold
         memory_info = datastore.get_data("last_memory_info")
         # logpo("Memory info", memory_info, "debug")
         if memory_info and "meminfo" in memory_info:
             meminfo_data = memory_info["meminfo"]
-            if meminfo_data["percent"] > agent_config.WARN_THRESHOLD :
+            if meminfo_data["percent"] > agent_config.WARN_THRESHOLD:
                 event_id = "high_memory_usage"
-                if meminfo_data["percent"] > agent_config.ALERT_THRESHOLD :
-                    log_level = LogLevel.ALERT
-                else:
-                    log_level = LogLevel.WARNING
+                if event_id not in self.event_start_times:
+                    self.event_start_times[event_id] = current_time
+                elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
+                    if meminfo_data["percent"] > agent_config.ALERT_THRESHOLD:
+                        log_level = LogLevel.ALERT
+                    else:
+                        log_level = LogLevel.WARNING
+                    event_type = EventType.HIGH_MEMORY_USAGE
 
-                event_type = EventType.HIGH_MEMORY_USAGE
-
-                if self._should_send_event(event_id, current_time) :
-                    events.append({
-                        "name": "high_memory_usage",
-                        "data": {
-                            "memory_usage": meminfo_data,
-                            "event_value": meminfo_data["percent"],
-                            "log_level": log_level,
-                            "event_type": event_type
+                    if self._should_send_event(event_id, current_time):
+                        events.append({
+                            "name": "high_memory_usage",
+                            "data": {
+                                "memory_usage": meminfo_data,
+                                "event_value": meminfo_data["percent"],
+                                "log_level": log_level,
+                                "event_type": event_type
                             }
-                    })
-                    self._mark_event(event_id, current_time)
+                        })
+                        self._mark_event(event_id, current_time)
+            else:
+                # If the memory usage is below the threshold, remove the event start time
+                self.event_start_times.pop("high_memory_usage", None)
 
         # Evento: Disk threshold
         disk_info = datastore.get_data("last_disk_info")
