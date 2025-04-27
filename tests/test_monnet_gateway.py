@@ -19,14 +19,19 @@ from shared.app_context import AppContext
 class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
-    @patch('mysql.connector.connect')
+    @patch('monnet_gateway.database.dbmanager.DBManager')
     @patch('monnet_gateway.services.config.Config._load_db_config')
-    def setUpClass(cls, mock_load_db_config, mock_mysql_connect):
+    def setUpClass(cls, mock_load_db_config, mock_db_manager):
         """Configure the environment to start the server once"""
 
-        # Mock the database connection
-        mock_conn = MagicMock()
-        mock_mysql_connect.return_value = mock_conn
+        # Mock the DBManager class
+        mock_db_instance = MagicMock()
+        mock_db_manager.return_value = mock_db_instance
+
+        # Mock specific DBManager methods if needed
+        mock_db_instance.fetchone.return_value = {"key": "value"}
+        mock_db_instance.fetchall.return_value = [{"key": "value1"}, {"key": "value2"}]
+        mock_db_instance.execute.return_value = 1
 
         # Mock the config loading
         mock_load_db_config.return_value = None
@@ -116,6 +121,7 @@ class TestMonnetGateway(unittest.TestCase):
         )
         mock_process.returncode = 0
         mock_subprocess.return_value = mock_process
+
         # Call the function
         result = run_ansible_playbook(ctx, "test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
 
