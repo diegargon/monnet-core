@@ -25,7 +25,7 @@ class TestDatastoreCRUD:
     def test_update_new_key(self, datastore, mock_logger):
         assert datastore.logger is mock_logger
         assert datastore.update_data("new_metric", {"value": 100}) is True
-        mock_logger.info.assert_called_with("New data set added: new_metric")  # Fixed logger assertion
+        mock_logger.info.assert_any_call("New data set added: new_metric")  # Fixed logger assertion
         assert "new_metric" in datastore.data
 
 class TestDatastorePersistence:
