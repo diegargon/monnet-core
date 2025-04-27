@@ -25,16 +25,15 @@ class TestDatastoreCRUD:
     def test_update_new_key(self, datastore, mock_logger):
         assert datastore.logger is mock_logger
         assert datastore.update_data("new_metric", {"value": 100}) is True
-#   Fix before logger to class
-#        mock_logger.info.assert_called_with("New data set added: new_metric")
-#        assert "new_metric" in datastore.data
+        mock_logger.info.assert_called_with("New data set added: new_metric")  # Fixed logger assertion
+        assert "new_metric" in datastore.data
 
 class TestDatastorePersistence:
     def test_auto_save(self, datastore, temp_json_file, mock_logger):
-        datastore.save_interval = 0.10  # Forzamos guardado rápido
-        datastore.last_save = time.time() - 0.11 # Caducamos
+        datastore.save_interval = 0.10  # Force quick save
+        datastore.last_save = time.time() - 0.11  # Expire the last save
         assert datastore.update_data("test", {"value": 1}) is True
-        time.sleep(0.20)  # Esperar a que se guarde
+        time.sleep(0.20)  # Wait for the save to occur
         with open(temp_json_file, "r", encoding="utf-8") as f:
             assert "test" in json.load(f)
 
