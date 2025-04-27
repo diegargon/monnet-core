@@ -3,7 +3,7 @@ Just initial Near do nothing test
 """
 # Standard
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 import json
 import subprocess
 import os
@@ -19,12 +19,18 @@ from shared.app_context import AppContext
 class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
-    @patch('monnet_gateway.database.dbmanager.DBManager._connect', return_value=None)
-    def setUpClass(cls, mock_db_connect):
+    @patch('monnet_gateway.database.dbmanager.DBManager._connect')
+    @patch('monnet_gateway.services.config.Config._load_db_config')
+    def setUpClass(cls,  mock_load_db_config, mock_db_connect):
         """Configure the environment to start the server once"""
+
+        # Mock the database connection and config loading
+        mock_db_connect.return_value = None
+        mock_load_db_config.return_value = None
 
         cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
         assert os.path.exists(cls.server_script), f"The script does not exist: {cls.server_script}"
+
         print(f"Using server script: {cls.server_script}")
 
         # Start the server in a subprocess
@@ -99,6 +105,14 @@ class TestMonnetGateway(unittest.TestCase):
     def test_run_ansible_playbook_success(self, mock_subprocess):
         ctx = AppContext(os.getcwd())
 
+        # Mock the subprocess response
+        mock_process = MagicMock()
+        mock_process.communicate.return_value = (
+            b'{"stats": {}, "custom_stats": {}, "global_custom_stats": {}}',
+            b''
+        )
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         # Call the function
         result = run_ansible_playbook(ctx, "test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
 
