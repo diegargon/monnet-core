@@ -23,14 +23,15 @@ class EventProcessor:
         """
         self.ctx = ctx
         self.logger = ctx.get_logger()
+
         # Dict  processed events with time stamp
         self.processed_events: Dict[str, float] = {}
+
         # Used to track the start time of events, to avoid alert if the event
         # is still active after the THRESHOLD_DURATION
-
         self.event_start_times: Dict[str, float] = {}
         self.event_expiration = agent_config.EVENT_EXPIRATION
-        self.threshold_duration = agent_config.THRESHOLD_DURATION  
+        self.threshold_duration = agent_config.THRESHOLD_DURATION
 
     def process_changes(self, datastore) -> List[Dict[str, Any]]:
         """
@@ -136,26 +137,32 @@ class EventProcessor:
         if isinstance(disk_info, dict) and "disksinfo" in disk_info:
             for stats in disk_info["disksinfo"]:
                 if isinstance(stats, dict):
-                    if stats.get("percent")  and stats["percent"] > agent_config.WARN_THRESHOLD :
-                        if stats["percent"] > agent_config.ALERT_THRESHOLD :
-                            log_level = LogLevel.ALERT
-                        else:
-                            log_level = LogLevel.WARNING
-
-                        event_type = EventType.HIGH_DISK_USAGE
+                    if stats.get("percent") and stats["percent"] > agent_config.WARN_THRESHOLD:
                         event_id = f"high_disk_usage_{stats.get('device', 'unknown')}"
+                        if event_id not in self.event_start_times:
+                            self.event_start_times[event_id] = current_time
+                        elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
+                            if stats["percent"] > agent_config.ALERT_THRESHOLD:
+                                log_level = LogLevel.ALERT
+                            else:
+                                log_level = LogLevel.WARNING
 
-                        if self._should_send_event(event_id, current_time):
-                            events.append({
-                                "name": "high_disk_usage",
-                                "data": {
-                                    "disks_stats": stats,
-                                    "event_value": stats["percent"],
-                                    "log_level": log_level,
-                                    "event_type": event_type
+                            event_type = EventType.HIGH_DISK_USAGE
+
+                            if self._should_send_event(event_id, current_time):
+                                events.append({
+                                    "name": "high_disk_usage",
+                                    "data": {
+                                        "disks_stats": stats,
+                                        "event_value": stats["percent"],
+                                        "log_level": log_level,
+                                        "event_type": event_type
                                     }
-                            })
-                            self._mark_event(event_id, current_time)
+                                })
+                                self._mark_event(event_id, current_time)
+                    else:
+                        # If the disk usage is below the threshold, remove the event start time
+                        self.event_start_times.pop(f"high_disk_usage_{stats.get('device', 'unknown')}", None)
         else:
             self.logger.log(f"Unexpected structure in disk info: {type(disk_info)} -> {disk_info}", "err")
         # Cleanup processed_events
