@@ -20,11 +20,15 @@ class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
     @patch('monnet_gateway.database.dbmanager.DBManager')
-    def setUpClass(cls, mock_db_manager):
+    @patch('monnet_gateway.services.config.Config._load_file_config')
+    def setUpClass(cls, mock_load_file_config, mock_db_manager):
         """Configure the environment to start the server once"""
         # Mock the database connection
         mock_db_instance = MagicMock(spec=DBManager)
         mock_db_manager.return_value = mock_db_instance
+
+        # Mock the configuration file loading
+        mock_load_file_config.return_value = None
 
         cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
         assert os.path.exists(cls.server_script), f"The script does not exist: {cls.server_script}"
