@@ -16,7 +16,18 @@ test:
     - pip install -r requirements.txt
     - python -c "import sys; print('PYTHONPATH is:', sys.path)"
     - ls -al
-    - echo '' > /etc/monnet/config-db.json
+    - mkdir -p /etc/monnet  # Ensure the directory exists
+    - |
+      cat <<EOF > /etc/monnet/config-db.json
+      {
+        "host": "localhost",
+        "port": 3306,
+        "database": "monnet",
+        "user": "usuario",
+        "password": "mypass",
+        "python_driver": "mysql-connector"
+      }
+      EOF
     - pytest -v tests/
 
 deploy_to_github:
