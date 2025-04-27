@@ -16,6 +16,7 @@ test:
     - pip install -r requirements.txt
     - python -c "import sys; print('PYTHONPATH is:', sys.path)"
     - ls -al
+    - touch /etc/monnet/config-db.json
     - pytest -v tests/
 
 deploy_to_github:

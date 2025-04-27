@@ -15,13 +15,9 @@ import select
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from shared.app_context import AppContext
-
-@patch('monnet_gateway.mgateway.mgateway_config.CONFIG_DB_PATH', new='/tmp/mock-config-db.json')
 class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
-    @patch('monnet_gateway.database.dbmanager.DBManager')
-    @patch('monnet_gateway.services.config.Config._load_file_config')
     def setUpClass(cls, mock_load_file_config, mock_db_manager):
         """Configure the environment to start the server once"""
         # Mock the database connection
