@@ -3,7 +3,7 @@ Just initial Near do nothing test
 """
 # Standard
 import unittest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock
 import json
 import subprocess
 import os
@@ -19,13 +19,16 @@ from shared.app_context import AppContext
 class TestMonnetGateway(unittest.TestCase):
 
     @classmethod
-    @patch('monnet_gateway.database.dbmanager.DBManager._connect')
+    @patch('mysql.connector.connect')
     @patch('monnet_gateway.services.config.Config._load_db_config')
-    def setUpClass(cls,  mock_load_db_config, mock_db_connect):
+    def setUpClass(cls, mock_load_db_config, mock_mysql_connect):
         """Configure the environment to start the server once"""
 
-        # Mock the database connection and config loading
-        mock_db_connect.return_value = None
+        # Mock the database connection
+        mock_conn = MagicMock()
+        mock_mysql_connect.return_value = mock_conn
+
+        # Mock the config loading
         mock_load_db_config.return_value = None
 
         cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
