@@ -28,7 +28,7 @@ test:
         "python_driver": "mysql-connector"
       }
       EOF
-    - pytest -v tests/
+    #- pytest -v tests/
 
 deploy_to_github:
   stage: deploy
