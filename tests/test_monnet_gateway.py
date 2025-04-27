@@ -20,12 +20,6 @@ class TestMonnetGateway(unittest.TestCase):
     @classmethod
     def setUpClass(cls, mock_load_file_config, mock_db_manager):
         """Configure the environment to start the server once"""
-        # Mock the database connection
-        mock_db_instance = MagicMock(spec=DBManager)
-        mock_db_manager.return_value = mock_db_instance
-
-        # Mock the configuration file loading
-        mock_load_file_config.return_value = None
 
         cls.server_script = os.path.abspath("monnet_gateway/mgateway.py")
         assert os.path.exists(cls.server_script), f"The script does not exist: {cls.server_script}"
@@ -102,15 +96,6 @@ class TestMonnetGateway(unittest.TestCase):
     @patch('subprocess.Popen')
     def test_run_ansible_playbook_success(self, mock_subprocess):
         ctx = AppContext(os.getcwd())
-        # Simulate a successful Ansible result
-        mock_process = MagicMock()  # Create the mock process
-        mock_process.returncode = 0  # The exit code is 0 (success)
-        mock_process.communicate.return_value = (
-            b'{"status": "success", "result": {"custom_stats": {}, "global_custom_stats": {}}}',
-            b"")
-
-        # When subprocess.Popen is called, we will return our mock process
-        mock_subprocess.return_value = mock_process
 
         # Call the function
         result = run_ansible_playbook(ctx, "test.yml", {"var1": "value1"}, "127.0.0.1", "ansible")
