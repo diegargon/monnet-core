@@ -40,6 +40,12 @@ class AnsibleTask:
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
 
+            # 1 Uniq task: run and delete
+            # 2 Manual: Ignore, triggered by user
+            # 3 Event Response: Ignore, triggered by event
+            # 4 Cron: run if cron time is reached
+            # 5 Interval: run if interval time is reached
+            # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
                 self.logger.info(f"Running task: {task['task_name']}")
                 #run_ansible_playbook(task['playbook']))
@@ -52,11 +58,20 @@ class AnsibleTask:
             elif trigger_type == 4:
                 crontime = task.get("crontime")
                 last_triggered = task.get("last_triggered")
+                created = task.get("created")
                 if crontime and croniter.is_valid(crontime):
                     cron = croniter(crontime, now)
                     next_cron_time = cron.get_next(datetime)
                     last_cron_time = cron.get_prev(datetime)
-                    if now >= next_cron_time or (last_triggered is not None and last_triggered < last_cron_time):
+                    # Run the task if:
+                    # 1 Normal: if now is equal or greater than next_cron_time
+                    # 2 Last triggered is less than last_cron_time (Missing Task Run)
+                    # 3 Never triggered and the last cron (never none) is greater than created time
+                    if (
+                        now >= next_cron_time or
+                        (last_triggered is not None and last_triggered < last_cron_time) or
+                        (last_triggered is None and now >= last_cron_time and last_cron_time > created)
+                    ):
                         self.logger.info(f"Running task: {task['task_name']} at crontime={crontime}")
                         #run_ansible_playbook(task['playbook']))
 
@@ -70,12 +85,17 @@ class AnsibleTask:
                             )
                             self.logger.debug(
                                 f"Updated task {task['id']} with last_triggered={now}"
+                                f"and next_trigger={next_cron_time}"
                             )
 
                     else:
                         self.logger.debug(
                             f"Task {task['task_name']} with trigger_type=4 will run at {next_cron_time}"
                         )
+                else:
+                    self.logger.warning(
+                        f"Invalid crontime format for task {task['task_name']}: {crontime}"
+                    )
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
                 self.logger.info(f"Running task: {task['task_name']}")
@@ -103,7 +123,7 @@ class AnsibleTask:
     def _parse_interval(self, interval: str) -> int:
         """
         Parse task_interval string into seconds.
-        Supported formats: Xm (minutes), Xh (hours), Xd (days).
+        Supported formats: Xm (minutes), Xh (hours), Xd (days),  Xmo(months) and Xy (years).
         Defaults to 1 minute if invalid.
         """
         try:
@@ -113,6 +133,10 @@ class AnsibleTask:
                 return int(interval[:-1]) * 3600
             elif interval.endswith("d"):
                 return int(interval[:-1]) * 86400
+            elif interval.endswith("mo"):
+                return int(interval[:-2]) * 2592000
+            elif interval.endswith("y"):
+                return int(interval[:-1]) * 31536000
         except ValueError:
             pass
-        return 60  # Default to 1 minute
+        return 60
