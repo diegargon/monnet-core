@@ -4,3 +4,4 @@ pyyaml
 requests
 urllib3
 croniter
+cryptography

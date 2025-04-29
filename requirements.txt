@@ -7,3 +7,4 @@ requests
 urllib3
 mysql-connector-python
 croniter
+cryptography
