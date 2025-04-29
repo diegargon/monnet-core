@@ -16,6 +16,7 @@ from croniter import croniter
 from shared.app_context import AppContext
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from monnet_gateway.database.dbmanager import DBManager
+from monnet_gateway.database.ansible_model import AnsibleModel
 
 class AnsibleTask:
     """Ejecuta tareas Ansible según la configuración en la base de datos."""
@@ -23,10 +24,11 @@ class AnsibleTask:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.db = DBManager(ctx.get_config())
+        self.ansible_model = AnsibleModel(self.db)
 
     def run(self):
         self.logger.debug("Execution ansible task...")
-        tasks = self.db.fetchall("SELECT * FROM tasks WHERE disable = 0")
+        tasks = self.ansible_model.fetch_active_tasks()
         now = datetime.now()
 
         for task in tasks:
@@ -39,6 +41,11 @@ class AnsibleTask:
             interval_seconds = self._parse_interval(task_interval)
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
+            hid = task.get("hid")  # Obtener el hid del task
+
+            # Obtener las variables Ansible asociadas al hid
+            ansible_vars = self.ansible_model.fetch_ansible_vars_by_hid(hid)
+            extra_vars = {var["vkey"]: var["vvalue"] for var in ansible_vars}
 
             # 1 Uniq task: run and delete
             # 2 Manual: Ignore, triggered by user
@@ -48,12 +55,10 @@ class AnsibleTask:
             # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
                 self.logger.info(f"Running task: {task['task_name']}")
-                #run_ansible_playbook(task['playbook']))
+                #run_ansible_playbook(task['playbook'], extra_vars=extra_vars)
 
-                with self.db.transaction():
-                    # Delete task after execution
-                    self.db.execute("DELETE FROM tasks WHERE id = %s", (task["id"],))
-                    self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
+                self.ansible_model.delete_task(task["id"])
+                self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
             elif trigger_type == 4:
                 crontime = task.get("crontime")
@@ -73,52 +78,27 @@ class AnsibleTask:
                         (last_triggered is None and now >= last_cron_time and last_cron_time > created)
                     ):
                         self.logger.info(f"Running task: {task['task_name']} at crontime={crontime}")
-                        #run_ansible_playbook(task['playbook']))
-
-                        with self.db.transaction():
-                            self.db.update(
-                                "tasks",
-                                data={
-                                    "last_triggered": now.strftime("%Y-%m-%d %H:%M:%S"),
-                                },
-                                where={"id": task["id"]},
-                            )
-                            self.logger.debug(
-                                f"Updated task {task['id']} with last_triggered={now}"
-                                f"and next_trigger={next_cron_time}"
-                            )
-
-                    else:
+                        #run_ansible_playbook(task['playbook'], extra_vars=extra_vars)
+                        self.ansible_model.update_task_triggers(task["id"], last_triggered=now)
                         self.logger.debug(
-                            f"Task {task['task_name']} with trigger_type=4 will run at {next_cron_time}"
+                            f"Updated task {task['id']} with last_triggered={now} "
+                            f"and next_trigger={next_cron_time}"
                         )
-                else:
-                    self.logger.warning(
-                        f"Invalid crontime format for task {task['task_name']}: {crontime}"
-                    )
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
                 self.logger.info(f"Running task: {task['task_name']}")
-                #run_ansible_playbook(task['playbook']))
+                #run_ansible_playbook(task['playbook'], extra_vars=extra_vars)
 
                 # Calculate new triggers
                 new_last_triggered = now
                 new_next_trigger = now + timedelta(seconds=interval_seconds)
-
-                with self.db.transaction():
-                    # Update triggers for tasks with trigger_type 5
-                    self.db.update(
-                        "tasks",
-                        data={
-                            "last_triggered": new_last_triggered.strftime("%Y-%m-%d %H:%M:%S"),
-                            "next_trigger": new_next_trigger.strftime("%Y-%m-%d %H:%M:%S"),
-                        },
-                        where={"id": task["id"]},
-                    )
-                    self.logger.debug(
-                        f"Updated task {task['id']} with last_triggered={new_last_triggered} "
-                        f"and next_trigger={new_next_trigger}"
-                    )
+                self.ansible_model.update_task_triggers(
+                    task["id"], last_triggered=new_last_triggered, next_trigger=new_next_trigger
+                )
+                self.logger.debug(
+                    f"Updated task {task['id']} with last_triggered={new_last_triggered} "
+                    f"and next_trigger={new_next_trigger}"
+                )
 
     def _parse_interval(self, interval: str) -> int:
         """
