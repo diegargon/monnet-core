@@ -63,7 +63,7 @@ class HostsScanner:
                 continue
 
             check_method = host.get("check_method", 1)
-            self.logger.debug(f"Scanning ip {ip_or_host}")
+            #self.logger.debug(f"Scanning ip {ip_or_host}")
             if "misc" in host and isinstance(host["misc"], dict) and "timeout" in host["misc"]:
                 try:
                     timeout = float(host.get("misc").get("timeout"))
