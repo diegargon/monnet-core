@@ -28,26 +28,56 @@ def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, s
         if 'check_ports' in agent_config.timers:
             agent_config.timers['check_ports'].cancel()
 
-        current_listen_ports_info = info_linux.get_listen_ports_info()
-        last_listen_ports_info = datastore.get_data("last_listen_ports_info")
+        # Get current and last port data
+        current_data = info_linux.get_listen_ports_info()
+        last_data = datastore.get_data("last_listen_ports_info") or {}
 
-        # Calculate differences
-        added_ports = set(current_listen_ports_info) - set(last_listen_ports_info or [])
-        removed_ports = set(last_listen_ports_info or []) - set(current_listen_ports_info)
-        port_differences = {
-            "added": list(added_ports),
-            "removed": list(removed_ports)
-        }
+        # Debug: Log raw data before comparison
+        logger.debug(f"Current data: {current_data}")
+        logger.debug(f"Last data: {last_data}")
+
+
+        # Normalize data structure
+        current_ports = current_data.get('listen_ports_info', [])
+        last_ports = last_data.get('listen_ports_info', [])
+
+        # Create comparable items using key fields
+        def get_port_key(port_info):
+            """Create a unique key for each port"""
+            return (
+                port_info.get('interface'),
+                port_info.get('port'),
+                port_info.get('protocol'),
+                port_info.get('ip_version')
+            )
+
+        # Build mappings for comparison
+        current_map = {get_port_key(p): p for p in current_ports}
+        last_map = {get_port_key(p): p for p in last_ports}
+
+        # Find differences
+        added_ports = [current_map[key] for key in current_map.keys() - last_map.keys()]
+        removed_ports = [last_map[key] for key in last_map.keys() - current_map.keys()]
+        modified_ports = [
+            current_map[key]
+            for key in current_map.keys() & last_map.keys()
+            if current_map[key] != last_map[key]
+        ]
+
+        # Debug logging
+        logger.debug(f"Added ports details: {added_ports}")
+        logger.debug(f"Removed ports details: {removed_ports}")
+        logger.debug(f"Modified ports details: {modified_ports}")
 
         # Trigger notification if there are differences
-        if (added_ports or removed_ports or startup):
-            logger.debug(f"Port differences: {port_differences} Statup {startup}")
-            datastore.update_data("last_listen_ports_info", current_listen_ports_info)
-            notify_callback(ctx, "listen_ports_info", current_listen_ports_info)  # Pass ctx to callback
-        #else : #debug
-        #    notify_callback("listen_ports_info", current_listen_ports_info)  # Notificar
+        if added_ports or removed_ports or modified_ports or startup:
+            logger.info("Port changes detected, updating storage and notifying")
+            datastore.update_data("last_listen_ports_info", current_data)
+            notify_callback(ctx, "listen_ports_info", current_data)
+    except KeyError as e:
+        logger.error(f"Missing expected port field: {e}")
     except Exception as e:
-        logger.error(f"Error in check_listen_ports: {e}")  # Log error instead of raising
+        logger.error(f"Unexpected error in port check: {e}", exc_info=True)
     finally:
         if not ctx.get_var("running"):
             return
