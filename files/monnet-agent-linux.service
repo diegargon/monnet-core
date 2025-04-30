@@ -5,7 +5,7 @@ After=network.target
 [Service]
 ExecStart=/usr/bin/python3 /opt/monnet_agent/monnet_agent_linux.py
 WorkingDirectory=/opt/monnet_agent
-Environment="PYTHONPATH=/opt/monnet-core"
+Environment="PYTHONPATH=/opt/monnet_agent"
 User=root
 Group=root
 Restart=always
