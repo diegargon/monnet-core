@@ -63,13 +63,13 @@ class AnsibleService:
                     var['vvalue'] = EncryptService().decrypt(ciphertext)
                 except (ValueError, TypeError) as e:
                     var['vvalue'] = None
-                    self.logger.error(f"Error decrypting variable for host {hid}: {e}")
+                    self.logger.error(f"[Host {hid}] Error decrypting variable: {e}")
                 except FileNotFoundError as e:
                     var['vvalue'] = None
-                    self.logger.error(f"Key file not found for decryption on host {hid}: {e}")
+                    self.logger.error(f"[Host {hid}] Key file not found for decryption: {e}")
                 except Exception as e:
                     var['vvalue'] = None
-                    self.logger.error(f"Unexpected error decrypting variable for host {hid}: {e}")
+                    self.logger.error(f"[Host {hid}] Unexpected error decrypting variable: {e}")
 
         return vars
 
@@ -85,7 +85,7 @@ class AnsibleService:
             groups = self._parse_ansible_groups(content)
             return groups
         except Exception as e:
-            self.logger.error(f"Error reading Ansible hosts file: {e}")
+            self.logger.error(f"Error reading Ansible hosts file '{host_file}': {e}")
             return []
 
     def _parse_ansible_groups(self, content):
@@ -96,7 +96,7 @@ class AnsibleService:
             if isinstance(parsed_data, dict):
                 # YAML format detected
                 return self._parse_yaml_groups(parsed_data)
-        except yaml.YAMLError:
+        except yaml.YAMLError as e:
             self.logger.info("Content is not in YAML format, attempting plain text parsing.")
 
         # Fallback to plain text parsing

@@ -66,7 +66,7 @@ class AnsibleTask:
             host_ip = host["ip"]
 
             # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
-            if "ansible_user" in extra_vars and not None:
+            if "ansible_user" in extra_vars and extra_vars.get("ansible_user") is not None:  # Fixed invalid condition
                 ansible_user = extra_vars.get("ansible_user")
             else:
                 ansible_user = self.config.get("ansible_user", "ansible")

@@ -29,7 +29,7 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
         Returns:
             dict: response
     """
-    ALLOWED_COMMANDS = ["playbook_exec", "scan_plabooks", "get_playbooks_metadata"]
+    ALLOWED_COMMANDS = ["playbook_exec", "scan_playbooks", "get_playbook_metadata"]
     if command not in ALLOWED_COMMANDS:
         return {"status": "error", "message": f"Invalid command: {command}"}
 
@@ -42,12 +42,12 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
             return _response_error(command, f"Playbooks directory not found: {str(e)}")
         except yaml.YAMLError as e:
             return _response_error(command, f"YAML syntax error: {str(e)}")
-        except Exception as e:
-            return _response_error(command, f"Error scanning playbooks: {str(e)}")
         except ValueError as e:
             return _response_error(command, f"Value error: {str(e)}")
         except RuntimeError as e:
             return _response_error(command, f"Runtime error: {str(e)}")
+        except Exception as e:
+            return _response_error(command, f"Error scanning playbooks: {str(e)}")
 
         return _response_success(command, "Playbooks scanned successfully")
 
@@ -57,9 +57,9 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
             return {"status": "error", "message": "Playbook ID not specified"}
         try:
             pb_metadata = ansible_service.get_pb_metadata(pb_id)
-        except ValueError as e:
-            return _response_error(command, str(e))
         except KeyError as e:
+            return _response_error(command, f"Playbook ID not found: {str(e)}")
+        except ValueError as e:
             return _response_error(command, str(e))
         except Exception as e:
             return _response_error(command, f"Error retrieving playbook metadata: {str(e)}")
