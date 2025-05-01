@@ -213,7 +213,7 @@ class HostService:
         if "hostname" in current_host and host.get("hostname") != current_host.get("hostname"):
             current_host["warn"] = 1
 
-            if disable_alarms:
+            if disable_alarms or host.get("misc", {}).get("alarm_hostname_disable"):
                 log_type = LogType.EVENT
             else:
                 current_host["warn"] = 1
@@ -228,11 +228,12 @@ class HostService:
 
         if "mac" in current_host and current_host.get("mac") is not None:
             if "mac" not in host or host.get("mac") != current_host.get("mac"):
-                if not disable_alarms:
+                if disable_alarms or host.get("misc", {}).get("alarm_macchange_disable"):
+                    log_type = LogType.EVENT
+                else:
                     current_host["warn"] = 1
                     log_type = LogType.EVENT_WARN
-                else:
-                    log_type = LogType.EVENT
+
 
                 self.event_host.event(
                     hid,
