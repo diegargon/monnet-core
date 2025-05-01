@@ -5,7 +5,7 @@ Monnet Gateway - Config file
 """
 
 GW_VERSION = "0.8"
-GW_VERSION_MINOR = 28
+GW_VERSION_MINOR = 30
 GW_F_VERSION =  str(GW_VERSION) + "." + str(GW_VERSION_MINOR)
 
 HOST = 'localhost'
@@ -16,3 +16,5 @@ CONFIG_DB_PATH = "/etc/monnet/config-db.json"
 
 TASK_INTERVAL = 10  # Seconds
 ALLOWED_MODULES = ["ansible",]
+
+DEFAULT_ANSIBLE_GROUPS_FILE = "/etc/ansible/hosts"

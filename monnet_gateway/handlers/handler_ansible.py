@@ -12,6 +12,8 @@ import os
 import re
 import subprocess
 from typing import List, Optional
+
+# Third-party
 import yaml
 
 # Local
@@ -92,11 +94,11 @@ def ansible_exec(ctx: AppContext, command: str, data_content: dict):
             data_content (dict): data content
             Returns:
                 dict: response
-"""
+    """
     playbook = data_content.get('playbook', None)
     extra_vars = data_content.get('extra_vars', None)
     ip = data_content.get('ip', None)
-    limit = data_content.get('limit', None)
+    ansible_group = data_content.get('ansible_group', None)
     user = data_content.get('user', "ansible")
     logger = ctx.get_logger()
 
@@ -105,7 +107,9 @@ def ansible_exec(ctx: AppContext, command: str, data_content: dict):
 
     try:
         logger.info("Running ansible playbook...")
-        result = run_ansible_playbook(ctx, playbook, extra_vars, ip=ip, user=user, limit=limit)
+        result = run_ansible_playbook(
+            ctx, playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group
+        )
         result_data = json.loads(result)
         # logpo("ResultData: ", result_data)
         return _response_success(command, result_data)
@@ -116,7 +120,7 @@ def ansible_exec(ctx: AppContext, command: str, data_content: dict):
         logger.error("Error executing the playbook: " + str(e))
         return _response_error(command, "Error executing the playbook: " + str(e))
 
-def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=None, user=None, limit=None):
+def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=None, user=None, ansible_group=None):
     """
         Run Ansible Playbook
 
@@ -128,7 +132,7 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
             extra_vars (dict): extra variables
             ip (str): IP address
             user (str): user
-            limit (str): limit
+            ansible_group (str): group
 
         Returns:
             str: json response data or "status": error, "message": message
@@ -153,8 +157,8 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
         command.insert(1, '-i')
         command.insert(2, f"{ip},")
 
-    if limit:
-        command.extend(['--limit', limit])
+    if ansible_group:
+        command.extend(['--limit', ansible_group])
 
     if user:
         command.extend(['-u', user])

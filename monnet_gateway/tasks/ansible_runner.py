@@ -25,7 +25,8 @@ class AnsibleTask:
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
         self.logger = ctx.get_logger()
-        self.db = DBManager(ctx.get_config())
+        self.config = ctx.get_config()
+        self.db = DBManager(self.config)
         self.ansible_model = AnsibleModel(self.db)
         self.ansible_service = AnsibleService(ctx, self.ansible_model)
         self.host_service = HostService(ctx)
@@ -41,22 +42,37 @@ class AnsibleTask:
                 self.logger.debug(f"Ignoring task {task['task_name']} with trigger_type={trigger_type}")
                 continue
 
+            # Obtain task parameters
             task_interval = task.get("task_interval") or "1m"
             interval_seconds = self._parse_interval(task_interval)
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
             hid = task.get("hid")
+            playbook = task.get("playbook")
+            if not playbook:
+                self.logger.warning(f"Playbook not found for task {task['task_name']}. Skipping task.")
+                continue
 
-            # Obtener las variables Ansible asociadas al hid
+            # Fetch Ansible variables associated with the hid
             ansible_vars = self.ansible_service.fetch_ansible_vars_by_hid(hid)
             extra_vars = {var["vkey"]: var["vvalue"] for var in ansible_vars}
             self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
-            # Obtener la IP del host asociado al hid
+
+            # Fetch the IP of the host associated with the hid
             host = self.host_service.get_by_id(hid)
             if not host or "ip" not in host:
                 self.logger.warning(f"Host with hid={hid} not found or missing IP. Skipping task {task['task_name']}.")
                 continue
             host_ip = host["ip"]
+
+            # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
+            if "ansible_user" in extra_vars and not None:
+                ansible_user = extra_vars.get("ansible_user")
+            else:
+                ansible_user = self.config.get("ansible_user", "ansible")
+
+            # TODO: set ansible_group
+            ansible_group = None
 
             # 1 Uniq task: run and delete
             # 2 Manual: Ignore, triggered by user
@@ -66,7 +82,7 @@ class AnsibleTask:
             # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
                 self.logger.info(f"Running task: {task['task_name']}")
-                #run_ansible_playbook(task['playbook'], extra_vars=extra_vars, host_ip=host_ip)
+                # run_ansible_playbook(self.ctx, playbook, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group)
 
                 self.ansible_service.delete_task(task["id"])
                 self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
@@ -88,8 +104,13 @@ class AnsibleTask:
                         (last_triggered is not None and last_triggered < last_cron_time) or
                         (last_triggered is None and now >= last_cron_time and last_cron_time > created)
                     ):
-                        self.logger.info(f"Running task: {task['task_name']} at crontime={crontime}")
-                        #run_ansible_playbook(task['playbook'], extra_vars=extra_vars, host_ip=host_ip)
+                        self.logger.info(
+                            f"Running task: {task['task_name']} at crontime={crontime}"
+                        )
+                        # run_ansible_playbook(
+                        #     self.ctx, playbook, extra_vars, ip=host_ip, user=ansible_user,
+                        #     ansible_group=ansible_group
+                        # )
 
                         self.ansible_service.update_task_triggers(
                             task["id"], last_triggered=now
@@ -101,7 +122,10 @@ class AnsibleTask:
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
                 self.logger.info(f"Running task: {task['task_name']}")
-                #run_ansible_playbook(task['playbook'], extra_vars=extra_vars, host_ip=host_ip)
+                # run_ansible_playbook(
+                #     self.ctx, playbook, extra_vars, ip=host_ip, user=ansible_user,
+                #     ansible_group=ansible_group
+                # )
 
                 # Calculate new triggers
                 new_last_triggered = now
@@ -117,7 +141,7 @@ class AnsibleTask:
     def _parse_interval(self, interval: str) -> int:
         """
         Parse task_interval string into seconds.
-        Supported formats: Xm (minutes), Xh (hours), Xd (days),  Xmo(months) and Xy (years).
+        Supported formats: Xm (minutes), Xh (hours), Xd (days), Xmo (months), and Xy (years).
         Defaults to 1 minute if invalid.
         """
         try:

@@ -4,9 +4,17 @@
 Monnet Gateway - Ansible Service
 """
 
+# Standard
+import os
 import base64
 from datetime import datetime
+
+# Third-party
+import yaml
+
+# Local
 from monnet_gateway.database.ansible_model import AnsibleModel
+from monnet_gateway.mgateway_config import DEFAULT_ANSIBLE_GROUPS_FILE
 from monnet_gateway.services.encrypt_service import EncryptService
 from shared.app_context import AppContext
 
@@ -50,3 +58,56 @@ class AnsibleService:
                     self.logger.error(f"Unexpected error decrypting variable for host {hid}: {e}")
 
         return vars
+
+    def fetch_ansible_hosts_groups(self):
+        """Fetch Ansible hosts groups. NOT TESTED """
+        host_file = DEFAULT_ANSIBLE_GROUPS_FILE
+        if not host_file or not os.path.exists(host_file):
+            self.logger.debug(f"Ansible hosts file not found: {host_file}")
+            return []
+        try:
+            with open(host_file, 'r') as f:
+                content = f.read()
+            groups = self._parse_ansible_groups(content)
+            return groups
+        except Exception as e:
+            self.logger.error(f"Error reading Ansible hosts file: {e}")
+            return []
+
+    def _parse_ansible_groups(self, content):
+        """Parse Ansible groups from the content. NOT TESTED """
+        try:
+            # Attempt to parse as YAML
+            parsed_data = yaml.safe_load(content)
+            if isinstance(parsed_data, dict):
+                # YAML format detected
+                return self._parse_yaml_groups(parsed_data)
+        except yaml.YAMLError:
+            self.logger.info("Content is not in YAML format, attempting plain text parsing.")
+
+        # Fallback to plain text parsing
+        return self._parse_plain_text_groups(content)
+
+    def _parse_yaml_groups(self, data):
+        """Parse groups from YAML data. NOT TESTED"""
+        groups = []
+        for group, details in data.items():
+            if isinstance(details, dict) and 'hosts' in details:
+                groups.append({
+                    'group': group,
+                    'hosts': details['hosts']
+                })
+        return groups
+
+    def _parse_plain_text_groups(self, content):
+        """Parse groups from plain text content. NOT TESTED"""
+        groups = []
+        current_group = None
+        for line in content.splitlines():
+            line = line.strip()
+            if line.startswith('[') and line.endswith(']'):
+                current_group = line[1:-1]
+                groups.append({'group': current_group, 'hosts': []})
+            elif current_group and line:
+                groups[-1]['hosts'].append(line)
+        return groups
