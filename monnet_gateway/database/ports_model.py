@@ -9,6 +9,24 @@ from monnet_gateway.database.dbmanager import DBManager
 
 
 class PortsModel:
+    """
+    Handles operations related to the `ports` table.
+
+    The `ports` table structure:
+    - `id` (Primary, int, AUTO_INCREMENT): Unique identifier for each port entry.
+    - `hid` (Index, int): Host ID associated with the port.
+    - `scan_type` (tinyint): 1 Remote , 2 agent.
+    - `protocol` (char(10)): Protocol used by the port (e.g., TCP, UDP or HTTPs conn).
+    - `pnumber` (int): Port number.
+    - `online` (tinyint): Online status of the port (0 = offline, 1 = online).
+    - `interface` (varchar(255)): Network interface associated with the port.
+    - `ip_version` (tinyint): IP version (4 for IPv4, 6 for IPv6).
+    - `custom_service` (varchar(255)): Custom service name associated with the port.
+    - `service` (varchar(255)): Detected service name running on the port.
+    - `latency` (int): Latency in milliseconds.
+    - `last_change` (datetime): Timestamp of the last status change.
+    """
+
     def __init__(self, db: DBManager):
         """
         Initialize PortsModel with a database manager.

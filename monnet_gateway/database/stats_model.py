@@ -8,6 +8,16 @@ Monnet Gateway - Stats Model
 from monnet_gateway.database.dbmanager import DBManager
 
 class StatsModel:
+    """
+    Handles operations related to the `stats` table.
+
+    The `stats` table structure:
+    - `date` (Index, datetime): Timestamp of the stat entry (default is CURRENT_TIMESTAMP).
+    - `type` (tinyint, UNSIGNED): Type of the stat (1: ping, 2: load avg, 3: iowait).
+    - `host_id` (Index, int): ID of the host associated with the stat.
+    - `value` (float): Value of the stat.
+    """
+
     def __init__(self, db: DBManager):
         """
         Initialize StatsModel with a database manager.

@@ -9,7 +9,16 @@ from datetime import datetime
 from monnet_gateway.database.dbmanager import DBManager
 
 class AnsibleModel:
-    """Encapsulates queries related to Ansible tasks."""
+    """
+    Encapsulates queries related to Ansible tasks.
+
+    The `ansible_vars` table structure:
+    - `id` (Primary, int, AUTO_INCREMENT): Unique identifier for each variable.
+    - `hid` (Index, int): Host ID associated with the variable.
+    - `vtype` (tinyint): Type of the variable (1 for encrypted values, 2 for strings).
+    - `vkey` (Index, varchar(255)): Key or name of the variable.
+    - `vvalue` (varchar(700)): Value of the variable.
+    """
 
     def __init__(self, db: DBManager):
         self.db = db
@@ -32,7 +41,15 @@ class AnsibleModel:
             self.db.update("tasks", data=data, where={"id": task_id})
 
     def fetch_ansible_vars_by_hid(self, hid: int):
-        """Fetches Ansible variables associated with a host (hid)."""
+        """
+        Fetches Ansible variables associated with a host (hid).
+
+        Args:
+            hid (int): The host ID for which to fetch Ansible variables.
+
+        Returns:
+            list: A list of tuples containing `vtype`, `vkey`, and `vvalue` for the specified host.
+        """
         query = "SELECT vtype, vkey, vvalue FROM ansible_vars WHERE hid = %s"
         return self.db.fetchall(query, (hid,))
 
