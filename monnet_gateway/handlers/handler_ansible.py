@@ -29,7 +29,13 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
         Returns:
             dict: response
     """
-    ALLOWED_COMMANDS = ["playbook_exec", "scan_playbooks", "get_playbook_metadata"]
+    ALLOWED_COMMANDS = [
+        "playbook_exec",
+        "scan_playbooks",
+        "get_playbook_metadata",
+        "get_all_playbooks_metadata",
+        "get_all_pb_meta_ids",
+    ]
     if command not in ALLOWED_COMMANDS:
         return {"status": "error", "message": f"Invalid command: {command}"}
 
@@ -68,6 +74,27 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
             return _response_error(command, f"Error retrieving playbook metadata: {str(e)}")
 
         return _response_success(command, pb_metadata)
+
+    elif command == "get_all_playbooks_metadata":
+        try:
+            pb_metadata = ansible_service.get_all_pb_metadata()
+        except ValueError as e:
+            return _response_error(command, str(e))
+        except Exception as e:
+            return _response_error(command, f"Error retrieving all playbooks metadata: {str(e)}")
+
+        return _response_success(command, pb_metadata)
+
+    elif command == "get_all_pb_meta_ids":
+        try:
+            pb_metadata = ansible_service.get_all_pb_metadata()
+            pb_ids = [meta.get('id') for meta in pb_metadata]
+        except ValueError as e:
+            return _response_error(command, str(e))
+        except Exception as e:
+            return _response_error(command, f"Error retrieving all playbook metadata IDs: {str(e)}")
+
+        return _response_success(command, pb_ids)
 
     return {"status": "error", "message": f"Invalid command: {command}"}
 

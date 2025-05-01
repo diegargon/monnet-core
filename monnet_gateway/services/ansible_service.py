@@ -237,3 +237,16 @@ class AnsibleService:
                 return metadata
 
         raise KeyError(f"Playbook ID {pb_id} not found")
+
+    def get_all_pb_metadata(self):
+        """
+        Retrieve all playbook metadata from the context.
+        """
+        if not self.ctx.has_pb_metadata():
+            self.extract_pb_metadata()
+
+        pb_metadata = self.ctx.get_pb_metadata()
+        if not pb_metadata:
+            raise ValueError("No metadata found")
+
+        return pb_metadata
