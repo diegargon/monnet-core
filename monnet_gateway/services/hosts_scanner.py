@@ -34,7 +34,6 @@ class HostsScanner:
         """
         Scan a list of hosts.
         """
-        self.logger.debug("Scanning known hosts...")
 
         if not all_hosts:
             self.logger.notice("No hosts found to scan.")
@@ -127,7 +126,7 @@ class HostsScanner:
                         "error": None
                     }
 
-                    self.logger.debug(f"Protocol {protocol}")
+                    #self.logger.debug(f"Protocol {protocol}")
                     # For http/s check using hostname
                     if "hostname" in host and host["hostname"] and protocol > 3:
                         ip_or_host = scan_result["host"] = host.get("hostname")

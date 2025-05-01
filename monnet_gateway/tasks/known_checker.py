@@ -34,6 +34,7 @@ class HostsCheckerTask:
             self.logger.warning("Invalid list of known hosts.")
             return
 
+        self.logger.debug("Scanning known hosts...")
         hosts_status = hosts_scanner.scan_hosts(all_hosts)
 
         # Mark host that become off for retry
