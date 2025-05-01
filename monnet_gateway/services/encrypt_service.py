@@ -38,6 +38,8 @@ class EncryptService:
         :param plaintext: The string to encrypt.
         :return: Encrypted data as bytes.
         """
+        if not plaintext:
+            raise ValueError("Plaintext cannot be empty.")
         return self.public_key.encrypt(
             plaintext.encode(),
             padding.OAEP(
@@ -50,14 +52,17 @@ class EncryptService:
     def decrypt(self, ciphertext: bytes) -> str:
         """
         Decrypts ciphertext using the private key.
+
+        Use PKCS1v15 for compatibility with the PHP frontend:
+            openssl_public_encrypt
+            RSA_PKCS1_PADDING
+
         :param ciphertext: The encrypted data as bytes.
         :return: Decrypted plaintext string.
         """
+        if not ciphertext:
+            raise ValueError("Ciphertext cannot be empty.")
         return self.private_key.decrypt(
             ciphertext,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
+            padding.PKCS1v15()
         ).decode()

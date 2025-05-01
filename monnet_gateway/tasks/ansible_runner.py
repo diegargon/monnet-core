@@ -27,7 +27,7 @@ class AnsibleTask:
         self.logger = ctx.get_logger()
         self.db = DBManager(ctx.get_config())
         self.ansible_model = AnsibleModel(self.db)
-        self.ansible_service = AnsibleService(self.ansible_model)
+        self.ansible_service = AnsibleService(ctx, self.ansible_model)
         self.host_service = HostService(ctx)
 
     def run(self):
