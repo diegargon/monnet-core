@@ -174,7 +174,10 @@ class HostService:
     def _host_events(self, host: dict, current_host: dict) -> None:
         hid = host.get("id", None)
         ip = host.get("ip", None)
-        display_name = host.get("display_name", ip)
+        display_name = host.get(
+            "display_name",
+            self._set_display_name(host)
+            )
         if ip is None:
             self.logger.warning(f"Host IP is None, cannot create events for host {hid}")
             return
