@@ -14,7 +14,7 @@ import yaml
 
 # Local
 from monnet_gateway.mgateway_config import GW_F_VERSION
-from monnet_gateway.services import ansible_service
+from monnet_gateway.services.ansible_service import AnsibleService
 from shared.app_context import AppContext
 
 def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
@@ -33,8 +33,11 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
     if command not in ALLOWED_COMMANDS:
         return {"status": "error", "message": f"Invalid command: {command}"}
 
+    ansible_service = AnsibleService(ctx)
+
+
     if command == "playbook_exec":
-        return ansible_exec(ctx, command, data_content)
+        return ansible_exec(ctx, ansible_service, command, data_content)
     elif command == "scan_playbooks":
         try:
             ansible_service.extract_pb_metadata()
@@ -68,7 +71,7 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
 
     return {"status": "error", "message": f"Invalid command: {command}"}
 
-def ansible_exec(ctx: AppContext, command: str, data_content: dict):
+def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str, data_content: dict):
     """
         Execute ansible playbook
         Args:
