@@ -174,11 +174,12 @@ class HostService:
     def _host_events(self, host: dict, current_host: dict) -> None:
         hid = host.get("id", None)
         ip = host.get("ip", None)
+        display_name = host.get("display_name", ip)
         if ip is None:
             self.logger.warning(f"Host IP is None, cannot create events for host {hid}")
             return
         if hid is None:
-            self.logger.warning(f"Host ID is None, cannot create events for host {ip}")
+            self.logger.warning(f"Host ID is None, cannot create events for host {display_name}")
             return
 
         if "misc" in host and isinstance(host["misc"], dict):
@@ -195,15 +196,15 @@ class HostService:
             )
 
         if host.get("online") == 1 and current_host.get("online") == 0:
-            if not disable_alarms and host.get("misc", {}).get("always_on"):
+            if disable_alarms or not host.get("misc", {}).get("alway_on"):
+                log_type = LogType.EVENT
+            else:
                 log_type = LogType.EVENT_ALERT
                 current_host["alert"] = 1
-            else:
-                log_type = LogType.EVENT
 
             self.event_host.event(
                 hid,
-                f'Host become offline {ip}',
+                f'Host become offline {display_name}',
                 log_type,
                 EventType.HOST_BECOME_OFF
             )
