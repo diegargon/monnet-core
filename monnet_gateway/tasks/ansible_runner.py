@@ -18,6 +18,7 @@ from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.ansible_model import AnsibleModel
 from monnet_gateway.services.hosts_service import HostService
+from monnet_gateway.services.ansible_service import AnsibleService
 
 class AnsibleTask:
     """Ejecuta tareas Ansible según la configuración en la base de datos."""
@@ -26,11 +27,12 @@ class AnsibleTask:
         self.logger = ctx.get_logger()
         self.db = DBManager(ctx.get_config())
         self.ansible_model = AnsibleModel(self.db)
-        self.host_service = HostService(ctx)  # Inicializar HostService
+        self.ansible_service = AnsibleService(self.ansible_model)
+        self.host_service = HostService(ctx)
 
     def run(self):
         self.logger.debug("Execution ansible task...")
-        tasks = self.ansible_model.fetch_active_tasks()
+        tasks = self.ansible_service.fetch_active_tasks()
         now = datetime.now()
 
         for task in tasks:
@@ -43,12 +45,12 @@ class AnsibleTask:
             interval_seconds = self._parse_interval(task_interval)
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
-            hid = task.get("hid")  # Obtener el hid del task
+            hid = task.get("hid")
 
             # Obtener las variables Ansible asociadas al hid
-            ansible_vars = self.ansible_model.fetch_ansible_vars_by_hid(hid)
+            ansible_vars = self.ansible_service.fetch_ansible_vars_by_hid(hid)
             extra_vars = {var["vkey"]: var["vvalue"] for var in ansible_vars}
-
+            self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
             # Obtener la IP del host asociado al hid
             host = self.host_service.get_by_id(hid)
             if not host or "ip" not in host:
@@ -66,7 +68,7 @@ class AnsibleTask:
                 self.logger.info(f"Running task: {task['task_name']}")
                 #run_ansible_playbook(task['playbook'], extra_vars=extra_vars, host_ip=host_ip)
 
-                self.ansible_model.delete_task(task["id"])
+                self.ansible_service.delete_task(task["id"])
                 self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
             elif trigger_type == 4:
@@ -89,7 +91,9 @@ class AnsibleTask:
                         self.logger.info(f"Running task: {task['task_name']} at crontime={crontime}")
                         #run_ansible_playbook(task['playbook'], extra_vars=extra_vars, host_ip=host_ip)
 
-                        self.ansible_model.update_task_triggers(task["id"], last_triggered=now)
+                        self.ansible_service.update_task_triggers(
+                            task["id"], last_triggered=now
+                        )
                         self.logger.debug(
                             f"Updated task {task['id']} with last_triggered={now} "
                             f"and next_trigger={next_cron_time}"
@@ -102,7 +106,7 @@ class AnsibleTask:
                 # Calculate new triggers
                 new_last_triggered = now
                 new_next_trigger = now + timedelta(seconds=interval_seconds)
-                self.ansible_model.update_task_triggers(
+                self.ansible_service.update_task_triggers(
                     task["id"], last_triggered=new_last_triggered, next_trigger=new_next_trigger
                 )
                 self.logger.debug(
