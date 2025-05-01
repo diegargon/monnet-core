@@ -1,9 +1,9 @@
 # @meta
 # id: "std-setup"
 # name: "std-setup"
-# desc: "Gather system information"
-# os: { linux, posix, windows}
-# tags: { system, facts }
+# description: "Gather system information"
+# os: ["linux", "posix", "windows"]
+# tags: ["system", "facts"]
 ---
 - name: Gather system information
   hosts: all

@@ -1,9 +1,9 @@
 # @meta
 # id: "std-cmd-sstuln"
 # name: "std-cmd-sstuln"
-# desc: "Get network socket information"
-# os: { linux, posix }
-# tags: { ss, socket, network }
+# description: "Get network socket information"
+# os: ["linux", "posix"]
+# tags: ["ss", "socket", "network"]
 ---
 - name: Get network socket information
   hosts: all

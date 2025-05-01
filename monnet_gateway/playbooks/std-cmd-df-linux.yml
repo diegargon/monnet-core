@@ -1,11 +1,11 @@
 # @meta
 # id: "std-cmd-df-linux"
 # name: "std-cmd-df-linux"
-# desc: "Obtener información de particiones reales"
-# os: { linux, posix }
-# tags: { df }
+# description: "Obtain real partition information"
+# os: ["linux", "posix"]
+# tags: ["df"]
 ---
-- name: Obtener información de particiones reales
+- name: Obtain real partition information
   hosts: all
   gather_facts: false
   tasks:

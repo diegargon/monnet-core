@@ -1,16 +1,22 @@
 # @meta
 # id: "std-mysql-performance"
 # name: "std-mysql-performance"
-# desc: "Monitor MySQL performance and resource usage"
-# os: { linux, posix }
+# description: "Monitor MySQL performance and resource usage"
+# os: ["linux", "posix"]
 # vars:
-#   - { name: db_username, type: str, default: "root", desc: "Nombre de usuario de la base de datos" }
-#   - { name: db_password, type: str_password, desc: "Contraseña de la base de datos" }
-# tags: { mysql, performance, monitoring }
-# reqirements:
-#   min_ansible_version: "2.9"
-#   dependencies: { PyMySQL: ">=0.9.3" }
-
+#   - name: db_username
+#     type: str
+#     default: "root"
+#     description: "Nombre de usuario de la base de datos"
+#   - name: db_password
+#     type: str_password
+#     required: true
+#     description: "Contraseña de la base de datos"
+# tags: ["mysql", "performance", "monitoring"]
+# requires:
+#   - ansible_version: "2.9"
+# dependencies:
+#   - PyMySQL: ">=0.9.3"
 ---
 - name: Monitor MySQL performance and resource usage
   hosts: all

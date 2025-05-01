@@ -1,9 +1,9 @@
 # @meta
 # id: "std-gather-min-facts"
-# name: "std-cmd-gather-min-facts"
-# desc: "Gather minimal facts"
-# os: { linux, posix }
-# tags: { facts }
+# name: "std-gather-min-facts"
+# description: "Gather minimal facts"
+# os: ["linux", "posix"]
+# tags: ["facts"]
 ---
 - name: Minimal fact gathering
   hosts: all

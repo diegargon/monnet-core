@@ -1,10 +1,9 @@
-
 # @meta
 # id: "std-buildin-shell-free-linux"
 # name: "std-buildin-shell-free-linux"
-# desc: "Get memory usage"
-# os: { linux, posix }
-# tags: { free }
+# description: "Get memory usage"
+# os: ["linux", "posix"]
+# tags: ["free"]
 ---
 - name: Get memory usage
   hosts: all

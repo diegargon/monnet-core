@@ -1,13 +1,22 @@
 # @meta
 # id: "std-mysql-check-repair"
 # name: "std-mysql-check-repair"
-# desc: "Check and repair MySQL tables"
-# os: { linux, posix }
+# description: "Check and repair MySQL tables"
+# os: ["linux", "posix"]
 # vars:
-#   - { name: db_username, type: str, default: "root", desc: "Nombre de usuario de la base de datos" }
-#   - { name: db_password, type: str_password, desc: "Contraseña de la base de datos" }
-#   - { name: db_name, type: str, desc: "Nombre de la base de datos" }
-# tags: { mysql, repair, check }
+#   - name: db_username
+#     type: str
+#     default: "root"
+#     description: "Database username"
+#   - name: db_password
+#     type: str_password
+#     required: true
+#     description: "Database password"
+#   - name: db_name
+#     type: str
+#     required: true
+#     description: "Database name"
+# tags: ["mysql", "repair", "check"]
 ---
 - name: Check and optimize/repair all MySQL tables
   hosts: all

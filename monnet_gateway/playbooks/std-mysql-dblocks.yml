@@ -1,15 +1,30 @@
 # @meta
 # id: "std-mysql-dblocks"
 # name: "std-mysql-dblocks"
-# desc: "Ensure MySQL is running and check database locks"
-# os: { linux, posix }
+# description: "Ensure MySQL is running and check database locks"
+# os: ["linux", "posix"]
 # vars:
-#   - { name: db_service, type: str, default: "mysql", desc: "Nombre del servicio de MySQL" }
-#   - { name: db_name, type: str, desc: "Nombre de la base de datos" }
-#   - { name: db_username, type: str, default: "root", desc: "Nombre de usuario de la base de datos" }
-#   - { name: db_password, type: str_password, desc: "Contraseña de la base de datos" }
-#   - { name: db_port, type: int, default: 3306, desc: "Puerto de la base de datos" }
-# tags: { mysql }
+#   - name: db_service
+#     type: str
+#     default: "mysql"
+#     description: "Nombre del servicio de MySQL"
+#   - name: db_name
+#     type: str
+#     description: "Nombre de la base de datos"
+#     required: true
+#   - name: db_username
+#     type: str
+#     default: "root"
+#     description: "Nombre de usuario de la base de datos"
+#   - name: db_password
+#     type: str_password
+#     description: "Contraseña de la base de datos"
+#     required: true
+#   - name: db_port
+#     type: int
+#     default: 3306
+#     description: "Puerto de la base de datos"
+# tags: ["mysql"]
 ---
 - name: Ensure MySQL is running and check database locks
   hosts: all

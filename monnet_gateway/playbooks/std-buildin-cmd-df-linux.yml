@@ -1,9 +1,9 @@
 # @meta
 # id: "std-buildin-cmd-df-linux"
 # name: "std-buildin-cmd-df-linux"
-# desc: "Get disk usage"
-# os: { linux , posix }
-# tags: { df }
+# description: "Get disk usage"
+# os: ["linux", "posix"]
+# tags: ["df"]
 ---
 - name: Get disk usage
   hosts: all

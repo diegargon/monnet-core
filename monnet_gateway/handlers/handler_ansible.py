@@ -179,27 +179,22 @@ def run_ansible_playbook(ctx: AppContext, playbook: str, extra_vars=None, ip=Non
 
 def extract_pb_metadata(ctx: AppContext) -> Optional[List[dict]]:
     """
-    Extracts metadata from all YAML playbooks in the directory and stores it in the context.
-
-    Args:
-        ctx (AppContext): Context with workdir, logger, and metadata storage capability.
-
-    Returns:
-        Optional[List[dict]]: List of metadata dicts if successful, None if critical failure occurs.
-                             Also stores the result in ctx via set_pb_metadata().
+    Extracts metadata from all YAML playbooks in the directory.
+    Handles vars in list format with indentation:
+      vars:
+        - name: db_username
+          type: str
+          default: "root"
     """
-    # vars
     PLAYBOOKS_DIR = os.path.join(ctx.workdir, 'monnet_gateway', 'playbooks')
     VALID_EXTENSIONS = ('.yml', '.yaml')
     REQUIRED_FIELDS = {'id', 'name'}
-    # The metadata block should start with `# @meta` and end with `---` or a blank line.
-    METADATA_REGEX = r'#\s*@meta(.+?)(?=---|\n\s*\n)'
+    METADATA_REGEX = r'#\s*@meta\s*(.+?)(?=\n---|\n\s*\n)'
 
     if not os.path.isdir(PLAYBOOKS_DIR):
         ctx.get_logger().error(f"Playbooks directory not found: {PLAYBOOKS_DIR}")
         return None
 
-    # valid files
     playbook_files = [
         f for f in os.listdir(PLAYBOOKS_DIR)
         if f.lower().endswith(VALID_EXTENSIONS)
@@ -211,7 +206,6 @@ def extract_pb_metadata(ctx: AppContext) -> Optional[List[dict]]:
         ctx.set_pb_metadata([])
         return []
 
-    # Scan files
     metadata_list = []
     for filename in playbook_files:
         filepath = os.path.join(PLAYBOOKS_DIR, filename)
@@ -223,18 +217,22 @@ def extract_pb_metadata(ctx: AppContext) -> Optional[List[dict]]:
                 ctx.get_logger().debug(f"No metadata found in {filename}")
                 continue
 
-            metadata = yaml.safe_load(
-                re.sub(r'^\s*#\s*', '', metadata_block.group(1), flags=re.MULTILINE)
-            )
+            # Limpieza de comentarios preservando indentación
+            cleaned_lines = []
+            for line in metadata_block.group(1).split('\n'):
+                if line.strip().startswith('#'):
+                    cleaned_line = line.replace('#', '', 1).rstrip()  # Elimina solo el primer #
+                    if cleaned_line.strip():  # Ignora líneas vacías
+                        cleaned_lines.append(cleaned_line)
+
+            metadata = yaml.safe_load('\n'.join(cleaned_lines))
 
             if not metadata or not REQUIRED_FIELDS.issubset(metadata):
-                ctx.get_logger().warning(
-                    f"Invalid metadata in {filename}. "
-                    f"Required fields: {REQUIRED_FIELDS}"
-                )
+                ctx.get_logger().warning(f"Invalid metadata in {filename}. Required fields: {REQUIRED_FIELDS}")
                 continue
 
             metadata['_source_file'] = filename
+            # ctx.get_logger().debug(f"Metadata extracted from {filename}:\n{json.dumps(metadata, indent=4)}")
             metadata_list.append(metadata)
 
         except yaml.YAMLError as e:
@@ -243,7 +241,6 @@ def extract_pb_metadata(ctx: AppContext) -> Optional[List[dict]]:
             ctx.get_logger().error(f"Unexpected error with {filename}: {str(e)}")
 
     ctx.set_pb_metadata(metadata_list)
-
     return metadata_list if metadata_list else None
 
 def get_pb_metadata(ctx: AppContext, pb_id: str) -> Optional[dict]:

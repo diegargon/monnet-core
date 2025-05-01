@@ -1,9 +1,9 @@
 # @meta
 # id: "std-journald-linux"
 # name: "std-journald-linux"
-# desc: "Get the last lines from the system journal"
-# os: { linux, posix }
-# tags: { journald, logs }
+# description: "Get the last lines from the system journal"
+# os: ["linux", "posix"]
+# tags: ["journald", "logs"]
 ---
 - name: Get the last lines from the system journal
   hosts: all

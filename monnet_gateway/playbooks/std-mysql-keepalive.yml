@@ -1,9 +1,9 @@
 # @meta
 # id: "std-mysql-keepalive"
 # name: "std-mysql-keepalive"
-# desc: "Check and ensure MySQL service is running"
-# os: { linux , posix }
-# tags: { mysql }
+# description: "Check and ensure MySQL service is running"
+# os: ["linux", "posix"]
+# tags: ["mysql"]
 ---
 - name: Check and restart MySQL service if not running
   hosts: all

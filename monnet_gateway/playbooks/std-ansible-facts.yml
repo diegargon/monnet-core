@@ -1,9 +1,9 @@
 # @meta
 # id: "std-ansible-facts"
 # name: "std-ansible-facts"
-# desc: "Display gathered facts"
-# os: { linux, windows, posix }
-# tags: { facts }
+# description: "Display gathered facts"
+# os: ["linux", "windows", "posix"]
+# tags: ["facts"]
 ---
 - name: Display gathered facts
   hosts: all

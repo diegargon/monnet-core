@@ -1,9 +1,9 @@
 # @meta
 # id: "std-reboot-win"
 # name: "std-reboot-win"
-# desc: "Reboot a Windows system"
-# os: { windows }
-# tags: { reboot, system }
+# description: "Reboot a Windows system"
+# os: ["windows"]
+# tags: ["reboot", "system"]
 ---
 - name: Reboot a Windows system
   hosts: all

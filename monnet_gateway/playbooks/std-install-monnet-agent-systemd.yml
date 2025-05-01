@@ -1,10 +1,11 @@
 # @meta
 # id: "std-install-monnet-agent-systemd"
-# name: "std-cmd-install-monnet-agent-systemd"
-# desc: "Install Monnet Agent on systemd distributions"
-# os: { linux, posix }
-# tags: { monnet, systemd }
-# reqs: { pythoon3.9 }
+# name: "std-install-monnet-agent-systemd"
+# description: "Install Monnet Agent on systemd distributions"
+# os: ["linux", "posix"]
+# tags: ["monnet", "systemd"]
+# requires:
+#   - python: "3.9"
 ---
 - name: Install Monnet Agent on systemd
   hosts: all

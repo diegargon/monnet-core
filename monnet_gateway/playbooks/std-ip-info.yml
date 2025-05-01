@@ -1,9 +1,9 @@
 # @meta
 # id: "std-ip-info"
 # name: "std-ip-info"
-# desc: "Gather IP address and routes"
-# os: { linux, posix }
-# tags: { ip, network }
+# description: "Gather IP address and routes"
+# os: ["linux", "posix"]
+# tags: ["ip", "network"]
 ---
 - name: Gather IP address and routes
   hosts: all
