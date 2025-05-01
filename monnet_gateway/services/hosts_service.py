@@ -137,7 +137,6 @@ class HostService:
 
         return inserted_ids
 
-
     def update(self, host_id: int, set_data: dict) -> None:
         """
         Update an existing host with the provided data.
@@ -195,7 +194,6 @@ class HostService:
                 EventType.HOST_BECOME_ON
             )
 
-
         if host.get("online") == 1 and current_host.get("online") == 0:
             if not disable_alarms and host.get("misc", {}).get("always_on"):
                 log_type = LogType.EVENT_ALERT
@@ -211,7 +209,6 @@ class HostService:
             )
 
         if "hostname" in current_host and host.get("hostname") != current_host.get("hostname"):
-            current_host["warn"] = 1
 
             if disable_alarms or host.get("misc", {}).get("alarm_hostname_disable"):
                 log_type = LogType.EVENT
@@ -296,7 +293,6 @@ class HostService:
                         set_data["misc"] = {}
                     set_data["misc"]["mac_vendor"] = mac_vendor
 
-
     def _serialize_update_misc(self, existing_host: dict,  set_data: dict) -> None:
         """ Handle  update the 'misc' field merge existing and new data """
 
@@ -308,9 +304,6 @@ class HostService:
                     raise ValueError("'misc' field in existing_host must be a dictionary.")
                 merged_misc = {**existing_misc, **set_data["misc"]}
                 try:
-                    # Temporaly clear mac from misc TODO Remove this
-                    if "mac" in merged_misc:
-                        del merged_misc["mac"]
                     set_data["misc"] = json.dumps(merged_misc)
                 except (TypeError, ValueError) as e:
                     raise ValueError(f"Error serializing 'misc' field to JSON: {e}")
