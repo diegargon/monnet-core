@@ -55,6 +55,9 @@ class AnsibleService:
         self._ensure_model()
         vars = self.ansible_model.fetch_ansible_vars_by_hid(hid)
         for var in vars:
+            if 'vkey' not in var or 'vvalue' not in var:
+                self.logger.debug(f"Missing 'vkey' or 'vvalue' in variable for host {hid}. Skipping.")
+                continue
             if var['vtype'] == 1 and var['vvalue'] not in (None, ''):
                 try:
                     # Decodificar el valor Base64 a bytes

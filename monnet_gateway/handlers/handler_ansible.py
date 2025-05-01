@@ -91,10 +91,9 @@ def ansible_exec(ctx: AppContext, command: str, data_content: dict):
     try:
         logger.info("Running ansible playbook...")
         result = ansible_service.run_ansible_playbook(
-            ctx, playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group
+            playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group  # Removed ctx
         )
         result_data = json.loads(result)
-        # logpo("ResultData: ", result_data)
         return _response_success(command, result_data)
     except json.JSONDecodeError as e:
         logger.error("Failed to decode JSON: " + str(e))

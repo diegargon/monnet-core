@@ -14,7 +14,6 @@ from croniter import croniter
 
 # Local
 from shared.app_context import AppContext
-from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.ansible_model import AnsibleModel
 from monnet_gateway.services.hosts_service import HostService
@@ -66,10 +65,7 @@ class AnsibleTask:
             host_ip = host["ip"]
 
             # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
-            if "ansible_user" in extra_vars and extra_vars.get("ansible_user") is not None:  # Fixed invalid condition
-                ansible_user = extra_vars.get("ansible_user")
-            else:
-                ansible_user = self.config.get("ansible_user", "ansible")
+            ansible_user = extra_vars.get("ansible_user") or self.config.get("ansible_user", "ansible")  # Simplified logic
 
             # TODO: set ansible_group
             ansible_group = None
