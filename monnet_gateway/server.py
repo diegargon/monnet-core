@@ -54,6 +54,8 @@ def run_server(ctx: AppContext):
                 raise e
     except Exception as e:
         logger.log(f"Error in the server: {str(e)}", "err")
+        if not stop_event.is_set():
+            stop_event.set()
         # Attempt to respond to the client if a connection exists
         try:
             if 'conn' in locals() and conn:
