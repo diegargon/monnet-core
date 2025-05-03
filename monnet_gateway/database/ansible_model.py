@@ -2,6 +2,7 @@
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
 Monnet Gateway - Ansible Model
+@description: This module encapsulates the database model for Ansible tasks.
 
 """
 
@@ -18,6 +19,15 @@ class AnsibleModel:
     - `vtype` (tinyint): Type of the variable (1 for encrypted values, 2 for strings).
     - `vkey` (Index, varchar(255)): Key or name of the variable.
     - `vvalue` (varchar(700)): Value of the variable.
+
+    The `tasks` table structure:
+    - `id` (Primary, int, AUTO_INCREMENT): Unique identifier for each task.
+    - `task_name` (varchar(255)): Name of the task.
+    - `task_interval` (varchar(255)): Interval for the task execution.
+    - `trigger_type` (tinyint): Type of trigger (1 for cron, 2 for interval, etc.).
+    - `disable` (tinyint): Indicates if the task is disabled (0 for active, 1 for inactive).
+    - `last_triggered` (datetime): Timestamp of the last execution.
+    - `next_trigger` (datetime): Timestamp of the next scheduled
     """
 
     def __init__(self, db: DBManager):

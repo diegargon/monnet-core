@@ -1,7 +1,8 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway
+Monnet Gateway - Ansible Runner Task
+@description: This module is responsible for executing Ansible tasks based on the configuration stored in the database.
 
 """
 
