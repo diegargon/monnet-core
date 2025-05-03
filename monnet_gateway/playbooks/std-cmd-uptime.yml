@@ -3,7 +3,7 @@
 # name: "std-cmd-uptime"
 # description: "Obtain system uptime information"
 # os: ["linux", "posix"]
-# tags: ["uptime"]
+# tags: ["uptime", "std"]
 ---
 - name: Gather uptime information
   hosts: all

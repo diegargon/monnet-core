@@ -3,7 +3,7 @@
 # name: "std-reboot-win"
 # description: "Reboot a Windows system"
 # os: ["windows"]
-# tags: ["reboot", "system"]
+# tags: ["reboot", "system", "std"]
 ---
 - name: Reboot a Windows system
   hosts: all

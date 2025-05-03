@@ -3,7 +3,7 @@
 # name: "std-shutdown-linux"
 # description: "Shutdown a Linux system"
 # os: ["linux", "posix"]
-# tags: ["shutdown"]
+# tags: ["shutdown", "std"]
 ---
 - name: Shutdown a Linux system
   hosts: all

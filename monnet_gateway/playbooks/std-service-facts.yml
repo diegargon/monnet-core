@@ -3,7 +3,7 @@
 # name: "std-service-facts"
 # description: "Gather service facts"
 # os: ["linux", "posix"]
-# tags: ["service", "facts"]
+# tags: ["services", "facts", "std"]
 ---
 - name: Gather service facts
   hosts: all
@@ -14,4 +14,18 @@
 
     - name: Show all service facts
       debug:
-        var: services
+        msg: |
+          Running Services:
+          {% for service, details in services.items() if details.state == 'running' %}
+          {{ details.name }}, Source: {{ details.source }}, Status: {{ details.status | default('N/A') }}
+          {% endfor %}
+
+          Stopped Services:
+          {% for service, details in services.items() if details.state == 'stopped' %}
+          {{ details.name }}, Source: {{ details.source }}, Status: {{ details.status | default('N/A') }}
+          {% endfor %}
+
+          Other States:
+          {% for service, details in services.items() if details.state not in ['running', 'stopped'] %}
+          {{ details.name }}, Source: {{ details.source }}, State: {{ details.state }}, Status: {{ details.status | default('N/A') }}
+          {% endfor %}

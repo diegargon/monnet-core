@@ -3,7 +3,7 @@
 # name: "std-reboot-linux"
 # description: "Reboot a Linux system"
 # os: ["linux", "posix"]
-# tags: ["reboot", "system"]
+# tags: ["reboot", "system", "std"]
 ---
 - name: Reboot a Linux system
   hosts: all

@@ -7,12 +7,12 @@
 #   - name: db_username
 #     type: str
 #     default: "root"
-#     description: "Nombre de usuario de la base de datos"
+#     description: "Database username"
 #   - name: db_password
 #     type: str_password
 #     required: true
-#     description: "Contraseña de la base de datos"
-# tags: ["mysql", "performance", "monitoring"]
+#     description: "Database password"
+# tags: ["mysql", "performance", "monitoring", "std"]
 # requires:
 #   - ansible_version: "2.9"
 # dependencies:

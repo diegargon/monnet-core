@@ -3,7 +3,7 @@
 # name: "std-load-linux"
 # description: "Get load statistics"
 # os: ["linux", "posix"]
-# tags: ["performance", "load"]
+# tags: ["performance", "load", "std"]
 ---
 - name: Get load statistics
   hosts: all

@@ -3,7 +3,7 @@
 # name: "std-cmd-sstuln"
 # description: "Get network socket information"
 # os: ["linux", "posix"]
-# tags: ["ss", "socket", "network"]
+# tags: ["network", "std"]
 ---
 - name: Get network socket information
   hosts: all

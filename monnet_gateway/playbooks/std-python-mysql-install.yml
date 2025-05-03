@@ -3,7 +3,7 @@
 # name: "std-python-mysql-install"
 # description: "Install Python MySQL library on Debian/RedHat OS"
 # os: ["linux", "posix"]
-# tags: ["mysql", "pip"]
+# tags: ["mysql", "std"]
 ---
 - name: Install MySQL library based on Python version and OS family
   hosts: all

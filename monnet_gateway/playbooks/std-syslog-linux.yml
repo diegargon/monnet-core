@@ -3,7 +3,7 @@
 # name: "std-syslog-linux"
 # description: "Get the last lines of syslog"
 # os: ["linux", "posix"]
-# tags: ["syslog", "logs"]
+# tags: ["syslog", "logs", "std"]
 ---
 - name: Get the last lines of syslog
   hosts: all

@@ -3,7 +3,7 @@
 # name: "std-mysql-keepalive"
 # description: "Check and ensure MySQL service is running"
 # os: ["linux", "posix"]
-# tags: ["mysql"]
+# tags: ["mysql", "std"]
 ---
 - name: Check and restart MySQL service if not running
   hosts: all

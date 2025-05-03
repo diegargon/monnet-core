@@ -3,7 +3,7 @@
 # name: "std-install-monnet-agent-systemd"
 # description: "Install Monnet Agent on systemd distributions"
 # os: ["linux", "posix"]
-# tags: ["monnet", "systemd"]
+# tags: ["monnet", "agent", "installation", "std"]
 # requires:
 #   - python: "3.9"
 ---

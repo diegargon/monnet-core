@@ -16,7 +16,7 @@
 #     type: str
 #     required: true
 #     description: "Database name"
-# tags: ["mysql", "repair", "check"]
+# tags: ["mysql", "repair", "check", "std"]
 ---
 - name: Check and optimize/repair all MySQL tables
   hosts: all

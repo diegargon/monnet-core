@@ -3,7 +3,7 @@
 # name: "std-gather-min-facts"
 # description: "Gather minimal facts"
 # os: ["linux", "posix"]
-# tags: ["facts"]
+# tags: ["facts", "std"]
 ---
 - name: Minimal fact gathering
   hosts: all

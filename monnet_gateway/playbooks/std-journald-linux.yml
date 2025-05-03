@@ -3,7 +3,7 @@
 # name: "std-journald-linux"
 # description: "Get the last lines from the system journal"
 # os: ["linux", "posix"]
-# tags: ["journald", "logs"]
+# tags: ["journald", "logs", "std"]
 ---
 - name: Get the last lines from the system journal
   hosts: all

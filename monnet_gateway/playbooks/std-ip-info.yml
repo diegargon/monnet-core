@@ -3,7 +3,7 @@
 # name: "std-ip-info"
 # description: "Gather IP address and routes"
 # os: ["linux", "posix"]
-# tags: ["ip", "network"]
+# tags: ["ip", "network", "std"]
 ---
 - name: Gather IP address and routes
   hosts: all
