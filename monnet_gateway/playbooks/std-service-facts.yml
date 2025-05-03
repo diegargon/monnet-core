@@ -17,15 +17,15 @@
         msg: |
           Running Services:
           {% for service, details in services.items() if details.state == 'running' %}
-          {{ details.name }}, Source: {{ details.source }}, Status: {{ details.status | default('N/A') }}
+          {{ "{:<50} Source: {:<10} Status: {:<10}".format(details.name, details.source, details.status | default('N/A')) }}
           {% endfor %}
 
           Stopped Services:
           {% for service, details in services.items() if details.state == 'stopped' %}
-          {{ details.name }}, Source: {{ details.source }}, Status: {{ details.status | default('N/A') }}
+          {{ "{:<50} Source: {:<10} Status: {:<10}".format(details.name, details.source, details.status | default('N/A')) }}
           {% endfor %}
 
           Other States:
           {% for service, details in services.items() if details.state not in ['running', 'stopped'] %}
-          {{ details.name }}, Source: {{ details.source }}, State: {{ details.state }}, Status: {{ details.status | default('N/A') }}
+          {{ "{:<50} Source: {:<10} State: {:<10} Status: {:<10}".format(details.name, details.source, details.state, details.status | default('N/A')) }}
           {% endfor %}
