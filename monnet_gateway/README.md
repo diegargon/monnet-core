@@ -66,7 +66,14 @@ nano /etc/ansible/ansible.cfg
 stdout_callback=json
 ```
 
-## Configure Client Hosts to Allow Ansible
+The directory for custom playboks is /var/lib/monnet/playbooks
+
+Playbooks must begin with some @metadata on the begin of the playbook,
+
+You can check /opt/monnet-core/monnet_gateway/playbooks for examples.
+
+
+## Configure Client Hosts to allow Ansible connection
 
 By default, the Ansible SSH user will be 'ansible'.
 

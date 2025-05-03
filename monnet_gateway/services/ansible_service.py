@@ -136,11 +136,21 @@ class AnsibleService:
         Run Ansible Playbook
         """
         workdir = self.ctx.workdir
-        extra_vars_str = json.dumps(extra_vars) if extra_vars else ""
-        playbook_directory = os.path.join(workdir, 'monnet_gateway/playbooks')
-        playbook_path = os.path.join(playbook_directory, playbook)
+        standard_playbook_directory = os.path.join(workdir, 'monnet_gateway/playbooks')
+        user_playbook_directory = '/var/lib/monnet/playbooks'
+
+        # Check both directories for the playbook
+        playbook_path = None
+        if os.path.exists(os.path.join(user_playbook_directory, playbook)):
+            playbook_path = os.path.join(user_playbook_directory, playbook)
+        elif os.path.exists(os.path.join(standard_playbook_directory, playbook)):
+            playbook_path = os.path.join(standard_playbook_directory, playbook)
+
+        if not playbook_path:
+            raise FileNotFoundError(f"The playbook: {playbook} could not be found in either directory.")
 
         command = ['ansible-playbook', playbook_path]
+        extra_vars_str = json.dumps(extra_vars) if extra_vars else ""
         if extra_vars_str:
             command.extend(['--extra-vars', extra_vars_str])
         if ip:
@@ -162,36 +172,39 @@ class AnsibleService:
 
     def extract_pb_metadata(self):
         """
-        Extract metadata from all YAML playbooks in the directory.
+        Extract metadata from all YAML playbooks in the directories.
         """
-        PLAYBOOKS_DIR = os.path.join(self.ctx.workdir, 'monnet_gateway', 'playbooks')
+        standard_playbooks_dir = os.path.join(self.ctx.workdir, 'monnet_gateway', 'playbooks')
+        user_playbooks_dir = '/var/lib/monnet/playbooks'
         VALID_EXTENSIONS = ('.yml', '.yaml')
         REQUIRED_FIELDS = {'id', 'name'}
         METADATA_REGEX = r'#\s*@meta\s*(.+?)(?=\n---|\n\s*\n)'
 
-        if not os.path.isdir(PLAYBOOKS_DIR):
-            self.logger.error(f"Playbooks directory not found: {PLAYBOOKS_DIR}")
-            raise FileNotFoundError(f"Playbooks directory not found: {PLAYBOOKS_DIR}")
+        # Combine playbooks from both directories if they exist
+        playbook_dirs = [d for d in [standard_playbooks_dir, user_playbooks_dir] if os.path.isdir(d)]
+        if not playbook_dirs:
+            self.logger.error("No playbooks directories found.")
+            raise FileNotFoundError("No playbooks directories found.")
 
-        playbook_files = [
-            f for f in os.listdir(PLAYBOOKS_DIR)
-            if f.lower().endswith(VALID_EXTENSIONS)
-            and os.path.isfile(os.path.join(PLAYBOOKS_DIR, f))
-        ]
+        playbook_files = []
+        for directory in playbook_dirs:
+            playbook_files.extend([
+                os.path.join(directory, f) for f in os.listdir(directory)
+                if f.lower().endswith(VALID_EXTENSIONS) and os.path.isfile(os.path.join(directory, f))
+            ])
 
         if not playbook_files:
-            self.logger.warning(f"No valid YAML files found in {PLAYBOOKS_DIR}")
-            raise FileNotFoundError(f"No valid YAML files found in {PLAYBOOKS_DIR}")
+            self.logger.warning("No valid YAML files found in the playbooks directories.")
+            raise FileNotFoundError("No valid YAML files found in the playbooks directories.")
 
         metadata_list = []
-        for filename in playbook_files:
-            filepath = os.path.join(PLAYBOOKS_DIR, filename)
+        for filepath in playbook_files:
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
 
                 if not (metadata_block := re.search(METADATA_REGEX, content, re.DOTALL)):
-                    self.logger.debug(f"No metadata found in {filename}")
+                    self.logger.debug(f"No metadata found in {filepath}")
                     continue
 
                 cleaned_lines = [
@@ -202,18 +215,18 @@ class AnsibleService:
                 metadata = yaml.safe_load('\n'.join(cleaned_lines))
 
                 if not metadata or not REQUIRED_FIELDS.issubset(metadata):
-                    self.logger.warning(f"Invalid metadata in {filename}. Required fields: {REQUIRED_FIELDS}")
-                    raise ValueError(f"Invalid metadata in {filename}. Required fields: {REQUIRED_FIELDS}")
+                    self.logger.warning(f"Invalid metadata in {filepath}. Required fields: {REQUIRED_FIELDS}")
+                    raise ValueError(f"Invalid metadata in {filepath}. Required fields: {REQUIRED_FIELDS}")
 
-                metadata['_source_file'] = filename
+                metadata['_source_file'] = os.path.basename(filepath)
                 metadata_list.append(metadata)
 
             except yaml.YAMLError as e:
-                self.logger.error(f"YAML syntax error in {filename}: {str(e)}")
-                raise ValueError(f"YAML syntax error in {filename}: {str(e)}")
+                self.logger.error(f"YAML syntax error in {filepath}: {str(e)}")
+                raise ValueError(f"YAML syntax error in {filepath}: {str(e)}")
             except Exception as e:
-                self.logger.error(f"Unexpected error with {filename}: {str(e)}")
-                raise RuntimeError(f"Unexpected error with {filename}: {str(e)}")
+                self.logger.error(f"Unexpected error with {filepath}: {str(e)}")
+                raise RuntimeError(f"Unexpected error with {filepath}: {str(e)}")
 
         self.ctx.set_pb_metadata(metadata_list)
 
