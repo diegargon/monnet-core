@@ -120,7 +120,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
         return _response_error(command, "Playbook not specified")
 
     try:
-        logger.info("Running ansible playbook...")
+        logger.info("Running ansible playbook... " + str(playbook))
         result = ansible_service.run_ansible_playbook(
             playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group  # Removed ctx
         )

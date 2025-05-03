@@ -48,9 +48,21 @@ class AnsibleTask:
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
             hid = task.get("hid")
-            playbook = task.get("playbook")
+            pid = task.get("pid")
+            if not pid:
+                self.logger.warning(f"PID {pid} not found for task {task['task_name']}. Skipping task.")
+                continue
+            # Fetch the playbook associated with the tas
+            self.logger.debug(f"Fetching playbook for task {task['task_name']} with pid={pid}")
+            playbook = self.ansible_service.get_pb_meta_by_pid(pid)
             if not playbook:
-                self.logger.warning(f"Playbook not found for task {task['task_name']}. Skipping task.")
+                self.logger.warning(f"Playbook {playbook} not found for task {task['task_name']}. Skipping task.")
+                continue
+
+
+            playbook_file = playbook.get("_source_file")
+            if not playbook_file:
+                self.logger.warning(f"Playbook file not found for task {task['task_name']}. Skipping task.")
                 continue
 
             # Fetch Ansible variables associated with the hid
@@ -79,9 +91,9 @@ class AnsibleTask:
             # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
                 self.logger.info(f"Running task: {task['task_name']}")
-                # self.ansible_service.run_ansible_playbook(
-                #     playbook, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
-                # )
+                self.ansible_service.run_ansible_playbook(
+                    playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                )
                 self.ansible_service.delete_task(task["id"])
                 self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
@@ -105,9 +117,9 @@ class AnsibleTask:
                         self.logger.info(
                             f"Running task: {task['task_name']} at crontime={crontime}"
                         )
-                        # self.ansible_service.run_ansible_playbook(
-                        #     playbook, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
-                        # )
+                        self.ansible_service.run_ansible_playbook(
+                            playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                        )
 
                         self.ansible_service.update_task_triggers(
                             task["id"], last_triggered=now
@@ -119,9 +131,9 @@ class AnsibleTask:
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
                 self.logger.info(f"Running task: {task['task_name']}")
-                # self.ansible_service.run_ansible_playbook(
-                #     playbook, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
-                # )
+                self.ansible_service.run_ansible_playbook(
+                    playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                )
 
                 # Calculate new triggers
                 new_last_triggered = now

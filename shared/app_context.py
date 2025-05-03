@@ -2,7 +2,7 @@
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
 Monnet Shared: Context
-
+@description: This module provides a context class for managing application state, including configuration, logger, and variables.
 """
 
 from shared.clogger import Logger
@@ -92,27 +92,3 @@ class AppContext:
             Logger instance
         """
         return self._logger
-
-    def set_pb_metadata(self, metadata: dict) -> None:
-        """
-        Set playbook metadata.
-        Args:
-            metadata (dict): Metadata dictionary.
-        """
-        self._pb_metadata = metadata
-
-    def get_pb_metadata(self) -> dict:
-        """
-        Get playbook metadata.
-        Returns:
-            dict: Metadata dictionary.
-        """
-        return self._pb_metadata
-
-    def has_pb_metadata(self) -> bool:
-        """
-        Check if playbook metadata is set.
-        Returns:
-            bool: True if metadata is set, False otherwise.
-        """
-        return bool(self._pb_metadata)

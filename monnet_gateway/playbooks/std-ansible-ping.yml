@@ -1,9 +1,9 @@
 # @meta
-# id: "user-ansible-ping"
-# name: "user-ansible-ping"
+# id: "std-ansible-ping"
+# name: "std-ansible-ping"
 # description: "Test Ansible connectivity"
 # os: ["linux", "windows", "posix"]
-# tags: ["connectivity", "user"]
+# tags: ["connectivity", "std"]
 ---
 - name: Test Ansible connectivity
   hosts: all

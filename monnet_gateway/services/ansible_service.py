@@ -30,6 +30,7 @@ class AnsibleService:
         self.ansible_model = ansible_model
         self.logger = ctx.get_logger()
         self.ctx = ctx
+        self.pb_metadata = None
 
     def _ensure_model(self):
         """Ensure the AnsibleModel is initialized."""
@@ -138,6 +139,7 @@ class AnsibleService:
         workdir = self.ctx.workdir
         standard_playbook_directory = os.path.join(workdir, 'monnet_gateway/playbooks')
         user_playbook_directory = '/var/lib/monnet/playbooks'
+        self.logger.debug(f"Running ansible playbook: {playbook}")
 
         # Check both directories for the playbook
         playbook_path = None
@@ -228,7 +230,7 @@ class AnsibleService:
                 self.logger.error(f"Unexpected error with {filepath}: {str(e)}")
                 raise RuntimeError(f"Unexpected error with {filepath}: {str(e)}")
 
-        self.ctx.set_pb_metadata(metadata_list)
+        self.pb_metadata = metadata_list
 
         if not metadata_list:
             self.logger.error("No metadata extracted from playbooks")
@@ -240,10 +242,10 @@ class AnsibleService:
         """
         Retrieve metadata for a specific playbook ID from the context.
         """
-        if not self.ctx.has_pb_metadata():
+        if not self.pb_metadata:
             self.extract_pb_metadata()
 
-        pb_metadata = self.ctx.get_pb_metadata()
+        pb_metadata = self.pb_metadata
         if not pb_metadata:
             raise ValueError("No metadata found")
 
@@ -257,11 +259,28 @@ class AnsibleService:
         """
         Retrieve all playbook metadata from the context.
         """
-        if not self.ctx.has_pb_metadata():
+        if not self.pb_metadata:
             self.extract_pb_metadata()
 
-        pb_metadata = self.ctx.get_pb_metadata()
+        pb_metadata = self.pb_metadata
         if not pb_metadata:
             raise ValueError("No metadata found")
 
         return pb_metadata
+
+    def get_pb_meta_by_pid(self, pid: str):
+        """
+        Retrieve the playbook associated with a specific PID.
+        """
+        if not self.pb_metadata:
+            self.extract_pb_metadata()
+
+        if not self.pb_metadata:
+            self.logger.error("No playbook metadata found")
+            return None
+
+        for metadata in self.pb_metadata:
+            if metadata.get('id') == pid:
+                #self.logger.debug(f"Playbook matched for PID {pid}: {metadata}")
+                return metadata
+        self.logger.error(f"Playbook ID {pid} not found in metadata")
