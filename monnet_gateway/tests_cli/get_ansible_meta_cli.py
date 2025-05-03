@@ -19,11 +19,11 @@ sys.path.append(str(BASE_DIR))
 if __name__ == "__main__":
     ctx = init_context("/opt/monnet-core")
     ctx.get_logger().log("Starting test_config CLI", "info")
-    pb_id = input("Enter Playbook ID (leave empty to fetch all metadata): ").strip()
+    pid = input("Enter Playbook ID (leave empty to fetch all metadata): ").strip()
 
-    if pb_id:
+    if pid:
         command = "get_playbook_metadata"
-        data_content = {"pb_id": pb_id}
+        data_content = {"pid": pid}
     else:
         command = "get_all_playbooks_metadata"
         data_content = {}

@@ -61,11 +61,11 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
         return _response_success(command, "Playbooks scanned successfully")
 
     elif command == "get_playbook_metadata":
-        pb_id = data_content.get('pb_id')
-        if not pb_id:
+        pid = data_content.get('pid')
+        if not pid:
             return {"status": "error", "message": "Playbook ID not specified"}
         try:
-            pb_metadata = ansible_service.get_pb_metadata(pb_id)
+            pb_metadata = ansible_service.get_pb_metadata(pid)
         except KeyError as e:
             return _response_error(command, f"Playbook ID not found: {str(e)}")
         except ValueError as e:
@@ -88,13 +88,13 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
     elif command == "get_all_pb_meta_ids":
         try:
             pb_metadata = ansible_service.get_all_pb_metadata()
-            pb_ids = [meta.get('id') for meta in pb_metadata]
+            ids = [meta.get('id') for meta in pb_metadata]
         except ValueError as e:
             return _response_error(command, str(e))
         except Exception as e:
             return _response_error(command, f"Error retrieving all playbook metadata IDs: {str(e)}")
 
-        return _response_success(command, pb_ids)
+        return _response_success(command, ids)
 
     return {"status": "error", "message": f"Invalid command: {command}"}
 

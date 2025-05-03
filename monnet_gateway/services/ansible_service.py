@@ -221,7 +221,7 @@ class AnsibleService:
 
         return metadata_list
 
-    def get_pb_metadata(self, pb_id: str):
+    def get_pb_metadata(self, pid: str):
         """
         Retrieve metadata for a specific playbook ID from the context.
         """
@@ -233,10 +233,10 @@ class AnsibleService:
             raise ValueError("No metadata found")
 
         for metadata in pb_metadata:
-            if metadata.get('id') == pb_id:
+            if metadata.get('id') == pid:
                 return metadata
 
-        raise KeyError(f"Playbook ID {pb_id} not found")
+        raise KeyError(f"Playbook ID {pid} not found")
 
     def get_all_pb_metadata(self):
         """
