@@ -42,7 +42,6 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
 
     ansible_service = AnsibleService(ctx)
 
-
     if command == "playbook_exec":
         return ansible_exec(ctx, ansible_service, command, data_content)
     elif command == "scan_playbooks":
@@ -116,15 +115,38 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
     user = data_content.get('user', "ansible")
     logger = ctx.get_logger()
 
+    logger.debug(f"Executing ansible playbook... {data_content}")
+
     if not playbook:
         return _response_error(command, "Playbook not specified")
+
+    # Fetch Ansible variables associated with the hid
+    hid = data_content.get('host_id', None)
+    if not hid:
+        return _response_error(command, "Host ID not specified")
+
+    try:
+        ansible_vars = ansible_service.fetch_ansible_vars_by_hid(hid)
+        fetched_extra_vars = {var["vkey"]: var["vvalue"] for var in ansible_vars}
+    except KeyError as e:
+        return _response_error(command, f"Invalid ansible variable format: {str(e)}")
+    except Exception as e:
+        return _response_error(command, f"Error fetching ansible variables: {str(e)}")
+
+    # Merge fetched extra_vars with existing extra_vars
+    if extra_vars:
+        fetched_extra_vars.update(extra_vars)
+    extra_vars = fetched_extra_vars
 
     try:
         logger.info("Running ansible playbook... " + str(playbook))
         result = ansible_service.run_ansible_playbook(
-            playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group  # Removed ctx
+            playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group
         )
         result_data = json.loads(result)
+        report_data = _save_report(ctx, data_content, result_data, rtype=1)
+        ansible_service.save_report(report_data)
+
         return _response_success(command, result_data)
     except json.JSONDecodeError as e:
         logger.error("Failed to decode JSON: " + str(e))
@@ -164,7 +186,26 @@ def _response_error(command: str, message: str):
         "version": str(GW_F_VERSION),
         "status": "error",
         "command": command,
-        "message": message
+        "message": message,
+        "error_msg": message
     }
 
     return response
+
+def _save_report(self, data: dict, result: dict, rtype: int) -> dict:
+    """
+    Save the report in the database
+    Args:
+        task (dict): task
+        result (dict): result
+        rtype (int): report type
+    """
+    report_data = {
+        "host_id": data["host_id"],
+        "pid": data["pid"],
+        "source_id": data["source_id"],
+        "rtype": rtype,
+        "report": json.dumps(result)
+    }
+
+    return report_data

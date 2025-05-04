@@ -183,8 +183,7 @@ class AnsibleTask:
         report_data = {
             "host_id": task.get("hid"),
             "pid": task.get("pid"),
-            "pb_id": task.get("id"),
-            "source_id": task.get("id"),  # task ID for tasks
+            "source_id": task.get("id"),
             "rtype": rtype,
             "report": result,
         }

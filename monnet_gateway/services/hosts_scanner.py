@@ -238,7 +238,7 @@ class HostsScanner:
             self.ports_service.update_ports(port_updates)
 
         if stats_updates:
-            self.logger.debug(f"stats_updates: {stats_updates}");
+            # self.logger.debug(f"stats_updates: {stats_updates}");
             # Convert stats_updates to a list of dictionaries
             stats_data = list(stats_updates.values())
             self.stats_model.update_stats_bulk(stats_data)

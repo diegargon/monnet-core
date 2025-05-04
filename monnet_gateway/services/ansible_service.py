@@ -39,7 +39,8 @@ class AnsibleService:
         """Ensure the AnsibleModel is initialized."""
         if not self.ansible_model:
             self.logger.debug("Initializing AnsibleModel lazily.")
-            self.ansible_model = AnsibleModel(self.ctx)
+            db = DBManager(self.config)
+            self.ansible_model = AnsibleModel(db)
 
     def fetch_active_tasks(self):
         """Fetch all active tasks."""
@@ -167,6 +168,12 @@ class AnsibleService:
             command.extend(['-u', user])
 
         try:
+            # Mask vars for logging
+            if extra_vars:
+                masked_extra_vars = {key: "****" for key in extra_vars.keys()}
+                self.logger.info(f"Executing command: {' '.join(command)} with extra-vars: {json.dumps(masked_extra_vars)}")
+            else:
+                self.logger.info(f"Executing command: {' '.join(command)}")
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = process.communicate()
             if stderr:
