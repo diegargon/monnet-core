@@ -94,7 +94,7 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
-                self._save_report(task, result, rtype=2)  # Save report with rtype=2 (Task)
+                self._save_report(task, result, rtype=2)
                 self.ansible_service.delete_task(task["id"])
                 self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
@@ -118,9 +118,10 @@ class AnsibleTask:
                         self.logger.info(
                             f"Running task: {task['task_name']} at crontime={crontime}"
                         )
-                        self.ansible_service.run_ansible_playbook(
+                        result = self.ansible_service.run_ansible_playbook(
                             playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                         )
+                        self._save_report(task, result, rtype=2)
 
                         self.ansible_service.update_task_triggers(
                             task["id"], last_triggered=now
@@ -135,7 +136,7 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
-                self._save_report(task, result, rtype=2)  # Save report with rtype=2 (Task)
+                self._save_report(task, result, rtype=2)
 
                 # Calculate new triggers
                 new_last_triggered = now
