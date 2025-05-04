@@ -31,7 +31,7 @@ def get_meta(ctx: AppContext):
         dict: Dictionary with metadata.
     """
 
-    timestamp = time_utils.get_datetime()
+    timestamp = time_utils.date_now()
     local_timezone = time_utils.get_local_timezone()
     hostname = info_linux.get_hostname()
     nodename = info_linux.get_nodename()

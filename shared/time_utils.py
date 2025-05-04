@@ -8,6 +8,12 @@ Monnet Shared: Time Utilities
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
+# TODO to remove after upgrade agent
+# TODO to class
+
+def get_datetime():
+    return date_now()
+
 def date_now(timezone_str='UTC'):
     """
     Get the current date and time in the specified timezone.
