@@ -8,22 +8,6 @@ Monnet Shared: Time Utilities
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-def get_datetime():
-    """
-    UTC Datetime
-    Returns:
-        datetime:
-    """
-    return datetime.now(timezone.utc).isoformat()
-
-def get_local_timezone():
-    """
-    Timezone
-    Returns:
-        datetime:
-    """
-    return datetime.now().astimezone().tzinfo
-
 def date_now(timezone_str='UTC'):
     """
     Get the current date and time in the specified timezone.
@@ -36,7 +20,7 @@ def date_now(timezone_str='UTC'):
     """
     try:
         tz = ZoneInfo(timezone_str)
-    except KeyError:  # ZoneInfo raises KeyError for invalid timezones
+    except KeyError as e:
         return False
 
     _date_now = datetime.now(tz)
@@ -51,3 +35,11 @@ def utc_date_now():
         str: The current date and time in 'Y-m-d H:M:S' format.
     """
     return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+
+def get_local_timezone():
+    """
+    Timezone
+    Returns:
+        tzinfo: The local timezone information.
+    """
+    return datetime.now().astimezone().tzinfo

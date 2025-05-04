@@ -17,6 +17,8 @@ from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
 from monnet_gateway.services import event_host
 from monnet_gateway.services.event_host import EventHostService
+from shared.time_utils import date_now
+
 
 from shared.app_context import AppContext
 class HostService:
@@ -191,6 +193,7 @@ class HostService:
             disable_alarms = False
 
         if host.get("online") == 0 and current_host.get("online") == 1:
+            current_host["glow"] = date_now()
             self.event_host.event(
                 hid,
                 f'Host become online {ip}',
@@ -199,6 +202,7 @@ class HostService:
             )
 
         if host.get("online") == 1 and current_host.get("online") == 0:
+            current_host["glow"] = date_now()
             if disable_alarms or not host.get("misc", {}).get("alway_on"):
                 log_type = LogType.EVENT
             else:
@@ -213,7 +217,6 @@ class HostService:
             )
 
         if "hostname" in current_host and host.get("hostname") != current_host.get("hostname"):
-
             if disable_alarms or host.get("misc", {}).get("alarm_hostname_disable"):
                 log_type = LogType.EVENT
             else:
