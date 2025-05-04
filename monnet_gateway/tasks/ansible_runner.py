@@ -91,9 +91,10 @@ class AnsibleTask:
             # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
                 self.logger.info(f"Running task: {task['task_name']}")
-                self.ansible_service.run_ansible_playbook(
+                result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
+                self._save_report(task, result, rtype=2)  # Save report with rtype=2 (Task)
                 self.ansible_service.delete_task(task["id"])
                 self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
@@ -131,9 +132,10 @@ class AnsibleTask:
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
                 self.logger.info(f"Running task: {task['task_name']}")
-                self.ansible_service.run_ansible_playbook(
+                result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
+                self._save_report(task, result, rtype=2)  # Save report with rtype=2 (Task)
 
                 # Calculate new triggers
                 new_last_triggered = now
@@ -166,3 +168,24 @@ class AnsibleTask:
         except ValueError:
             pass
         return 60
+
+    def _save_report(self, task, result, rtype):
+        """
+        Save the result of the Ansible playbook execution into the reports table.
+
+        Args:
+            task (dict): The task metadata.
+            result (str): The result of the playbook execution.
+            rtype (int): The report type (1 for manual, 2 for task).
+        """
+        self.logger.debug(f"Saving report for task {task['task_name']}")
+
+        report_data = {
+            "host_id": task.get("hid"),
+            "pid": task.get("pid"),
+            "pb_id": task.get("id"),
+            "source_id": task.get("id"),  # task ID for tasks
+            "rtype": rtype,
+            "report": result,
+        }
+        self.ansible_service.save_report(report_data)

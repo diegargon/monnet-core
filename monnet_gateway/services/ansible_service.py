@@ -19,6 +19,8 @@ import yaml
 
 # Local
 from monnet_gateway.database.ansible_model import AnsibleModel
+from monnet_gateway.database.dbmanager import DBManager
+from monnet_gateway.database.reports_model import ReportsModel
 from monnet_gateway.mgateway_config import DEFAULT_ANSIBLE_GROUPS_FILE
 from monnet_gateway.services.encrypt_service import EncryptService
 from shared.app_context import AppContext
@@ -30,6 +32,7 @@ class AnsibleService:
         self.ansible_model = ansible_model
         self.logger = ctx.get_logger()
         self.ctx = ctx
+        self.config = ctx.get_config()
         self.pb_metadata = None
 
     def _ensure_model(self):
@@ -284,3 +287,40 @@ class AnsibleService:
                 #self.logger.debug(f"Playbook matched for PID {pid}: {metadata}")
                 return metadata
         self.logger.error(f"Playbook ID {pid} not found in metadata")
+
+    def save_report(self, report_data: dict):
+        """
+        Save a report using the ReportsModel.
+
+        Args:
+            report_data (dict): The report data to save.
+
+        """
+
+        # TODO: meterlo en result no deberia ser necesario y complica el tema,
+        # ansible-report lo necesita actualmente pero se deberia poder cambiar
+
+        # Ensure the 'report' field is wrapped in a JSON-compatible "result" dictionary
+        if "report" in report_data:
+            if isinstance(report_data["report"], dict):
+                # If it's already a dictionary, wrap it in "result" without serializing again
+                report_data["report"] = {"result": report_data["report"]}
+            elif isinstance(report_data["report"], str):
+                try:
+                    # Attempt to parse the string as JSON
+                    parsed_report = json.loads(report_data["report"])
+                    report_data["report"] = {"result": parsed_report}
+                except json.JSONDecodeError:
+                    # If it's not valid JSON, wrap it as-is
+                    report_data["report"] = {"result": report_data["report"]}
+
+        # Serialize the 'report' field to a JSON string
+        report_data["report"] = json.dumps(report_data["report"])
+
+        db = DBManager(self.config)
+        if not db:
+            self.logger.error("Database connection failed.")
+
+        reports_model = ReportsModel(db)
+        reports_model.save_report(report_data)
+        reports_model.commit()
