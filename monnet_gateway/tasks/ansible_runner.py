@@ -6,9 +6,14 @@ Monnet Gateway - Ansible Runner Task
 
 """
 
+"""
+TODO: Manage run ansible playbook exceptions
+"""
 # Std
-
 from datetime import datetime, timedelta
+import json
+import socket
+from ipaddress import ip_address, ip_network
 
 # Third-party
 from croniter import croniter
@@ -52,30 +57,46 @@ class AnsibleTask:
             if not pid:
                 self.logger.warning(f"PID {pid} not found for task {task['task_name']}. Skipping task.")
                 continue
-            # Fetch the playbook associated with the tas
+            # Fetch the playbook associated with the task
             self.logger.debug(f"Fetching playbook for task {task['task_name']} with pid={pid}")
             playbook = self.ansible_service.get_pb_meta_by_pid(pid)
             if not playbook:
                 self.logger.warning(f"Playbook {playbook} not found for task {task['task_name']}. Skipping task.")
                 continue
 
-
             playbook_file = playbook.get("_source_file")
             if not playbook_file:
                 self.logger.warning(f"Playbook file not found for task {task['task_name']}. Skipping task.")
                 continue
 
-            # Fetch Ansible variables associated with the hid
-            ansible_vars = self.ansible_service.fetch_ansible_vars_by_hid(hid)
-            extra_vars = {var["vkey"]: var["vvalue"] for var in ansible_vars}
-            self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
-
             # Fetch the IP of the host associated with the hid
             host = self.host_service.get_by_id(hid)
-            if not host or "ip" not in host:
+            if not host or "ip" not in host or not host["ip"]:
                 self.logger.warning(f"Host with hid={hid} not found or missing IP. Skipping task {task['task_name']}.")
                 continue
-            host_ip = host["ip"]
+
+            try:
+                host_ip = ip_address(host["ip"])
+            except ValueError:
+                self.logger.error(f'Invalid IP address for task task {task["task_name"]}. Skipping.')
+                continue
+            # Initialize extra_vars
+            extra_vars = {}
+
+            # Check if the playbook metadata contains the tag 'agent-config'
+            tags = playbook.get("tags", [])
+            if "agent-config" in tags:
+                agent_config = self._build_agent_config(host)
+                try:
+                    extra_vars["agent_config"] = json.dumps(agent_config)
+                except (TypeError, ValueError) as e:
+                    self.logger.error(f"Failed to serialize agent_config to JSON for task {task['task_name']}: {e}")
+                    continue
+
+            # Fetch Ansible variables associated with the hid
+            ansible_vars = self.ansible_service.fetch_ansible_vars_by_hid(hid)
+            extra_vars.update({var["vkey"]: var["vvalue"] for var in ansible_vars})
+            self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
 
             # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
             ansible_user = extra_vars.get("ansible_user") or self.config.get("ansible_user", "ansible")  # Simplified logic
@@ -90,7 +111,7 @@ class AnsibleTask:
             # 5 Interval: run if interval time is reached
             # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
-                self.logger.info(f"Running task: {task['task_name']}")
+                self.logger.info(f"Running Uniq task: {task['task_name']}")
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
@@ -103,6 +124,7 @@ class AnsibleTask:
                 last_triggered = task.get("last_triggered")
                 created = task.get("created")
                 if crontime and croniter.is_valid(crontime):
+                    # TODO manage croniter exceptions
                     cron = croniter(crontime, now)
                     next_cron_time = cron.get_next(datetime)
                     last_cron_time = cron.get_prev(datetime)
@@ -132,7 +154,7 @@ class AnsibleTask:
                         )
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
-                self.logger.info(f"Running task: {task['task_name']}")
+                self.logger.info(f"Running  Interval task: {task['task_name']} at interval of {task['task_interval']}")
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
@@ -167,6 +189,7 @@ class AnsibleTask:
             elif interval.endswith("y"):
                 return int(interval[:-1]) * 31536000
         except ValueError:
+            # TODO: log/Deal error
             pass
         return 60
 
@@ -189,3 +212,54 @@ class AnsibleTask:
             "report": result,
         }
         self.ansible_service.save_report(report_data)
+
+    def _build_agent_config(self, host):
+        """
+        Build the agent configuration based on the host and system settings.
+
+        Args:
+            host (dict): The host metadata.
+
+        Returns:
+            dict: The agent configuration.
+        """
+        token = host.get("token")
+        if not token:
+            self.logger.error(f"Host {host.get('id')} is missing a token. Cannot build agent config.")
+            return None
+
+        # Obtener la IP del host
+        host_ip = host.get("ip")
+        if not host_ip:
+            self.logger.error(f"Host {host.get('id')} is missing an IP address. Cannot build agent config.")
+            return None
+
+        # Determinar si la IP es externa
+        try:
+            ip = ip_address(host_ip)
+            is_external = not any(
+                ip in ip_network(net) for net in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8"]
+            )
+        except ValueError:
+            self.logger.error(f"Invalid IP address {host_ip} for host {host.get('id')}. Cannot build agent config.")
+            return None
+
+        # Usar agent_external_host si la IP es externa, de lo contrario usar el FQDN
+        if is_external:
+            server_host = self.config.get("agent_external_host", "default.external.host")
+        else:
+            server_host = socket.getfqdn()
+
+        return {
+            "id": host.get("id"),
+            "token": token,
+            "log_level": "info",
+            "default_interval": self.config.get("agent_default_interval"),
+            "ignore_cert": self.config.get("agent_allow_selfcerts"),
+            "server_host": server_host,
+            "mem_alert_threshold": self.config.get("default_mem_alert_threshold"),
+            "mem_warn_threshold": self.config.get("default_mem_warn_threshold"),
+            "disks_alert_threshold": self.config.get("default_disks_alert_threshold"),
+            "disks_warn_threshold": self.config.get("default_disks_warn_threshold"),
+            "server_endpoint": "/feedme.php",
+        }

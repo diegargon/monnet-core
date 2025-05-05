@@ -19,6 +19,7 @@ class HostsCheckerTask:
         self.config = ctx.get_config()
 
     def run(self):
+        self.logger.debug("Running known host checker...")
         retries = 3
         start_time = time()
 

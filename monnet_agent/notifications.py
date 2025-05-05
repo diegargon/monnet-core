@@ -75,8 +75,7 @@ def send_notification(ctx: AppContext, name: str, data: dict):
         server_host = config["server_host"]
         server_endpoint = config["server_endpoint"]
         meta = get_meta(ctx)
-        if name == 'starting':
-            data["msg"] = data["msg"].strftime("%H:%M:%S")
+
         data["name"] = name
 
         payload = {
@@ -96,6 +95,22 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             headers = {"Content-Type": "application/json"}
             connection.request("POST", server_endpoint, body=json.dumps(payload), headers=headers)
             response = connection.getresponse()
+            """
+            TODO: Test Check if the response is JSON and contains the expected keys.
+            if response.status == 200:
+                if raw_data:
+                    try:
+                        parsed_data = json.loads(raw_data)
+                        if "expected_key" not in parsed_data:
+                            logger.log("Missing 'expected_key' in response data.", "err")
+                            return None
+                        return parsed_data
+                    except json.JSONDecodeError as e:
+                        logger.log(f"Error decoding JSON response: {e} Raw data: {raw_data}", "err")
+                        return None
+            else:
+                logger.log(f"HTTP Error: {response.status} {response.reason},
+            """
             logger.log(f"Notification response: {response.status} {response.reason}", "debug")
         except Exception as e:
             logger.log(f"Error sending notification to {server_host}: {e}", "err")

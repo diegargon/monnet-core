@@ -4,6 +4,12 @@
 Monnet Agent - Core Agent Main Loop
 """
 
+"""
+TODO:
+    self.config.get instead of self.config["key"] everywhere
+    info_linux: Manage exceptions
+
+"""
 from datetime import datetime
 import signal
 import time
@@ -15,6 +21,7 @@ import psutil
 # Local
 from constants.log_level import LogLevel
 from constants.event_type import EventType
+from constants.log_type import LogType
 import monnet_agent.agent_tasks as agent_tasks
 from monnet_agent import agent_config, info_linux
 from monnet_agent.datastore import Datastore
@@ -130,11 +137,14 @@ class MonnetAgent:
             self.logger.log("Uptime not available", "warning")
             return
 
+        date_now = datetime.now().time().strftime("%H:%M:%S")
         starting_data = {
-            'msg': datetime.now().time(),
+            'msg': f'Agent starting {date_now}',
+            'date': date_now,
             'ncpu': info_linux.get_cpus(),
             'uptime': uptime,
             'log_level': LogLevel.NOTICE,
+            'log_type': LogType.EVENT,
             'event_type': EventType.STARTING
         }
         send_notification(self.ctx, 'starting', starting_data)
@@ -275,6 +285,12 @@ class MonnetAgent:
 
         # Cancel all active timers
         for timer_name, timer in agent_config.timers.items():
-            if timer:
-                timer.cancel()
+            if timer and hasattr(timer, "cancel") and callable(timer.cancel):
+                try:
+                    if timer:
+                        timer.cancel()
+                except Exception as e:
+                    self.logger.warning(f"Error cancelling timer {timer_name}: {e}")
+            else:
+                self.logger.warning(f"Timer {timer_name} is not cancelable or does not exist.")
         self.logger.log("Agent stopped and timers cleaned up.", "info")

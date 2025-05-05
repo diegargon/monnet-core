@@ -3,7 +3,7 @@
 # name: "std-install-monnet-agent-systemd"
 # description: "Install Monnet Agent on systemd distributions"
 # os: ["linux", "posix"]
-# tags: ["monnet", "agent", "installation", "std"]
+# tags: ["monnet", "agent-config", "installation", "std"]
 # requires:
 #   - python: "3.9"
 ---
@@ -15,7 +15,7 @@
   tasks:
     - name: Print agent_config
       debug:
-        msg: "{{ agent_config }}"
+        msg: "{{ agent_config | from_json | to_nice_json }}"
 
     - name: Gather OS family
       ansible.builtin.setup:

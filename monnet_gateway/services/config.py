@@ -24,9 +24,8 @@ class Config:
 
         # Load file-based configuration
         self.logger.debug(f"Loading configuration from file: {file_path}")
-        self._load_file_config(file_path)
-
-        self._load_db_config()
+        self.load_file_config(file_path)
+        self.load_db_config()
         self.ctx.set_config(self)
 
     def get(self, key: str, default=None):
@@ -102,7 +101,7 @@ class Config:
         finally:
             db.close()
 
-    def _load_file_config(self, file_path: str):
+    def load_file_config(self, file_path: str):
         """
         Load configuration from a JSON file.
 
@@ -133,7 +132,7 @@ class Config:
         if missing_keys:
             raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
 
-    def _load_db_config(self):
+    def load_db_config(self):
         """
         Load additional configuration from the database.
         """
