@@ -77,6 +77,8 @@ class DBManager:
             )
             # Return results as dictionaries
             self.cursor = self.conn.cursor(dictionary=True)
+            # Mysql default REPEATABLE READ instead READ COMMITTED change this
+            self.cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
         except ImportError:
             raise RuntimeError("mysql-connector-python is not installed. \
                 Install it with `pip install mysql-connector-python`.")
