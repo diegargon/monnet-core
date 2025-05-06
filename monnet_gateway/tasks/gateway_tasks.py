@@ -109,6 +109,8 @@ class TaskSched:
                             self.last_run_time["send_logs"] = current_time
                         finally:
                             self.task_locks["send_logs"].release()
+                    else:
+                        self.logger.info("TaskSched: send_logs task locked..")
 
                 # Run DiscoveryTask if the interval has passed
                 if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
@@ -119,7 +121,8 @@ class TaskSched:
                             self.last_run_time["discovery_hosts"] = current_time
                             self.task_locks["discovery_hosts"].release()
                             self.logger.debug("Finish DiscoveryHostsTask...")
-
+                    else:
+                        self.logger.info("TaskSched: discovery_hosts task locked..")
                 # Run HostCheckerTask if the interval has passed
                 if current_time - self.last_run_time["hosts_checker"] >= self.task_intervals["hosts_checker"]:
                     if self.task_locks["hosts_checker"].acquire(blocking=False):
@@ -129,6 +132,8 @@ class TaskSched:
                             self.last_run_time["hosts_checker"] = current_time
                             self.task_locks["hosts_checker"].release()
                             self.logger.debug("Finish known host checker...")
+                    else:
+                        self.logger.info("TaskSched: hosts_checker task locked..")
 
                 # Run AnsibleTask if the interval has passed
                 if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
@@ -138,6 +143,8 @@ class TaskSched:
                         finally:
                             self.last_run_time["ansible"] = current_time
                             self.task_locks["ansible"].release()
+                    else:
+                        self.logger.info("TaskSched: ansible task locked..")
 
                 # Run PruneTask if the interval has passed
                 if current_time - self.last_run_time["prune"] >= self.task_intervals["prune"]:
@@ -148,6 +155,8 @@ class TaskSched:
                             self.last_run_time["prune"] = current_time
                         finally:
                             self.task_locks["prune"].release()
+                    else:
+                        self.logger.info("TaskSched: prune task locked..")
 
                 # Run WeeklyTask if the interval has passed
                 if current_time - self.last_run_time["weekly_task"] >= self.task_intervals["weekly_task"]:
@@ -158,10 +167,11 @@ class TaskSched:
                             self.last_run_time["weekly_task"] = current_time
                         finally:
                             self.task_locks["weekly_task"].release()
-
+                    else:
+                        self.logger.info("TaskSched: weekly_task task locked..")
                 sleep(1)
             except Exception as e:
-                self.logger.error(f"Error in TaskSched: {e}")
+                self.logger.error(f"Error in TaskSched run: {e}")
 
         """
         New run_task method with task scheduling
