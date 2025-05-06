@@ -200,12 +200,18 @@ def _save_report(self, data: dict, result: dict, rtype: int) -> dict:
         result (dict): result
         rtype (int): report type
     """
+    try:
+        report_json = json.dumps(result)
+    except (TypeError, ValueError) as e:
+        self.logger.error(f"Failed to convert report result to JSON: {e}")
+        return {}
+
     report_data = {
         "host_id": data["host_id"],
         "pid": data["pid"],
         "source_id": data["source_id"],
         "rtype": rtype,
-        "report": json.dumps(result)
+        "report": report_json
     }
 
     return report_data
