@@ -39,6 +39,7 @@ class AnsibleTask:
     def run(self):
         self.logger.debug("Execution ansible task...")
         tasks = self.ansible_service.fetch_active_tasks()
+        self.logger.debug(f"Number of tasks {len(tasks)}")
         now = datetime.now()
 
         for task in tasks:
@@ -49,7 +50,7 @@ class AnsibleTask:
 
             # Obtain task parameters
             task_interval = task.get("task_interval") or "1m"
-            interval_seconds = self._parse_interval(task_interval)
+            interval_seconds = self._parse_interval(task_interval) if task_inteval is not None else None
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
             hid = task.get("hid")
@@ -154,7 +155,10 @@ class AnsibleTask:
                         )
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
-                self.logger.info(f"Running  Interval task: {task['task_name']} at interval of {task['task_interval']}")
+                self.logger.info(f"Running interval task: {task['task_name']} at interval of {task['task_interval']}")
+                if interval_seconds is None:
+                    self.logger.warning(f"Missing interval from the interval task {task['task_name']}")
+                    continue
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )

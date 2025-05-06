@@ -29,7 +29,7 @@ class TaskSched:
         self.db = DBManager(self.config)
 
         try:
-            self.logger.info("Initialize TaskSched...")
+            self.logger.debug("Initialize TaskSched...")
             if not ctx.has_var("task_interval"):
                 ctx.set_var("task_interval", DEFAULT_INTERVAL)
                 self.logger.warning(
@@ -96,7 +96,7 @@ class TaskSched:
             monnet-discovery
             Ansible Tasks
         """
-        self.logger.debug("Running DiscoveryHostsTask...")
+        self.logger.debug("TaskSched runner...")
         while not self.stop_event.is_set():
             current_time = time()
 
