@@ -50,7 +50,7 @@ class AnsibleTask:
 
             # Obtain task parameters
             task_interval = task.get("task_interval") or "1m"
-            interval_seconds = self._parse_interval(task_interval) if task_inteval is not None else None
+            interval_seconds = self._parse_interval(task_interval) if task_interval is not None else None
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
             hid = task.get("hid")
