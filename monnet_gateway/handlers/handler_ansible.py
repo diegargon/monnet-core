@@ -144,7 +144,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
             playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group
         )
         result_data = json.loads(result)
-        report_data = _save_report(ctx, data_content, result_data, rtype=1)
+        report_data = _prepare_report(ctx, data_content, result_data, rtype=1)
         ansible_service.save_report(report_data)
 
         return _response_success(command, result_data)
@@ -192,7 +192,7 @@ def _response_error(command: str, message: str):
 
     return response
 
-def _save_report(self, data: dict, result: dict, rtype: int) -> dict:
+def _prepare_report(ctx: AppContext, data: dict, result: dict, rtype: int) -> dict:
     """
     Save the report in the database
     Args:
@@ -200,10 +200,21 @@ def _save_report(self, data: dict, result: dict, rtype: int) -> dict:
         result (dict): result
         rtype (int): report type
     """
+    # Determine status based on playbook execution results
+    # Default to success
+    status = 0
+    logger = ctx.get_logger()
+
+    stats = result.get("stats", {})
+    for host, host_stats in stats.items():
+        if host_stats.get("failures", 0) > 0 or host_stats.get("unreachable", 0) > 0:
+            status = 1
+            break
+
     try:
         report_json = json.dumps(result)
     except (TypeError, ValueError) as e:
-        self.logger.error(f"Failed to convert report result to JSON: {e}")
+        logger.error(f"Failed to convert report result to JSON: {e}")
         return {}
 
     report_data = {
@@ -211,6 +222,7 @@ def _save_report(self, data: dict, result: dict, rtype: int) -> dict:
         "pid": data["pid"],
         "source_id": data["source_id"],
         "rtype": rtype,
+        "status": status,
         "report": report_json
     }
 

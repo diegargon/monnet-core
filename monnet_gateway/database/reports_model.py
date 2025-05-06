@@ -20,8 +20,8 @@ class ReportsModel:
             report_data (dict): The report data to save.
         """
         query = """
-            INSERT INTO reports (host_id, pid,  source_id, rtype, report)
-            VALUES (%(host_id)s, %(pid)s, %(source_id)s, %(rtype)s, %(report)s)
+            INSERT INTO reports (host_id, pid,  source_id, rtype, report, status)
+            VALUES (%(host_id)s, %(pid)s, %(source_id)s, %(rtype)s, %(report)s, %(status)s)
         """
         self.db.execute(query, report_data)
 
