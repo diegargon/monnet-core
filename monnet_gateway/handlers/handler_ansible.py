@@ -126,8 +126,8 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
         return _response_error(command, "Host ID not specified")
 
     try:
-        ansible_vars = ansible_service.fetch_ansible_vars_by_hid(hid)
-        fetched_extra_vars = {var["vkey"]: var["vvalue"] for var in ansible_vars}
+        playbook_vars = ansible_service.fetch_playbook_vars_by_hid(hid)
+        fetched_extra_vars = {var["vkey"]: var["vvalue"] for var in playbook_vars}
     except KeyError as e:
         return _response_error(command, f"Invalid ansible variable format: {str(e)}")
     except Exception as e:

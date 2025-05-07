@@ -57,10 +57,10 @@ class AnsibleService:
         self._ensure_model()
         self.ansible_model.update_task_triggers(task_id, last_triggered, next_trigger)
 
-    def fetch_ansible_vars_by_hid(self, hid: int):
+    def fetch_playbook_vars_by_hid(self, hid: int):
         """Fetch Ansible variables associated with a host (hid)."""
         self._ensure_model()
-        vars = self.ansible_model.fetch_ansible_vars_by_hid(hid)
+        vars = self.ansible_model.fetch_playbook_vars_by_hid(hid)
         for var in vars:
             if 'vkey' not in var or 'vvalue' not in var:
                 self.logger.debug(f"Missing 'vkey' or 'vvalue' in variable for host {hid}. Skipping.")

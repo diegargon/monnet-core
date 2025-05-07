@@ -50,7 +50,7 @@ class AnsibleModel:
         with self.db.transaction():
             self.db.update("tasks", data=data, where={"id": task_id})
 
-    def fetch_ansible_vars_by_hid(self, hid: int):
+    def fetch_playbook_vars_by_hid(self, hid: int):
         """
         Fetches Ansible variables associated with a host (hid).
 

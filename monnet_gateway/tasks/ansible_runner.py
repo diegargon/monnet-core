@@ -95,8 +95,8 @@ class AnsibleTask:
                     continue
 
             # Fetch Ansible variables associated with the hid
-            ansible_vars = self.ansible_service.fetch_ansible_vars_by_hid(hid)
-            extra_vars.update({var["vkey"]: var["vvalue"] for var in ansible_vars})
+            playbook_vars = self.ansible_service.fetch_playbook_vars_by_hid(hid)
+            extra_vars.update({var["vkey"]: var["vvalue"] for var in playbook_vars})
             self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
 
             # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
