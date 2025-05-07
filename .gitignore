@@ -5,7 +5,7 @@ monnet_gateway/playbooks/*
 monnet_gateway/playbooks/*
 !monnet_gateway/playbooks/std-*.yml
 !monnet_gateway/playbooks/std-*.yaml
-
+!monnet_gateway/playbooks/std-*-yaml
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
