@@ -1,0 +1,95 @@
+# @meta
+# id: "std-openscad-default-debian"
+# name: "std-openscad-default-debian"
+# description: "Run OpenSCAP scan on Debian systems to check compliance""
+# os: ["linux", "posix"]
+# tags: ["security", "std", "openscad", "debian"]
+---
+- name: Security scan with OpenSCAP on Debian
+  hosts: all
+  gather_facts: false
+  become: true
+
+  vars:
+    output_dir: "/tmp/oscap_results"
+    scap_profile: "xccdf_org.ssgproject.content_profile_standard"
+    scap_data: >
+      {% if ansible_facts['os_release']['version_id'].startswith('11') %}
+      /usr/share/xml/scap/ssg/content/ssg-debian11-ds.xml
+      {% elif ansible_facts['os_release']['version_id'].startswith('12') %}
+      /usr/share/xml/scap/ssg/content/ssg-debian12-ds.xml
+      {% else %}
+      None
+      {% endif %}
+
+  tasks:
+
+    - name: Fail if unsupported Debian version
+      fail:
+        msg: "Unsupported Debian version '{{ ansible_facts['os_release']['version_id'] }}'. Only Debian 11 and 12 are supported."
+      when: scap_data == "None"
+
+    - name: Debug Debian version
+      debug:
+        msg: "Detected Debian version: {{ ansible_facts['os_release']['version_id'] }}"
+
+    - name: Ensure output directory exists
+      file:
+        path: "{{ output_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Debug output directory creation
+      debug:
+        msg: "Output directory '{{ output_dir }}' ensured."
+
+    - name: Install required packages
+      apt:
+        name:
+          - libopenscap8
+          - openscap-scanner
+          - scap-security-guide
+        state: present
+        update_cache: yes
+
+    - name: Debug package installation
+      debug:
+        msg: "Required packages installed: libopenscap8, openscap-scanner, scap-security-guide."
+
+    - name: Fail if SCAP data file does not exist
+      stat:
+        path: "{{ scap_data }}"
+      register: scap_data_file
+
+    - name: Debug SCAP data file check
+      debug:
+        msg: >
+          SCAP data file check: exists={{ scap_data_file.stat.exists }},
+          path={{ scap_data }}
+
+    - name: Throw error if SCAP data file is missing
+      fail:
+        msg: "The SCAP data file '{{ scap_data }}' does not exist. Please verify the file path."
+      when: not scap_data_file.stat.exists
+
+    - name: Run OpenSCAP scan
+      command: >
+        oscap xccdf eval
+        --profile {{ scap_profile }}
+        --results {{ output_dir }}/results-raw.xml
+        --report {{ output_dir }}/results.html
+        {{ scap_data }}
+      args:
+        creates: "{{ output_dir }}/results.html"
+
+    - name: Debug OpenSCAP scan
+      debug:
+        msg: "OpenSCAP scan completed. Results saved in '{{ output_dir }}/results.html'."
+
+    - name: Display HTML report content
+      shell: cat "{{ output_dir }}/results.html"
+      register: html_report_content
+
+    - name: Debug HTML report content
+      debug:
+        msg: "HTML Report Content:\n{{ html_report_content.stdout }}"
