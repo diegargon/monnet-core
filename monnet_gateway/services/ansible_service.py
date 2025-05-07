@@ -166,6 +166,9 @@ class AnsibleService:
             command.extend(['--limit', ansible_group])
         if user:
             command.extend(['-u', user])
+        if extra_vars and 'ansible_port' in extra_vars:
+            ansible_port = extra_vars['ansible_port']
+            command.extend(['--ssh-common-args', f"-p {ansible_port}"])
 
         try:
             # Mask vars for logging
