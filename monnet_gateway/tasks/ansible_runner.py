@@ -116,7 +116,12 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
-                self._save_report(task, result, rtype=2)
+                # Save the report
+                report_data = self.ansible_service.prepare_report(
+                    self.ctx, task, json.loads(result), rtype=2
+                )
+                self.ansible_service.save_report(report_data)
+
                 self.ansible_service.delete_task(task["id"])
                 self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
@@ -144,7 +149,11 @@ class AnsibleTask:
                         result = self.ansible_service.run_ansible_playbook(
                             playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                         )
-                        self._save_report(task, result, rtype=2)
+                        # Save the report
+                        report_data = self.ansible_service.prepare_report(
+                            self.ctx, task, json.loads(result), rtype=2
+                        )
+                        self.ansible_service.save_report(report_data)
 
                         self.ansible_service.update_task_triggers(
                             task["id"], last_triggered=now
@@ -162,7 +171,10 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
-                self._save_report(task, result, rtype=2)
+                report_data = self.ansible_service.prepare_report(
+                    self.ctx, task, json.loads(result), rtype=2
+                )
+                self.ansible_service.save_report(report_data)
 
                 # Calculate new triggers
                 new_last_triggered = now
@@ -206,15 +218,10 @@ class AnsibleTask:
             result (str): The result of the playbook execution.
             rtype (int): The report type (1 for manual, 2 for task).
         """
-        self.logger.debug(f"Saving report for task {task['task_name']}")
 
-        report_data = {
-            "host_id": task.get("hid"),
-            "pid": task.get("pid"),
-            "source_id": task.get("id"),
-            "rtype": rtype,
-            "report": result,
-        }
+        report_data = self.ansible_service.prepare_report(
+            self.ctx, task, json.loads(result), rtype
+        )
         self.ansible_service.save_report(report_data)
 
     def _build_agent_config(self, host):

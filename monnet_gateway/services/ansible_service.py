@@ -303,6 +303,7 @@ class AnsibleService:
             report_data (dict): The report data to save.
 
         """
+        self.logger.debug(f"Saving report")
 
         # TODO: meterlo en result no deberia ser necesario y complica el tema,
         # ansible-report lo necesita actualmente pero se deberia poder cambiar
@@ -331,3 +332,47 @@ class AnsibleService:
         reports_model = ReportsModel(db)
         reports_model.save_report(report_data)
         reports_model.commit()
+
+    def prepare_report(self, ctx: AppContext, data: dict, result: dict, rtype: int) -> dict:
+        """
+        Prepare a report for saving in the database.
+        Args:
+            ctx (AppContext): Application context.
+            data (dict): Input data.
+            result (dict): Result of the playbook execution.
+            rtype (int): Report type.
+        Returns:
+            dict: Prepared report data.
+        """
+        status = 0
+
+        self.logger.debug(f"Preparing report")
+
+        stats = result.get("stats", {})
+        for host, host_stats in stats.items():
+            if host_stats.get("failures", 0) > 0 or host_stats.get("unreachable", 0) > 0:
+                status = 1
+                break
+
+        try:
+            report_json = json.dumps(result)
+        except (TypeError, ValueError) as e:
+            self.logger.error(f"Failed to convert report result to JSON: {e}")
+            return {}
+
+        if rtype == 1: #Manual
+            source_id = data.get("source_id")
+        elif rtype == 2: # Task
+            source_id = data.get("id")
+        else:
+            self.logger.error(f"Invalid report type: {rtype}")
+            return {}
+
+        return {
+            "host_id": data["hid"],
+            "pid": data["pid"],
+            "source_id": source_id,
+            "rtype": rtype,
+            "status": status,
+            "report": report_json
+        }
