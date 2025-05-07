@@ -27,6 +27,7 @@ class TaskSched:
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
         self.db = DBManager(self.config)
+        current_time = time()
 
         try:
             self.logger.debug("Initialize TaskSched...")
@@ -47,13 +48,14 @@ class TaskSched:
                 "weekly_task": 60 * 60 * 24 * 7,    # 1 week
             }
 
+            # TODO save last run time in DB? and apply here
             self.last_run_time = {
-                "send_logs": 0,
-                "discovery_hosts": 0,
-                "hosts_checker": 0,
-                "ansible": 0,
-                "prune": 0,
-                "weekly_task": 0,
+                "send_logs": current_time,
+                "discovery_hosts": current_time,
+                "hosts_checker": current_time,
+                "ansible": current_time,
+                "prune": current_time,
+                "weekly_task": current_time,
             }
 
             # Avoid parallel task
