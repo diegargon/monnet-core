@@ -1,28 +1,32 @@
-#!/bin/bash
+#!/bin/sh
 
 APP_DIR="/opt/monnet-core/monnet_gateway"
 VENV_DIR="$APP_DIR/venv"
 SYSTEMD_DIR="/etc/systemd/system"
 
-if ! command -v pip &> /dev/null; then
-    echo "Error: pip no está instalado."
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "Error: python3 is not installed."
+    exit 1
+fi
+
+if ! command -v pip >/dev/null 2>&1; then
+    echo "Error: pip is not installed."
     exit 1
 fi
 
 echo "Creating python/pip virtual environment $VENV_DIR..."
 python3 -m venv "$VENV_DIR"
 
-
 echo "Installing dependencies..."
-source "$VENV_DIR/bin/activate"
+. "$VENV_DIR/bin/activate"
 pip install --upgrade pip
-pip install -r $APP_DIR/requirements.txt
+pip install -r "$APP_DIR/requirements.txt"
 deactivate
 
 ANSIBLE_CFG="/etc/ansible/ansible.cfg"
 echo "Configuring ansible: $ANSIBLE_CFG..."
 
-# Configuración de Ansible
+# Ansible configuration
 mkdir -p "/etc/ansible"
 cat <<EOF > "$ANSIBLE_CFG"
 [defaults]
@@ -30,9 +34,9 @@ stdout_callback=json
 callback_whitelist=json
 EOF
 
-# Allow continue using docker without systemd
+# Allow continuing to use docker without systemd
 
-if [ -d "$SYSTEMD_DIR" ] && pidof systemd &> /dev/null; then
+if [ -d "$SYSTEMD_DIR" ] && pidof systemd >/dev/null 2>&1; then
     SERVICE_FILE="$SYSTEMD_DIR/monnet-gateway.service"
     echo "Configuring systemd: $SERVICE_FILE..."
 
