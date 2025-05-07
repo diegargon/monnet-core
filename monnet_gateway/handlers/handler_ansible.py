@@ -143,19 +143,21 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
         result = ansible_service.run_ansible_playbook(
             playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group
         )
-        result_data = json.loads(result)
+        try:
+            result_data = json.loads(result)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode JSON result for playbook {playbook}: {e}")
+            return _response_error(command, f"Failed to decode JSON result: {e}")
+
         report_data = ansible_service.prepare_report(ctx, data_content, result_data, rtype=1)
         ansible_service.save_report(report_data)
 
         return _response_success(command, result_data)
-    except json.JSONDecodeError as e:
-        logger.error("Failed to decode JSON: " + str(e))
-        return _response_error(command, "Failed to decode JSON: " + str(e))
     except Exception as e:
-        logger.error("Error executing the playbook: " + str(e))
-        return _response_error(command, "Error executing the playbook: " + str(e))
+        logger.error(f"Error executing the playbook {playbook}: {e}")
+        return _response_error(command, f"Error executing the playbook: {e}")
 
-def _response_success(command: str, data:dict):
+def _response_success(command: str, data: dict):
     """
     Create a success response
     Args:
@@ -164,14 +166,21 @@ def _response_success(command: str, data:dict):
     Returns:
         dict: response
     """
-    response = {
-        "version": str(GW_F_VERSION),
-        "status": "success",
-        "command": command,
-        "result": data
-    }
-
-    return response
+    try:
+        response = {
+            "version": str(GW_F_VERSION),
+            "status": "success",
+            "command": command,
+            "result": data
+        }
+        return response
+    except (TypeError, ValueError) as e:
+        return {
+            "version": str(GW_F_VERSION),
+            "status": "error",
+            "command": command,
+            "message": f"Failed to create success response: {e}"
+        }
 
 def _response_error(command: str, message: str):
     """

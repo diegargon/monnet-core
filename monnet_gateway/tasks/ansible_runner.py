@@ -116,9 +116,14 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
-                # Save the report
+                try:
+                    result_data = json.loads(result)
+                except json.JSONDecodeError as e:
+                    self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
+                    continue
+
                 report_data = self.ansible_service.prepare_report(
-                    self.ctx, task, json.loads(result), rtype=2
+                    self.ctx, task, result_data, rtype=2
                 )
                 self.ansible_service.save_report(report_data)
 
@@ -208,21 +213,6 @@ class AnsibleTask:
             # TODO: log/Deal error
             pass
         return 60
-
-    def _save_report(self, task, result, rtype):
-        """
-        Save the result of the Ansible playbook execution into the reports table.
-
-        Args:
-            task (dict): The task metadata.
-            result (str): The result of the playbook execution.
-            rtype (int): The report type (1 for manual, 2 for task).
-        """
-
-        report_data = self.ansible_service.prepare_report(
-            self.ctx, task, json.loads(result), rtype
-        )
-        self.ansible_service.save_report(report_data)
 
     def _build_agent_config(self, host):
         """

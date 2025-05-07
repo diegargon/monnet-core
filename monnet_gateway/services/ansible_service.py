@@ -156,7 +156,12 @@ class AnsibleService:
             raise FileNotFoundError(f"The playbook: {playbook} could not be found in either directory.")
 
         command = ['ansible-playbook', playbook_path]
-        extra_vars_str = json.dumps(extra_vars) if extra_vars else ""
+        try:
+            extra_vars_str = json.dumps(extra_vars) if extra_vars else ""
+        except (TypeError, ValueError) as e:
+            self.logger.error(f"Error converting extra_vars to JSON: {e}")
+            raise ValueError(f"Error converting extra_vars to JSON: {e}")
+
         if extra_vars_str:
             command.extend(['--extra-vars', extra_vars_str])
         if ip:
@@ -183,6 +188,7 @@ class AnsibleService:
                 raise Exception(f"Error executing playbook: {stderr.decode()}")
             return stdout.decode()
         except Exception as e:
+            self.logger.error(f"Error executing playbook: {e}")
             raise Exception(f"Error executing playbook: {e}")
 
     def extract_pb_metadata(self):
@@ -318,15 +324,17 @@ class AnsibleService:
                 report_data["report"] = {"result": report_data["report"]}
             elif isinstance(report_data["report"], str):
                 try:
-                    # Attempt to parse the string as JSON
                     parsed_report = json.loads(report_data["report"])
                     report_data["report"] = {"result": parsed_report}
                 except json.JSONDecodeError:
-                    # If it's not valid JSON, wrap it as-is
                     report_data["report"] = {"result": report_data["report"]}
 
         # Serialize the 'report' field to a JSON string
-        report_data["report"] = json.dumps(report_data["report"])
+        try:
+            report_data["report"] = json.dumps(report_data["report"])
+        except (TypeError, ValueError) as e:
+            self.logger.error(f"Failed to convert report data to JSON: {e}")
+            return
 
         db = DBManager(self.config)
         if not db:
