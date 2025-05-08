@@ -50,12 +50,12 @@ class DiscoveryHostsTask:
                 if 'latency' in ping_status:
                     ping_status['latency'] = round(ping_status.get("latency"), 3)
 
-                ping_status['last_seen'] = utc_date_now()
+                ping_status['last_check'] = utc_date_now()
 
                 mac_result = get_mac(ip)
                 host_data = {
                     "ip": ip,
-                    "last_seen": ping_status.get("last_seen"),
+                    "last_check": ping_status.get("last_check"),
                     "online": 1,
                     "network": 1,   # default
                     "warn": 1,      # New host discovery

@@ -28,7 +28,7 @@ hosts_model = HostsModel(db)
 host_service = HostService(ctx, hosts_model)
 
 host_data = {
-    "last_seen": "2025-04-15 12:00:00",
+    "last_check": "2025-04-15 12:00:00",
     "online": 0,
     "misc": {
         "latency": 0.777,

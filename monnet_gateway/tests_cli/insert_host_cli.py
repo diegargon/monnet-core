@@ -18,7 +18,7 @@ host_service = HostService(ctx)
 
 host_data = {
     "ip": "192.168.100.100",
-    "last_seen": "2025-04-15 12:00:00",
+    "last_check": "2025-04-15 12:00:00",
     "online": 1,
     "network": 1,
     "warn": 1,
