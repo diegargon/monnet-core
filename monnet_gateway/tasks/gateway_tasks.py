@@ -104,98 +104,43 @@ class TaskSched:
 
             try:
                 # Insert logs in system_logs table
-                if current_time - self.last_run_time["send_logs"] >= self.task_intervals["send_logs"]:
-                    if self.task_locks["send_logs"].acquire(blocking=False):
-                        try:
-                            self._send_store_logs()
-                            self.last_run_time["send_logs"] = current_time
-                        finally:
-                            self.task_locks["send_logs"].release()
-                    else:
-                        self.logger.info("TaskSched: send_logs task locked..")
-
+                self._run_task("send_logs", self._send_store_logs, current_time)
                 # Run DiscoveryTask if the interval has passed
-                if current_time - self.last_run_time["discovery_hosts"] >= self.task_intervals["discovery_hosts"]:
-                    if self.task_locks["discovery_hosts"].acquire(blocking=False):
-                        try:
-                            self.discovery_hosts.run()
-                        finally:
-                            self.last_run_time["discovery_hosts"] = current_time
-                            self.task_locks["discovery_hosts"].release()
-                            self.logger.debug("Finish DiscoveryHostsTask...")
-                    else:
-                        self.logger.info("TaskSched: discovery_hosts task locked..")
+                self._run_task("discovery_hosts", self.discovery_hosts.run, current_time)
                 # Run HostCheckerTask if the interval has passed
-                if current_time - self.last_run_time["hosts_checker"] >= self.task_intervals["hosts_checker"]:
-                    if self.task_locks["hosts_checker"].acquire(blocking=False):
-                        try:
-                            self.hosts_checker.run()
-                        finally:
-                            self.last_run_time["hosts_checker"] = current_time
-                            self.task_locks["hosts_checker"].release()
-                            self.logger.debug("Finish known host checker...")
-                    else:
-                        self.logger.info("TaskSched: hosts_checker task locked..")
-
+                self._run_task("hosts_checker", self.hosts_checker.run, current_time)
                 # Run AnsibleTask if the interval has passed
-                if current_time - self.last_run_time["ansible"] >= self.task_intervals["ansible"]:
-                    if self.task_locks["ansible"].acquire(blocking=False):
-                        try:
-                            self.ansible.run()
-                        finally:
-                            self.last_run_time["ansible"] = current_time
-                            self.task_locks["ansible"].release()
-                    else:
-                        self.logger.info("TaskSched: ansible task locked..")
-
+                self._run_task("ansible", self.ansible.run, current_time)
                 # Run PruneTask if the interval has passed
-                if current_time - self.last_run_time["prune"] >= self.task_intervals["prune"]:
-                    if self.task_locks["prune"].acquire(blocking=False):
-                        try:
-                            self.logger.debug("Running PruneTask...")
-                            self.prune_task.run()
-                            self.last_run_time["prune"] = current_time
-                        finally:
-                            self.task_locks["prune"].release()
-                    else:
-                        self.logger.info("TaskSched: prune task locked..")
-
+                self._run_task("prune", self.prune_task.run, current_time)
                 # Run WeeklyTask if the interval has passed
-                if current_time - self.last_run_time["weekly_task"] >= self.task_intervals["weekly_task"]:
-                    if self.task_locks["weekly_task"].acquire(blocking=False):
-                        try:
-                            self.logger.debug("Running WeeklyTask...")
-                            self.weekly_task.run()
-                            self.last_run_time["weekly_task"] = current_time
-                        finally:
-                            self.task_locks["weekly_task"].release()
-                    else:
-                        self.logger.info("TaskSched: weekly_task task locked..")
+                self._run_task("weekly_task", self.weekly_task.run, current_time)
+
                 sleep(1)
             except Exception as e:
                 self.logger.error(f"Error in TaskSched run: {e}")
 
+    def _run_task(self, task_name, task_function, current_time):
         """
-        New run_task method with task scheduling
-        self._run_task("send_logs", self._send_store_logs)
-        self._run_task("discovery_hosts", self.discovery_hosts.run)
-        self._run_task("hosts_checker", self.hosts_checker.run)
-        self._run_task("ansible", self.ansible.run)
-        self._run_task("prune", self.prune_task.run)
+        Helper method to run a specific task
 
-
-        def _run_task(self, task_name, task_function):
-            if current_time - self.last_run_time[task_name] >= self.task_intervals[task_name]:
-                if self.task_locks[task_name].acquire(blocking=False):
-                    try:
-                        self.logger.debug(f"Running {task_name}...")
-                        task_function()
-                        self.last_run_time[task_name] = current_time
-                    except Exception as e:
-                        self.logger.error(f"Error during {task_name}: {e}")
-                    finally:
-                        self.task_locks[task_name].release()
+        Args:
+            task_name (str): The name of the task.
+            task_function (callable): The function to execute the task.
+            current_time (float): The current time.
         """
+        if current_time - self.last_run_time[task_name] >= self.task_intervals[task_name]:
+            if self.task_locks[task_name].acquire(blocking=False):
+                try:
+                    self.logger.debug(f"Running {task_name}...")
+                    task_function()
+                    self.last_run_time[task_name] = current_time
+                except Exception as e:
+                    self.logger.error(f"Error during {task_name}: {e}")
+                finally:
+                    self.task_locks[task_name].release()
+            else:
+                self.logger.info(f"TaskSched: {task_name} task locked..")
 
     def _send_store_logs(self):
         """
@@ -224,6 +169,7 @@ class TaskSched:
             # Log errors directly to syslog to avoid recursive logging issues
             syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
             syslog.syslog(syslog.LOG_ERR, f"Error storing logs in system_logs table: {e}")
+
     def stop(self):
         """Stops the periodic task."""
         self.stop_event.set()
@@ -233,4 +179,3 @@ class TaskSched:
             self.logger.info("TaskSched stopped.")
         except Exception as e:
             self.logger.error(f"Error stopping TaskSched: {e}")
-
