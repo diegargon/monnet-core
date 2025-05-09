@@ -7,7 +7,6 @@ This code is just a basic/preliminary draft.
 
 """
 
-import json
 import signal
 import sys
 import os
@@ -49,9 +48,9 @@ def signal_handler(sig: signal.Signals, frame: types.FrameType, ctx: AppContext)
         ctx (AppContext): Context
     """
     logger = ctx.get_logger()
-    logger.log(f"Monnet Gateway server shutdown... signal received {sig}", "info")
-    logger.log(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}", "debug")
-    logger.log(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}", "debug")
+    logger.warning(f"Monnet Gateway server shutdown... signal received {sig}")
+    logger.debug(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}")
+    logger.debug(f"Function: {frame.f_code.co_name}, Locals: {frame.f_locals}")
     try:
         if not stop_event.is_set():
             stop_event.set()
@@ -63,7 +62,7 @@ def signal_handler(sig: signal.Signals, frame: types.FrameType, ctx: AppContext)
         if task_thread is not None:
             task_thread.stop()
     except Exception as e:
-        logger.log(f"Error during shutdown: {e}", "err")
+        logger.error(f"Error during shutdown: {e}")
 
 def run(ctx: AppContext):
     """
@@ -85,7 +84,7 @@ def run(ctx: AppContext):
         while not stop_event.is_set():
             sleep(1)
     except (KeyboardInterrupt, SystemExit):
-        logger.log("Stopping server...", "info")
+        logger.info("Stopping server...")
     finally:
         stop_event.set()
         if server_thread is not None:
@@ -144,10 +143,10 @@ def main():
     if args.test_port:  # Cambiado de args.test a args.test_port
         ctx.set_var('test-port', 1)
 
-    logger.log("Starting Monnet Gateway...", "info")
+    logger.notice("Starting Monnet Gateway...")
 
     if args.no_daemon:
-        logger.log("Running in foreground mode", "info")
+        logger.notice("Running in foreground mode")
         with daemon.DaemonContext(
             detach_process=False,   # Avoid background
             stdout=sys.stdout,      # Redirect stdout to the console
@@ -158,7 +157,7 @@ def main():
             run(ctx)
     else:
         with daemon.DaemonContext(working_directory=workdir):
-            logger.log("Running in daemon mode", "info")
+            logger.notice("Running in daemon mode")
             run(ctx)
 
 if __name__ == "__main__":
