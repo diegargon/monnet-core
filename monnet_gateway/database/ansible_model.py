@@ -63,3 +63,11 @@ class AnsibleModel:
         query = "SELECT vtype, vkey, vvalue FROM ansible_vars WHERE hid = %s"
         return self.db.fetchall(query, (hid,))
 
+    def is_connected(self):
+        """
+        Check if the database connection is active.
+        Returns:
+            bool: True if the connection is active, False otherwise.
+        """
+        return self.db.is_connected()
+

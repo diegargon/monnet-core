@@ -36,11 +36,20 @@ class AnsibleService:
         self.pb_metadata = None
 
     def _ensure_model(self):
-        """Ensure the AnsibleModel is initialized."""
-        if not self.ansible_model:
-            self.logger.debug("Initializing AnsibleModel lazily.")
-            db = DBManager(self.config)
-            self.ansible_model = AnsibleModel(db)
+        """Ensure the AnsibleModel """
+        try:
+            if not self.ansible_model:
+                self.logger.debug("Initializing AnsibleModel lazily.")
+                db = DBManager(self.config)
+                self.ansible_model = AnsibleModel(db)
+            else:
+                if not self.ansible_model.db.is_connected():
+                    self.logger.warning("AnsibleService Database connection lost. Attempting to reconnect.")
+                    db = DBManager(self.config)
+                    self.ansible_model = AnsibleModel(db)
+        except Exception as e:
+            self.logger.error(f"Error ensuring AnsibleModel: {e}")
+            raise RuntimeError("Failed to initialize or reconnect AnsibleModel.")
 
     def fetch_active_tasks(self):
         """Fetch all active tasks."""
@@ -67,9 +76,8 @@ class AnsibleService:
                 continue
             if var['vtype'] == 1 and var['vvalue'] not in (None, ''):
                 try:
-                    # Decodificar el valor Base64 a bytes
+                    # Encrypyted variable saved as base64, decode before decrypting
                     ciphertext = base64.b64decode(var['vvalue'])
-                    # Intentar descifrar el valor
                     var['vvalue'] = EncryptService().decrypt(ciphertext)
                 except (ValueError, TypeError) as e:
                     var['vvalue'] = None
@@ -80,7 +88,6 @@ class AnsibleService:
                 except Exception as e:
                     var['vvalue'] = None
                     self.logger.error(f"[Host {hid}] Unexpected error decrypting variable: {e}")
-
         return vars
 
     def fetch_ansible_hosts_groups(self):
@@ -101,7 +108,6 @@ class AnsibleService:
     def _parse_ansible_groups(self, content):
         """Parse Ansible groups from the content. NOT TESTED """
         try:
-            # Attempt to parse as YAML
             parsed_data = yaml.safe_load(content)
             if isinstance(parsed_data, dict):
                 # YAML format detected
@@ -145,7 +151,7 @@ class AnsibleService:
         user_playbook_directory = '/var/lib/monnet/playbooks'
         self.logger.debug(f"Running ansible playbook: {playbook}")
 
-        # Check both directories for the playbook
+        # Check standard and user playbook directories
         playbook_path = None
         if os.path.exists(os.path.join(user_playbook_directory, playbook)):
             playbook_path = os.path.join(user_playbook_directory, playbook)
@@ -371,7 +377,7 @@ class AnsibleService:
             self.logger.error(f"Error converting report result to JSON: {e}")
             return {}
 
-        if rtype == 1:  # Manual
+        if rtype == 1:  # Order Manual
             source_id = data.get("source_id")
         elif rtype == 2:  # Task
             source_id = data.get("id")

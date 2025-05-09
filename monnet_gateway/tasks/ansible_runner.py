@@ -36,13 +36,27 @@ class AnsibleTask:
         self.ansible_service = AnsibleService(ctx, self.ansible_model)
         self.host_service = HostService(ctx)
 
+    def _ensure_db_connection(self):
+        """Ensure the database connection is active and reconnect if necessary."""
+        try:
+            if not self.db.is_connected():
+                self.db = DBManager(self.config)
+                self.ansible_model = AnsibleModel(self.db)
+                self.ansible_service = AnsibleService(self.ctx, self.ansible_model)
+                self.logger.warning("AnsibleTask: Database connection lost. Reconnect success.")
+        except Exception as e:
+            self.logger.error(f"AnsibleTask: Failed to ensure database connection: {e}")
+            raise
+
     def run(self):
         self.logger.debug("Execution ansible task...")
+        self._ensure_db_connection()
         tasks = self.ansible_service.fetch_active_tasks()
         self.logger.debug(f"Number of tasks {len(tasks)}")
         now = datetime.now()
 
         for task in tasks:
+            self._ensure_db_connection()
             trigger_type = task.get("trigger_type")
             if trigger_type in [2, 3, 6]:
                 self.logger.debug(f"Ignoring task {task['task_name']} with trigger_type={trigger_type}")
@@ -240,9 +254,9 @@ class AnsibleTask:
             elif interval.endswith("y"):
                 return int(interval[:-1]) * 31536000
         except ValueError:
-            # TODO: log/Deal error
-            pass
-        return 60
+            self.logger.error(f"Invalid interval format: {interval}. Defaulting to 5 minutes.")
+
+        return 300
 
     def _build_agent_config(self, host):
         """

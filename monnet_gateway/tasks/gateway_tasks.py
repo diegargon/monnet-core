@@ -89,6 +89,17 @@ class TaskSched:
         self.logger.debug("Starting TaskSched...")
         self.thread.start()
 
+    def _ensure_db_connection(self):
+        """Ensure the database connection is active and reconnect if necessary."""
+        try:
+            if not self.db.is_connected():
+                self.logger.warning("TaskSched: Database connection lost. Forcing reconnection.")
+                self.db.close()
+                self.db = DBManager(self.config)
+        except Exception as e:
+            self.logger.error(f"TaskSched: Failed to reconnect to the database: {e}")
+            raise
+
     def run_task(self):
         """
         Method that executes the periodic task.
@@ -103,6 +114,9 @@ class TaskSched:
             current_time = time()
 
             try:
+                # Ensure DB connection before running tasks
+                self._ensure_db_connection()
+
                 # Insert logs in system_logs table
                 self._run_task("send_logs", self._send_store_logs, current_time)
                 # Run DiscoveryTask if the interval has passed
@@ -119,6 +133,8 @@ class TaskSched:
                 sleep(1)
             except Exception as e:
                 self.logger.error(f"Error in TaskSched run: {e}")
+                # Delay to avoid spamming logs when trying reconnecting
+                sleep(5)
 
     def _run_task(self, task_name, task_function, current_time):
         """
@@ -137,6 +153,7 @@ class TaskSched:
                     self.last_run_time[task_name] = current_time
                 except Exception as e:
                     self.logger.error(f"Error during {task_name}: {e}")
+                    raise # Propagate to run_task to try reconnect
                 finally:
                     self.task_locks[task_name].release()
             else:

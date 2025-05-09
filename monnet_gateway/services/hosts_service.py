@@ -15,7 +15,6 @@ from constants.event_type import EventType
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
-from monnet_gateway.services import event_host
 from monnet_gateway.services.event_host import EventHostService
 from shared.time_utils import date_now
 
@@ -32,8 +31,21 @@ class HostService:
         self.host_model = HostsModel(self.db)
         self.event_host = EventHostService(ctx)
 
+    def _ensure_db_connection(self) -> None:
+        """
+        Ensure the database connection is active. Reconnect if necessary.
+        """
+        try:
+            if not self.db.is_connected():
+                self.logger.warning("Database connection lost. Reconnecting...")
+                self.db.reconnect()
+        except Exception as e:
+            self.logger.error(f"Failed to reconnect to the database: {e}")
+            raise
+
     def get_all(self) -> list[dict]:
         """Retrieve all hosts with deserialize misc' field."""
+        self._ensure_db_connection()
         hosts = self.host_model.get_all()
         for host in hosts:
             if "misc" in host and host["misc"]:
@@ -44,7 +56,6 @@ class HostService:
             self._set_display_name(host)
 
         return hosts
-
 
     def get_by_id(self, host_id: int) -> dict:
         """
@@ -59,6 +70,7 @@ class HostService:
         Raises:
             ValueError: If the host does not exist.
         """
+        self._ensure_db_connection()
         if host_id is None or not isinstance(host_id, int):
             self.logger.warning(f"Invalid host ID in get by id: {host_id}")
             return {}
@@ -67,7 +79,6 @@ class HostService:
             self.logger.warning(f"Host with ID {host_id} does not exist.")
             return {}
         if "misc" in host and host["misc"]:
-            # Deserialize the 'misc' field
             self._deserialize_misc(host)
         else:
             host["misc"] = {}
@@ -87,7 +98,8 @@ class HostService:
         Returns:
             int: ID of the inserted host.
         """
-        # Validate required fields
+        self._ensure_db_connection()
+
         required_fields = ["ip", "network"]
         for field in required_fields:
             if field not in host:
@@ -124,6 +136,7 @@ class HostService:
         Returns:
             list[int]: List of IDs of the inserted hosts.
         """
+        self._ensure_db_connection()
         inserted_ids = []
 
         try:
@@ -150,6 +163,7 @@ class HostService:
         Raises:
             ValueError: If the host does not exist or if there are validation errors.
         """
+        self._ensure_db_connection()
         if host_id is None or not isinstance(host_id, int):
             self.logger.warning(f"Invalid host ID in update: {host_id}")
             return
