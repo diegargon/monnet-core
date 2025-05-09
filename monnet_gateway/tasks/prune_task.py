@@ -20,15 +20,15 @@ class PruneTask:
         try:
             if not self.db or self.db is not isinstance(self.db, DBManager):
                 self.db = DBManager(self.config)
-            self.clear_stats()
-            self.clear_system_logs()
-            self.clear_hosts_logs()
-            self.clear_reports()
-            self.db.commit()
-            self.db.close()
+            with self.db.transaction():
+                self.clear_stats()
+                self.clear_system_logs()
+                self.clear_hosts_logs()
+                self.clear_reports()
         except Exception as e:
             self.logger.error(f"Error during PruneTask: {e}")
-
+        finally:
+            self.db.close()
     def clear_stats(self):
         """Cleans up old statistics."""
         interval = self.config.get("clear_stats_intvl", 30)  # Default to 30 days
