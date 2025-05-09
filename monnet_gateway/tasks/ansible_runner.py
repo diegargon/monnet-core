@@ -122,9 +122,19 @@ class AnsibleTask:
                     self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
                     continue
 
-                report_data = self.ansible_service.prepare_report(
-                    self.ctx, task, result_data, rtype=2
-                )
+                try:
+                    report_data = self.ansible_service.prepare_report(
+                        self.ctx, task, result_data, rtype=2
+                    )
+                except TypeError as e:
+                    self.logger.error(f"Type error while preparing report for task {task['task_name']}: {e}")
+                    continue
+                except ValueError as e:
+                    self.logger.error(f"Value error while preparing report for task {task['task_name']}: {e}")
+                    continue
+                except Exception as e:
+                    self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
+                    continue
                 self.ansible_service.save_report(report_data)
 
                 self.ansible_service.delete_task(task["id"])
@@ -154,10 +164,20 @@ class AnsibleTask:
                         result = self.ansible_service.run_ansible_playbook(
                             playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                         )
+                        try:
+                            report_data = self.ansible_service.prepare_report(
+                                self.ctx, task, json.loads(result), rtype=2
+                            )
+                        except TypeError as e:
+                            self.logger.error(f"Type error while preparing report for task {task['task_name']}: {e}")
+                            continue
+                        except ValueError as e:
+                            self.logger.error(f"Value error while preparing report for task {task['task_name']}: {e}")
+                            continue
+                        except Exception as e:
+                            self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
+                            continue
                         # Save the report
-                        report_data = self.ansible_service.prepare_report(
-                            self.ctx, task, json.loads(result), rtype=2
-                        )
                         self.ansible_service.save_report(report_data)
 
                         self.ansible_service.update_task_triggers(
@@ -176,9 +196,19 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
-                report_data = self.ansible_service.prepare_report(
-                    self.ctx, task, json.loads(result), rtype=2
-                )
+                try:
+                    report_data = self.ansible_service.prepare_report(
+                        self.ctx, task, json.loads(result), rtype=2
+                    )
+                except TypeError as e:
+                    self.logger.error(f"Type error while preparing report for task {task['task_name']}: {e}")
+                    continue
+                except ValueError as e:
+                    self.logger.error(f"Value error while preparing report for task {task['task_name']}: {e}")
+                    continue
+                except Exception as e:
+                    self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
+                    continue
                 self.ansible_service.save_report(report_data)
 
                 # Calculate new triggers

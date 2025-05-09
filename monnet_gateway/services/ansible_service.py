@@ -368,15 +368,19 @@ class AnsibleService:
         try:
             report_json = json.dumps(result)
         except (TypeError, ValueError) as e:
-            self.logger.error(f"Failed to convert report result to JSON: {e}")
+            self.logger.error(f"Error converting report result to JSON: {e}")
             return {}
 
-        if rtype == 1: #Manual
+        if rtype == 1:  # Manual
             source_id = data.get("source_id")
-        elif rtype == 2: # Task
+        elif rtype == 2:  # Task
             source_id = data.get("id")
         else:
             self.logger.error(f"Invalid report type: {rtype}")
+            return {}
+
+        if not source_id:
+            self.logger.error(f"Source ID is missing for report type {rtype}")
             return {}
 
         return {
