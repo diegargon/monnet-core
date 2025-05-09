@@ -224,6 +224,25 @@ class DBManager:
         self.cursor = None
         self.conn = None
 
+    def reconnect(self):
+        """
+        Reconnect to the database.
+        """
+        self.close()
+        self._connect()
+
+    def is_connected(self):
+        """
+        Check if the database connection is active.
+        Returns:
+            bool: True if the connection is active, False otherwise.
+        """
+        try:
+            self.conn.ping(reconnect=False)
+            return True
+        except Exception:
+            return False
+
     def __enter__(self):
         return self
 
