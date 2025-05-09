@@ -152,6 +152,7 @@ class Logger:
     def _store_message(self, message: str, priority: str) -> None:
         """
         Stores the message in the recent_messages list, maintaining the size limit.
+        Skips storing if the message is identical to the last stored message.
 
         Args:
             message (str): The message to store.
@@ -160,6 +161,8 @@ class Logger:
 
         # WARN: Store debug messages will raise an exhaust problem when pop logs is called
         if SYSLOG_LEVELS[priority] <= syslog.LOG_NOTICE:
+            if self.recent_messages and self.recent_messages[-1]["message"] == message:
+                return  # Skip storing if the message is identical to the last one
             self.recent_messages.append({
                 "level": SYSLOG_LEVELS[priority],
                 "message": message
