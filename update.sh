@@ -28,4 +28,12 @@ pip install -r "$APP_DIR/requirements.txt"
 
 deactivate
 
+echo "Checking for systemd service..."
+if command -v systemctl >/dev/null 2>&1 && systemctl list-units --type=service | grep -q "monnet-gateway.service"; then
+    echo "Restarting monnet-gateway service..."
+    systemctl restart monnet-gateway.service || { echo "Error: Failed to restart monnet-gateway service."; exit 1; }
+else
+    echo "Systemd service monnet-gateway not found. Skipping restart."
+fi
+
 echo "Update completed successfully!"
