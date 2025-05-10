@@ -12,6 +12,7 @@ import traceback
 
 # Local
 from monnet_gateway.handlers.handler_ansible import handle_ansible_command
+from monnet_gateway.handlers.handler_system import handle_system_command
 from monnet_gateway.mgateway_config import ALLOWED_MODULES
 from shared.app_context import AppContext
 
@@ -51,6 +52,8 @@ def handle_client(ctx: AppContext, conn, addr):
 
                 if module == "ansible":
                     response = handle_ansible_command(ctx, command, request.get('data'))
+                elif module == "system":
+                    response = handle_system_command(ctx, command, request.get('data'))
                 # elif module == "another_cmodule":
                 #     # Handle 'another_module' logic
                 #     pass
