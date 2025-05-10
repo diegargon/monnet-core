@@ -38,7 +38,10 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
         "get_all_pb_meta_ids",
     ]
     if command not in ALLOWED_COMMANDS:
-        return {"status": "error", "message": f"Invalid command: {command}"}
+        return _response_error(command, f"Command not allowed: {command}")
+
+    if not isinstance(data_content, dict):
+        return _response_error(command, f"Invalid data content format: {type(data_content)} {data_content}")
 
     ansible_service = AnsibleService(ctx)
 
@@ -63,7 +66,7 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
     elif command == "get_playbook_metadata":
         pid = data_content.get('pid')
         if not pid:
-            return {"status": "error", "message": "Playbook ID not specified"}
+            return _response_error(command, "Playbook ID not specified")
         try:
             pb_metadata = ansible_service.get_pb_metadata(pid)
         except KeyError as e:
@@ -96,7 +99,7 @@ def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
 
         return _response_success(command, ids)
 
-    return {"status": "error", "message": f"Invalid command: {command}"}
+    return _response_error(command, f"Invalid command: {command}")
 
 def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str, data_content: dict):
     """
@@ -109,7 +112,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
                 dict: response
     """
     playbook = data_content.get('playbook', None)
-    extra_vars = data_content.get('extra_vars', None)
+    extra_vars = data_content.get('extra_vars', {})
     ip = data_content.get('ip', None)
     ansible_group = data_content.get('ansible_group', None)
     user = data_content.get('user', "ansible")
@@ -134,7 +137,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
         return _response_error(command, f"Error fetching ansible variables: {str(e)}")
 
     # Merge fetched extra_vars with existing extra_vars
-    if extra_vars:
+    if isinstance(extra_vars, dict):
         fetched_extra_vars.update(extra_vars)
     extra_vars = fetched_extra_vars
 
@@ -147,7 +150,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
             result_data = json.loads(result)
         except json.JSONDecodeError as e:
             logger.error(f"Failed to decode JSON result for playbook {playbook}: {e}")
-            return _response_error(command, f"Failed to decode JSON result: {e}")
+            return _response_error(command, f"Failed to decode JSON result: {e}. Result: {result}")
 
         report_data = ansible_service.prepare_report(ctx, data_content, result_data, rtype=1)
         ansible_service.save_report(report_data)
@@ -171,7 +174,7 @@ def _response_success(command: str, data: dict):
             "version": str(GW_F_VERSION),
             "status": "success",
             "command": command,
-            "result": data
+            "response_msg": data
         }
         return response
     except (TypeError, ValueError) as e:
@@ -179,7 +182,7 @@ def _response_success(command: str, data: dict):
             "version": str(GW_F_VERSION),
             "status": "error",
             "command": command,
-            "message": f"Failed to create success response: {e}"
+            "error_message": f"Failed to create success response: {e}"
         }
 
 def _response_error(command: str, message: str):
@@ -195,7 +198,6 @@ def _response_error(command: str, message: str):
         "version": str(GW_F_VERSION),
         "status": "error",
         "command": command,
-        "message": message,
         "error_msg": message
     }
 

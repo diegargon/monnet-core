@@ -51,9 +51,9 @@ def handle_client(ctx: AppContext, conn, addr):
                     response = {"status": "error", "message": f"Invalid command: {module} {command}"}
 
                 if module == "ansible":
-                    response = handle_ansible_command(ctx, command, request.get('data'))
+                    response = handle_ansible_command(ctx, command, request.get('data', {}))
                 elif module == "system":
-                    response = handle_system_command(ctx, command, request.get('data'))
+                    response = handle_system_command(ctx, command, request.get('data', {}))
                 # elif module == "another_cmodule":
                 #     # Handle 'another_module' logic
                 #     pass
