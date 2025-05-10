@@ -15,17 +15,17 @@ def handle_system_command(ctx, command, data):
     """
     logger = ctx.get_logger()
 
-    if command == "restart_daemon":
+    if command == "restart-daemon":
         logger.info("Restart command received. Restarting daemon...")
         # This would work only if systemd is used and set to restart always
         ctx.get_var('stop_event').set()
         return {"status": "success", "message": "Daemon is restarting"}
-    elif command == "reload_pb_metadata":
+    elif command == "reload-pb-metadata":
         logger.info("Reloading Playbook metadata...")
         ansibleService = AnsibleService(ctx)
         ansibleService.extract_pb_metadata()
         return {"status": "success", "message": "Playbook metadata reloaded"}
-    elif command == "reload_config":
+    elif command == "reload-config":
         logger.info("Reloading configuration...")
         config = ctx.get_config()
         config.reload()
