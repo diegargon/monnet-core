@@ -4,13 +4,11 @@
 Monnet Gateway - Event Log Service
 
 """
-
 from constants.log_level import LogLevel
 from constants.log_type import LogType
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.event_host_model import EventHostModel
 from shared.app_context import AppContext
-from shared.clogger import Logger
 
 class EventHostService:
     def __init__(self, ctx: AppContext):
