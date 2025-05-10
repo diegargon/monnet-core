@@ -145,7 +145,7 @@ class MonnetAgent:
             'uptime': uptime,
             'log_level': LogLevel.NOTICE,
             'log_type': LogType.EVENT,
-            'event_type': EventType.STARTING
+            'event_type': EventType.AGENT_STARTING
         }
         send_notification(self.ctx, 'starting', starting_data)
 

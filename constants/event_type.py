@@ -17,7 +17,8 @@ class EventType:
         HIGH_MEMORY_USAGE: Event indicating high memory usage.
         HIGH_DISK_USAGE: Event indicating high disk usage.
         HIGH_CPU_USAGE: Event indicating high CPU usage.
-        STARTING: Event indicating the system is starting.
+        STARTING: (DELETE)
+        AGENT_STARTING: Event indicating the agent start.
         AGENT_SHUTDOWN: Event indicating agent shutdown.
         SYSTEM_SHUTDOWN: Event indicating system shutdown.
         PORT_UP: Event indicating a network port is up.
@@ -29,12 +30,14 @@ class EventType:
         HOST_BECOME_ON: Event indicating the host has become online.
         HOST_BECOME_OFF: Event indicating the host has become offline.
         NEW_HOST_DISCOVERY: Event indicating the discovery of a new host.
+
     """
     HIGH_IOWAIT = 1
     HIGH_MEMORY_USAGE = 2
     HIGH_DISK_USAGE = 3
     HIGH_CPU_USAGE = 4
-    STARTING = 5
+    STARTING = 5 # (DELETE)
+    AGENT_STARTING = 5
     AGENT_SHUTDOWN = 6
     SYSTEM_SHUTDOWN = 7
     PORT_UP= 8
