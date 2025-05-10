@@ -102,6 +102,9 @@ class AnsibleTask:
             tags = playbook.get("tags", [])
             if "agent-config" in tags:
                 agent_config = self._build_agent_config(host)
+                if not agent_config:
+                    self.logger.error(f"Failed to build agent config for task {task['task_name']}. Skipping.")
+                    continue
                 try:
                     extra_vars["agent_config"] = json.dumps(agent_config)
                 except (TypeError, ValueError) as e:
@@ -289,11 +292,24 @@ class AnsibleTask:
             self.logger.error(f"Invalid IP address {host_ip} for host {host.get('id')}. Cannot build agent config.")
             return None
 
-        # Usar agent_external_host si la IP es externa, de lo contrario usar el FQDN
+
+
+        server_host = None
+
+        # If host is external, use the external host config
         if is_external:
-            server_host = self.config.get("agent_external_host", "default.external.host")
-        else:
+            server_host = self.config.get("agent_external_host", None)
+
+        # If host is internal, use the internal host config
+        if not server_host:
+            server_host = self.config.get("agent_internal_host", None)
+
+        # if everything fails, use the default server host
+        if not server_host:
             server_host = socket.getfqdn()
+            if not server_host:
+                self.logger.error(f"Unable to resolve server host for config the agent")
+                return None
 
         return {
             "id": host.get("id"),
@@ -306,5 +322,5 @@ class AnsibleTask:
             "mem_warn_threshold": self.config.get("default_mem_warn_threshold"),
             "disks_alert_threshold": self.config.get("default_disks_alert_threshold"),
             "disks_warn_threshold": self.config.get("default_disks_warn_threshold"),
-            "server_endpoint": "/feedme.php",
+            "server_endpoint": self.config.get("server_endpoint", "/feedme.php"),
         }

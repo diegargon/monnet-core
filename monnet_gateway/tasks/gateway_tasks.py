@@ -40,12 +40,18 @@ class TaskSched:
             self.stop_event = ctx.get_var("stop_event")
 
             self.task_intervals = {
-                "send_logs": 20,                    # 20 seconds
-                "discovery_hosts":  60 * 22,        # 22 minutes
-                "hosts_checker":  60 * 5,           # 5 minutes
-                "ansible": 60,                      # 1 minute
-                "prune": 60 * 60 * 24,              # 1 day
-                "weekly_task": 60 * 60 * 24 * 7,    # 1 week
+                # Default 20 seconds
+                "send_logs": float(self.config.get("gw_send_logs_intvl", 20)),
+                # Default 22 minutes
+                "discovery_hosts": float(self.config.get("gw_discover_host_intvl", 60 * 22)),
+                # Default 5 minutes
+                "hosts_checker": float(self.config.get("gw_host_checker_intvl", 60 * 5)),
+                # Default 1 minute
+                "ansible": float(self.config.get("gw_ansible_tasks_intvl", 60)),
+                # Default 1 day
+                "prune": float(self.config.get("gw_prune_intvl", 60 * 60 * 24)),
+                # Default 1 week
+                "weekly_task": float(60 * 60 * 24 * 7),
             }
 
             # TODO save last run time in DB? and apply here
