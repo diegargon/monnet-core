@@ -53,7 +53,7 @@ For manual installation, check the Ansible playbook `monnet-gateway/playbooks/in
     'cmd': str,              # Command response type. Example: "pong"
     'token': str,            # Token used for authentication or identification.
     'version': float,        # Version of the response or system. Example: 0.22
-    'response_msg': bool,    # Indicates if the response message is successful. Example: True
+    'response': bool,    # Indicates if the response message is successful. Example: True
     'refresh': int,          # Refresh interval in seconds. Example: 5
     'data': list             # List of data, typically empty in this case. Example: []
 }

@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway - Ansible Handler
+@title Monnet Gateway - Ansible Handler
 @description: This module handles server commands related to Ansible playbooks and metadata.
 
 Ansible
@@ -174,7 +174,7 @@ def _response_success(command: str, data: dict):
             "version": str(GW_F_VERSION),
             "status": "success",
             "command": command,
-            "response_msg": data
+            "message": data
         }
         return response
     except (TypeError, ValueError) as e:
@@ -182,7 +182,7 @@ def _response_success(command: str, data: dict):
             "version": str(GW_F_VERSION),
             "status": "error",
             "command": command,
-            "error_message": f"Failed to create success response: {e}"
+            "message": f"Failed to create success response: {e}"
         }
 
 def _response_error(command: str, message: str):
@@ -198,7 +198,7 @@ def _response_error(command: str, message: str):
         "version": str(GW_F_VERSION),
         "status": "error",
         "command": command,
-        "error_msg": message
+        "message": message
     }
 
     return response
