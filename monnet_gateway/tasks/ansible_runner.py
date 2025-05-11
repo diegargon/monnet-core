@@ -138,39 +138,8 @@ class AnsibleTask:
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
 
-                if not result or not isinstance(result, str):
-                    self.logger.error(f"Invalid result for task {task['task_name']}: {result}")
+                if not self._handle_task_result(hid, task, result):
                     continue
-
-                try:
-                    result_dict = json.loads(result)
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
-                    continue
-
-                # Report event
-                self._report_event(hid, task, result_dict)
-
-                try:
-                    report_data = self.ansible_service.prepare_report(
-                        self.ctx, task, result_dict, rtype=2
-                    )
-                except TypeError as e:
-                    self.logger.error(f"Type error while preparing report for task {task['task_name']}: {e}")
-                    continue
-                except ValueError as e:
-                    self.logger.error(f"Value error while preparing report for task {task['task_name']}: {e}")
-                    continue
-                except Exception as e:
-                    self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
-                    continue
-
-                self.ansible_service.save_report(report_data)
-
-                # Not delete skip done.
-                # TODO: Clean uniq done tasks
-                # self.ansible_service.delete_task(task["id"])
-                # self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
             elif trigger_type == 4:
                 crontime = task.get("crontime")
@@ -198,36 +167,8 @@ class AnsibleTask:
                             playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                         )
 
-                        if not result or not isinstance(result, str):
-                            self.logger.error(f"Invalid result for task {task['task_name']}: {result}")
+                        if not self._handle_task_result(hid, task, result):
                             continue
-
-                        try:
-                            result_dict = json.loads(result)
-                        except json.JSONDecodeError as e:
-                            self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
-                            continue
-
-                        # Report event
-                        self._report_event(hid, task, result_dict)
-
-                        try:
-                            report_data = self.ansible_service.prepare_report(
-                                self.ctx, task, result_dict, rtype=2
-                            )
-
-                        except TypeError as e:
-                            self.logger.error(f"Type error while preparing report for task {task['task_name']}: {e}")
-                            continue
-                        except ValueError as e:
-                            self.logger.error(f"Value error while preparing report for task {task['task_name']}: {e}")
-                            continue
-                        except Exception as e:
-                            self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
-                            continue
-
-                        # Save the report
-                        self.ansible_service.save_report(report_data)
 
                         self.ansible_service.update_task_triggers(
                             task["id"], last_triggered=now
@@ -253,35 +194,8 @@ class AnsibleTask:
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
 
-                if not result or not isinstance(result, str):
-                    self.logger.error(f"Invalid result for task {task['task_name']}: {result}")
+                if not self._handle_task_result(hid, task, result):
                     continue
-
-                try:
-                    result_dict = json.loads(result)
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
-                    continue
-
-                # Report event
-                self._report_event(hid, task, result_dict)
-
-
-                try:
-                    report_data = self.ansible_service.prepare_report(
-                        self.ctx, task, result_dict, rtype=2
-                    )
-                except TypeError as e:
-                    self.logger.error(f"Type error while preparing report for task {task['task_name']}: {e}")
-                    continue
-                except ValueError as e:
-                    self.logger.error(f"Value error while preparing report for task {task['task_name']}: {e}")
-                    continue
-                except Exception as e:
-                    self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
-                    continue
-
-                self.ansible_service.save_report(report_data)
 
                 # Calculate new triggers
                 new_last_triggered = now
@@ -414,3 +328,45 @@ class AnsibleTask:
             log_type=log_type,
             event_type=event_type
         )
+
+    def _handle_task_result(self, hid, task, result):
+        """
+        Handle the result of an Ansible playbook execution.
+
+        Args:
+            hid (int): Host ID.
+            task (dict): Task metadata.
+            result (str): Result of the playbook execution in JSON format.
+
+        Returns:
+            bool: True if the result was handled successfully, False otherwise.
+        """
+        if not result or not isinstance(result, str):
+            self.logger.error(f"Invalid result for task {task['task_name']}: {result}")
+            return False
+
+        try:
+            result_dict = json.loads(result)
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
+            return False
+
+        # Report event
+        self._report_event(hid, task, result_dict)
+
+        try:
+            report_data = self.ansible_service.prepare_report(
+                self.ctx, task, result_dict, rtype=2
+            )
+        except TypeError as e:
+            self.logger.error(f"Type error while preparing report for task {task['task_name']}: {e}")
+            return False
+        except ValueError as e:
+            self.logger.error(f"Value error while preparing report for task {task['task_name']}: {e}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
+            return False
+
+        self.ansible_service.save_report(report_data)
+        return True
