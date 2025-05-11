@@ -117,7 +117,7 @@ class HostService:
 
         last_id = self.host_model.last_id()
 
-        self.event_host.event(
+        self.create_event(
             last_id,
             f'Found new host {host.get("ip")} on network {host.get("network")}',
             LogType.EVENT_WARN,
@@ -217,6 +217,18 @@ class HostService:
         self.host_model.set_warn(host_id, warn_status)
         self.host_model.commit()
 
+    def create_event(self, host_id: int, message: str, log_type: LogType, event_type: EventType) -> None:
+        """
+        Encapsulate the creation of an event.
+
+        Args:
+            host_id (int): ID of the host related to the event.
+            message (str): Event message.
+            log_type (LogType): Type of log for the event.
+            event_type (EventType): Type of event.
+        """
+        self.event_host.event(host_id, message, log_type, event_type)
+
     def _host_events(self, host: dict, current_host: dict) -> None:
         hid = host.get("id", None)
         ip = host.get("ip", None)
@@ -235,7 +247,7 @@ class HostService:
 
         if host.get("online") == 0 and current_host.get("online") == 1:
             current_host["glow"] = date_now()
-            self.event_host.event(
+            self.create_event(
                 hid,
                 f'Host become online {ip}',
                 LogType.EVENT,
@@ -250,7 +262,7 @@ class HostService:
                 log_type = LogType.EVENT_ALERT
                 current_host["alert"] = 1
 
-            self.event_host.event(
+            self.create_event(
                 hid,
                 f'Host become offline',
                 log_type,
@@ -264,7 +276,7 @@ class HostService:
                 current_host["warn"] = 1
                 log_type = LogType.EVENT_WARN
 
-            self.event_host.event(
+            self.create_event(
                 hid,
                 f'Host hostname changed {host.get("hostname")} -> {current_host.get("hostname")}',
                 log_type,
@@ -279,8 +291,7 @@ class HostService:
                     current_host["warn"] = 1
                     log_type = LogType.EVENT_WARN
 
-
-                self.event_host.event(
+                self.create_event(
                     hid,
                     (
                         f'Host MAC changed {host.get("mac")} -> '
@@ -303,7 +314,7 @@ class HostService:
                     "mac_vendor" not in host["misc"] or
                     host.get("misc").get("mac_vendor") != current_host.get("misc").get("mac_vendor")
                 ):
-                    self.event_host.event(
+                    self.create_event(
                         hid,
                         (
                             f'Host MAC vendor changed '
