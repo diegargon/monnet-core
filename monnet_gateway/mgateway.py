@@ -20,7 +20,6 @@ from time import sleep
 import daemon
 
 from monnet_gateway import mgateway_config
-from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.services.config import Config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,9 +29,8 @@ sys.path.append(str(BASE_DIR))
 from shared.app_context import AppContext
 from shared.clogger import Logger
 from monnet_gateway.services.ansible_service import AnsibleService
-from monnet_gateway.mgateway_config import TASK_INTERVAL
 from monnet_gateway.server import run_server, stop_server
-from monnet_gateway.tasks.gateway_tasks import TaskSched
+from monnet_gateway.tasks.task_scheduler import TaskSched
 
 stop_event = threading.Event()
 server_thread = None
@@ -119,7 +117,6 @@ def main():
 
     ctx = AppContext(workdir)
     ctx.set_var('stop_event', stop_event)
-    ctx.set_var('task_interval', TASK_INTERVAL)
 
     # Initialize Logger
     logger = Logger()

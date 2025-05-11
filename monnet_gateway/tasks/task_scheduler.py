@@ -9,8 +9,6 @@ import threading
 from time import sleep, time
 import syslog
 
-DEFAULT_INTERVAL = 60
-
 # Local
 from monnet_gateway.database.dbmanager import DBManager
 from shared.app_context import AppContext
@@ -31,12 +29,6 @@ class TaskSched:
 
         try:
             self.logger.debug("Initialize TaskSched...")
-            if not ctx.has_var("task_interval"):
-                ctx.set_var("task_interval", DEFAULT_INTERVAL)
-                self.logger.warning(
-                    f"TaskSched interval not set. Using default: {DEFAULT_INTERVAL}"
-                )
-
             self.stop_event = ctx.get_var("stop_event")
 
             self.task_intervals = {

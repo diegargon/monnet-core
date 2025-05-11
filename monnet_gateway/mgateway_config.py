@@ -14,7 +14,6 @@ PORT_TEST = 65433
 GW_CONFIG_PATH = "/etc/monnet/mgateway-config"
 CONFIG_DB_PATH = "/etc/monnet/config-db.json"
 
-TASK_INTERVAL = 10  # Seconds
 ALLOWED_MODULES = ["ansible",]
 
 DEFAULT_ANSIBLE_GROUPS_FILE = "/etc/ansible/hosts"

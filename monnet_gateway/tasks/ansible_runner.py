@@ -68,9 +68,6 @@ class AnsibleTask:
                 self.logger.debug(f"Task {task['task_name']} with trigger_type=1 is already done. Skipping.")
                 continue
 
-            # Obtain task parameters
-            task_interval = task.get("task_interval") or "1m"
-            interval_seconds = self._parse_interval(task_interval) if task_interval is not None else None
             next_trigger = task.get("next_trigger")
             last_triggered = task.get("last_triggered")
             hid = task.get("hid")
@@ -222,10 +219,16 @@ class AnsibleTask:
                         )
 
             elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
-                self.logger.info(f"Running interval task: {task['task_name']} at interval of {task['task_interval']}")
-                if interval_seconds is None:
+                if task.get('task_interval', None) is None:
                     self.logger.warning(f"Missing interval from the interval task {task['task_name']}")
                     continue
+                try:
+                    interval_seconds = self._parse_interval(task["task_interval"])
+                except ValueError as e:
+                    continue
+
+                self.logger.info(f"Running interval task: {task['task_name']} at interval of {task['task_interval']}")
+
                 self.ansible_service.task_done(task["id"])
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
