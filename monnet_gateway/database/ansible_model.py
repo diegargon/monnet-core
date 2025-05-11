@@ -28,6 +28,7 @@ class AnsibleModel:
     - `disable` (tinyint): Indicates if the task is disabled (0 for active, 1 for inactive).
     - `last_triggered` (datetime): Timestamp of the last execution.
     - `next_trigger` (datetime): Timestamp of the next scheduled
+    - `done` int (task done for uniq task)
     """
 
     def __init__(self, db: DBManager):
@@ -70,4 +71,15 @@ class AnsibleModel:
             bool: True if the connection is active, False otherwise.
         """
         return self.db.is_connected()
+
+    def task_done(self, task_id: int):
+        """
+        Increments the 'done' field of a task by 1.
+
+        Args:
+            task_id (int): The ID of the task to update.
+        """
+        query = "UPDATE tasks SET done = done + 1 WHERE id = %s"
+        with self.db.transaction():
+            self.db.execute(query, (task_id,))
 

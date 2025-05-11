@@ -397,3 +397,12 @@ class AnsibleService:
             "status": status,
             "report": report_json
         }
+
+    def task_done(self, task_id: int):
+        """
+        Increment the 'done' field of a task by 1.
+        Args:
+            task_id (int): The ID of the task to update.
+        """
+        self._ensure_model()
+        self.ansible_model.task_done(task_id)

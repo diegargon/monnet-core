@@ -129,6 +129,9 @@ class AnsibleTask:
             # 5 Interval: run if interval time is reached
             # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
+                if task.get("done") > 0:
+                    continue
+                self.ansible_service.task_done(task["id"])
                 self.logger.info(f"Running Uniq task: {task['task_name']}")
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
@@ -154,7 +157,9 @@ class AnsibleTask:
                     continue
                 self.ansible_service.save_report(report_data)
 
-                self.ansible_service.delete_task(task["id"])
+                # Not delete skip done.
+                # TODO: Clean uniq done tasks
+                # self.ansible_service.delete_task(task["id"])
                 self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
             elif trigger_type == 4:
@@ -178,6 +183,7 @@ class AnsibleTask:
                         self.logger.info(
                             f"Running task: {task['task_name']} at crontime={crontime}"
                         )
+                        self.ansible_service.task_done(task["id"])
                         result = self.ansible_service.run_ansible_playbook(
                             playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                         )
@@ -210,6 +216,7 @@ class AnsibleTask:
                 if interval_seconds is None:
                     self.logger.warning(f"Missing interval from the interval task {task['task_name']}")
                     continue
+                self.ansible_service.task_done(task["id"])
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
