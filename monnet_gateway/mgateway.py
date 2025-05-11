@@ -140,10 +140,9 @@ def main():
     if args.test_port:  # Cambiado de args.test a args.test_port
         ctx.set_var('test-port', 1)
 
-    logger.notice("Starting Monnet Gateway...")
+    logger.notice(f"Starting Monnet Gateway in {'foreground' if args.no_daemon else 'daemon'} mode...")
 
     if args.no_daemon:
-        logger.notice("Running in foreground mode")
         with daemon.DaemonContext(
             detach_process=False,   # Avoid background
             stdout=sys.stdout,      # Redirect stdout to the console
@@ -154,7 +153,6 @@ def main():
             run(ctx)
     else:
         with daemon.DaemonContext(working_directory=workdir):
-            logger.notice("Running in daemon mode")
             run(ctx)
 
 if __name__ == "__main__":
