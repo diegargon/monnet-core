@@ -76,7 +76,7 @@ class AnsibleTask:
             hid = task.get("hid")
             pid = task.get("pid")
             if not pid:
-                self.logger.warning(f"PID {pid} not found for task {task['task_name']}. Skipping task.")
+                self.logger.warning(f"PID not found for task {task['task_name']}. Skipping task.")
                 continue
             # Fetch the playbook associated with the task
             self.logger.debug(f"Fetching playbook for task {task['task_name']} with pid={pid}")
@@ -140,12 +140,17 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
-                self._report_event(task["id"], result)
+
+                if not result or not isinstance(result, str):
+                    self.logger.error(f"Invalid result for task {task['task_name']}: {result}")
+                    continue
+
                 try:
                     result_data = json.loads(result)
                 except json.JSONDecodeError as e:
                     self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
                     continue
+                self._report_event(hid, task, result_data)
 
                 try:
                     report_data = self.ansible_service.prepare_report(
@@ -165,7 +170,7 @@ class AnsibleTask:
                 # Not delete skip done.
                 # TODO: Clean uniq done tasks
                 # self.ansible_service.delete_task(task["id"])
-                self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
+                # self.logger.debug(f"Deleted task {task['id']} with trigger_type=1")
 
             elif trigger_type == 4:
                 crontime = task.get("crontime")
@@ -303,8 +308,9 @@ class AnsibleTask:
         except ValueError:
             self.logger.error(f"Invalid IP address {host_ip} for host {host.get('id')}. Cannot build agent config.")
             return None
-
-
+        except Exception as e:
+            self.logger.error(f"Error determining IP address type for host {host.get('id')}: {e}")
+            return None
 
         server_host = None
 
@@ -326,39 +332,47 @@ class AnsibleTask:
         return {
             "id": host.get("id"),
             "token": token,
-            "log_level": "info",
-            "default_interval": self.config.get("agent_default_interval"),
-            "ignore_cert": self.config.get("agent_allow_selfcerts"),
+            "log_level": self.config.get("agent_log_level", "info"),
+            "default_interval": self.config.get("agent_default_interval", 60),
+            "ignore_cert": self.config.get("agent_allow_selfcerts", 0),
             "server_host": server_host,
-            "mem_alert_threshold": self.config.get("default_mem_alert_threshold"),
-            "mem_warn_threshold": self.config.get("default_mem_warn_threshold"),
-            "disks_alert_threshold": self.config.get("default_disks_alert_threshold"),
-            "disks_warn_threshold": self.config.get("default_disks_warn_threshold"),
+            "mem_alert_threshold": self.config.get("default_mem_alert_threshold", 90),
+            "mem_warn_threshold": self.config.get("default_mem_warn_threshold", 80),
+            "disks_alert_threshold": self.config.get("default_disks_alert_threshold", 90),
+            "disks_warn_threshold": self.config.get("default_disks_warn_threshold", 80),
             "server_endpoint": self.config.get("server_endpoint", "/feedme.php"),
         }
 
-    def _report_event(self, host_id: int, task_id: int, result: dict):
+    def _report_event(self, host_id: int, task: dict, result: dict):
         """
         Report task status event
         status 0 = success
         status 1 = failure
 
         Args:
-            task_id (int): The ID of the task.
-            result (str): The result of the Ansible playbook execution.
+            host_id (int): The ID of the host.
+            task (dict): The task.
+            result (dict): The result of the Ansible playbook execution.
         """
-        status = self.ansible_service.get_task_status(task_id)
+
+        if not result or not isinstance(result, dict):
+            self.logger.error(f"Report Event: Invalid result for task {task.get('id')}: {result}")
+            return
+
+        status = self.ansible_service.get_report_status(result)
 
         if status == 1:
             log_type = LogType.EVENT_WARN
             event_type = EventType.TASK_FAILURE
+            message = "failure"
         else:
             log_type = LogType.EVENT
             event_type = EventType.TASK_SUCCESS
+            message = "success"
 
         self.host_service.create_event(
             host_id=host_id,
-            message=f"Task {task_id} status: {status}",
+            message=f"Task {task['task_name']} status: {message}",
             log_type=log_type,
             event_type=event_type
         )

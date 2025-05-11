@@ -47,7 +47,7 @@ class TaskSched:
                 # Default 5 minutes
                 "hosts_checker": float(self.config.get("gw_host_checker_intvl", 60 * 5)),
                 # Default 1 minute
-                "ansible": float(self.config.get("gw_ansible_tasks_intvl", 60)),
+                "ansible_task": float(self.config.get("gw_ansible_tasks_intvl", 60)),
                 # Default 1 day
                 "prune": float(self.config.get("gw_prune_intvl", 60 * 60 * 24)),
                 # Default 1 week
@@ -59,7 +59,7 @@ class TaskSched:
                 "send_logs": current_time,
                 "discovery_hosts": current_time,
                 "hosts_checker": current_time,
-                "ansible": current_time,
+                "ansible_task": current_time,
                 "prune": current_time,
                 "weekly_task": current_time,
             }
@@ -69,14 +69,14 @@ class TaskSched:
                 "send_logs": threading.Lock(),
                 "discovery_hosts": threading.Lock(),
                 "hosts_checker": threading.Lock(),
-                "ansible": threading.Lock(),
+                "ansible_task": threading.Lock(),
                 "prune": threading.Lock(),
                 "weekly_task": threading.Lock(),
             }
 
             self.discovery_hosts = DiscoveryHostsTask(ctx)
             self.hosts_checker = HostsCheckerTask(ctx)
-            self.ansible = AnsibleTask(ctx)
+            self.ansible_task = AnsibleTask(ctx)
             self.prune_task = PruneTask(ctx)
             self.weekly_task = WeeklyTask(ctx)
 
@@ -130,7 +130,7 @@ class TaskSched:
                 # Run HostCheckerTask if the interval has passed
                 self._run_task("hosts_checker", self.hosts_checker.run, current_time)
                 # Run AnsibleTask if the interval has passed
-                self._run_task("ansible", self.ansible.run, current_time)
+                self._run_task("ansible_task", self.ansible_task.run, current_time)
                 # Run PruneTask if the interval has passed
                 self._run_task("prune", self.prune_task.run, current_time)
                 # Run WeeklyTask if the interval has passed
