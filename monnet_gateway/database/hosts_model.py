@@ -145,3 +145,18 @@ class HostsModel:
             WHERE last_seen < NOW() - INTERVAL %s DAY
         """
         return self.db.fetchall(query, (days,))
+
+    def delete_hosts_by_ids(self, host_ids: list[int]) -> int:
+        """
+        Delete hosts by a list of IDs.
+
+        Args:
+            host_ids (list[int]): List of host IDs to delete.
+
+        Returns:
+            int: Number of rows deleted.
+        """
+        if not host_ids:
+            return 0
+        query = "DELETE FROM hosts WHERE id IN (%s)" % ",".join(["%s"] * len(host_ids))
+        return self.db.execute(query, tuple(host_ids))

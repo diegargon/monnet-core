@@ -424,3 +424,22 @@ class HostService:
         self._ensure_db_connection()
 
         return self.host_model.get_hosts_not_seen_for_days(days)
+
+    def delete_hosts_by_ids(self, host_ids: list[int]) -> int:
+        """
+        Delete hosts by a list of IDs.
+
+        Args:
+            host_ids (list[int]): List of host IDs to delete.
+
+        Returns:
+            int: Number of hosts deleted.
+        """
+        if not host_ids:
+            self.logger.warning("No host IDs provided for deletion.")
+            return 0
+        self._ensure_db_connection()
+        deleted_count = self.host_model.delete_hosts_by_ids(host_ids)
+        self.host_model.commit()
+        self.logger.info(f"Purged {deleted_count} hosts with IDs: {host_ids}")
+        return deleted_count
