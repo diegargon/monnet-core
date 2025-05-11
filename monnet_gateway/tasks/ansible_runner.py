@@ -62,6 +62,10 @@ class AnsibleTask:
                 self.logger.debug(f"Ignoring task {task['task_name']} with trigger_type={trigger_type}")
                 continue
 
+            if trigger_type == 1 and task.get("done") > 0:
+                self.logger.debug(f"Task {task['task_name']} with trigger_type=1 is already done. Skipping.")
+                continue
+
             # Obtain task parameters
             task_interval = task.get("task_interval") or "1m"
             interval_seconds = self._parse_interval(task_interval) if task_interval is not None else None
@@ -129,8 +133,6 @@ class AnsibleTask:
             # 5 Interval: run if interval time is reached
             # 6 Task Chain: Ignore, triggered by another task
             if trigger_type == 1:
-                if task.get("done") > 0:
-                    continue
                 self.ansible_service.task_done(task["id"])
                 self.logger.info(f"Running Uniq task: {task['task_name']}")
                 result = self.ansible_service.run_ansible_playbook(
