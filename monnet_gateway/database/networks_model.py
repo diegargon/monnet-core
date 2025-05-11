@@ -22,6 +22,7 @@ class NetworksModel:
     - `weight` (tinyint): Weight of the network (default is 50).
     - `disable` (tinyint): Disable status (default is 0).
     - `only_online` (tinyint(1)): Show only online host in this network (default is 0).
+    - `clear` (tinyint(1)): host "not seen" in this network will be cleared (default is 0).
     """
 
     def __init__(self, db: DBManager):
@@ -30,3 +31,7 @@ class NetworksModel:
     def get_all(self,) -> list[dict]:
         """ Get all networks """
         return self.db.fetchall("SELECT * FROM networks")
+
+    def get_for_clear(self) -> list[dict]:
+        """ Get all networks allowed to clear """
+        return self.db.fetchall("SELECT * FROM networks WHERE clear=1")
