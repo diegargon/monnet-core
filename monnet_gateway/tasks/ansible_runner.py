@@ -147,6 +147,8 @@ class AnsibleTask:
                 except json.JSONDecodeError as e:
                     self.logger.error(f"Failed to decode JSON result for task {task['task_name']}: {e}")
                     continue
+
+                # Report event
                 self._report_event(hid, task, result_data)
 
                 try:
@@ -194,6 +196,10 @@ class AnsibleTask:
                         result = self.ansible_service.run_ansible_playbook(
                             playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                         )
+
+                        # Report event
+                        self._report_event(hid, task, result_data)
+
                         try:
                             report_data = self.ansible_service.prepare_report(
                                 self.ctx, task, json.loads(result), rtype=2
@@ -207,6 +213,7 @@ class AnsibleTask:
                         except Exception as e:
                             self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
                             continue
+
                         # Save the report
                         self.ansible_service.save_report(report_data)
 
@@ -233,6 +240,10 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
+
+                # Report event
+                self._report_event(hid, task, result_data)
+
                 try:
                     report_data = self.ansible_service.prepare_report(
                         self.ctx, task, json.loads(result), rtype=2
@@ -246,6 +257,7 @@ class AnsibleTask:
                 except Exception as e:
                     self.logger.error(f"Unexpected error while preparing report for task {task['task_name']}: {e}")
                     continue
+
                 self.ansible_service.save_report(report_data)
 
                 # Calculate new triggers
