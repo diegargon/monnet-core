@@ -1,8 +1,11 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Agent
+Monnet Agent - Handle Signals
 
+@description Handle signals for the Monnet Agent. This module is responsible for handling
+    signals such as SIGTERM and SIGHUP. It also checks if the system is shutting down and
+    sends notifications accordingly.
 """
 
 # Std
@@ -67,7 +70,7 @@ def handle_signal(signum, frame, ctx: AppContext):
     if _is_system_shutdown:
         logger.log("System shutdown detected", "notice")
         notification_type = "system_shutdown"
-        msg = "System shutdown or reboot"
+        msg = "System shutdown/reboot detected"
         log_level = LogLevel.ALERT
         event_type = EventType.SYSTEM_SHUTDOWN
     else:

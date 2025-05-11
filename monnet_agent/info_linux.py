@@ -1,7 +1,8 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Agent
+Monnet Agent - Info linux
+This module provides functions to gather system information on Linux systems.
 """
 
 # Standard
@@ -371,41 +372,59 @@ def get_listen_ports_info():
 
     return {"listen_ports_info": ports_flattened}
 
-def is_system_shutting_down():
+def is_system_shutting_down() -> bool:
     """
-    Detect if the system is shutting down by checking systemd status.
-
-    Returns:
-        bool: True if the system is in a stopping state, False otherwise.
-
-    Raises:
-        FileNotFoundError: If the systemctl command is not available.
-        subprocess.CalledProcessError: If the systemctl command fails.
-        RuntimeError: For unexpected errors.
+    Detect if the system is shutting down using multiple checks.
+    Returns True if any indicator suggests a shutdown.
     """
-    if not shutil.which("systemctl"):
-        raise FileNotFoundError("systemctl command not found")
-
     try:
-        result = subprocess.run(
-            ["systemctl", "is-system-running"],
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=5  # Add timeout to prevent hanging
-        )
-        return result.stdout.strip().lower() == "stopping"
+        # Check /run/nologin fast check
+        if os.path.exists("/run/nologin"):
+            return True
 
-    except subprocess.TimeoutExpired:
-        raise subprocess.CalledProcessError(
-            returncode=-1,
-            cmd=["systemctl", "is-system-running"],
-            stderr="Command timed out"
-        )
-    except subprocess.CalledProcessError as e:
-        error_message = e.stderr.strip() if e.stderr else "Unknown error occurred"
-        raise subprocess.CalledProcessError(
-            e.returncode, e.cmd, error_message
-        ) from e
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error while checking system status: {str(e)}") from e
+        # Check systemd shutdown target
+        if shutil.which("systemctl"):
+            try:
+                result = subprocess.run(
+                    ["systemctl", "is-active", "shutdown.target"],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                )
+                if result.stdout.strip().lower() == "active":
+                    return True
+                # Check systemd global status
+                result = subprocess.run(
+                    ["systemctl", "is-system-running"],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                )
+                status = result.stdout.strip().lower()
+                if status in ("stopping", "maintenance"):
+                    return True
+            except subprocess.TimeoutExpired:
+                pass
+            except subprocess.CalledProcessError:
+                pass
+            # Avoid check runlevel on systemd systems
+            return False
+
+        # Check runlevel (SysV init compatibility)
+        try:
+            result = subprocess.run(
+                ["runlevel"],
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            runlevel = result.stdout.strip().split()[-1]
+            if runlevel in ("0", "6"):
+                return True
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+            pass
+
+    except Exception:
+        pass  # Fallback: Assume not shutting down if checks fail
+
+    return False
