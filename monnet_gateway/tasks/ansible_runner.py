@@ -21,7 +21,6 @@ from croniter import croniter
 # Local
 from constants.event_type import EventType
 from constants.log_type import LogType
-from monnet_gateway.services import event_host
 from shared.app_context import AppContext
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.ansible_model import AnsibleModel
@@ -357,9 +356,9 @@ class AnsibleTask:
             log_type = LogType.EVENT
             event_type = EventType.TASK_SUCCESS
 
-        event_host.event(
+        self.host_service.create_event(
             host_id=host_id,
-            msg=f"Task {task_id} status: {status}",
+            message=f"Task {task_id} status: {status}",
             log_type=log_type,
             event_type=event_type
         )
