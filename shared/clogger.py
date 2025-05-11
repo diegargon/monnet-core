@@ -163,9 +163,11 @@ class Logger:
         if SYSLOG_LEVELS[priority] <= syslog.LOG_NOTICE:
             if self.recent_messages and self.recent_messages[-1]["message"] == message:
                 return  # Skip storing if the message is identical to the last one
+
+            truncated_message = message[:255]  # Truncate message to 255 characters for database storage
             self.recent_messages.append({
                 "level": SYSLOG_LEVELS[priority],
-                "message": message
+                "message": truncated_message
             })
             if len(self.recent_messages) > self.max_stored:
                 self.recent_messages.pop(0)
