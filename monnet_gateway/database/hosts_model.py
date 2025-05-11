@@ -108,9 +108,9 @@ class HostsModel:
     def rollback(self) -> None:
         self.db.rollback()
 
-    def set_alarm(self, host_id: int, alarm_status: int) -> None:
+    def set_alert(self, host_id: int, alarm_status: int) -> None:
         """
-        Set the alarm status for a host.
+        Set the aklert status for a host.
 
         Args:
             host_id (int): ID of the host to update.

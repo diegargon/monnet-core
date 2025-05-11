@@ -19,6 +19,9 @@ from ipaddress import ip_address, ip_network
 from croniter import croniter
 
 # Local
+from constants.event_type import EventType
+from constants.log_type import LogType
+from monnet_gateway.services import event_host
 from shared.app_context import AppContext
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.ansible_model import AnsibleModel
@@ -138,6 +141,7 @@ class AnsibleTask:
                 result = self.ansible_service.run_ansible_playbook(
                     playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                 )
+                self._report_event(task["id"], result)
                 try:
                     result_data = json.loads(result)
                 except json.JSONDecodeError as e:
@@ -333,3 +337,29 @@ class AnsibleTask:
             "disks_warn_threshold": self.config.get("default_disks_warn_threshold"),
             "server_endpoint": self.config.get("server_endpoint", "/feedme.php"),
         }
+
+    def _report_event(self, host_id: int, task_id: int, result: dict):
+        """
+        Report task status event
+        status 0 = success
+        status 1 = failure
+
+        Args:
+            task_id (int): The ID of the task.
+            result (str): The result of the Ansible playbook execution.
+        """
+        status = self.ansible_service.get_task_status(task_id)
+
+        if status == 1:
+            log_type = LogType.EVENT_WARN
+            event_type = EventType.TASK_FAILURE
+        else:
+            log_type = LogType.EVENT
+            event_type = EventType.TASK_SUCCESS
+
+        event_host.event(
+            host_id=host_id,
+            msg=f"Task {task_id} status: {status}",
+            log_type=log_type,
+            event_type=event_type
+        )

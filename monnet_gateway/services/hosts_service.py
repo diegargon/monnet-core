@@ -187,9 +187,9 @@ class HostService:
             except Exception as e:
                 self.logger.error(f"Error updating host {host_id}: {e}")
 
-    def set_alarm(self, host_id: int, alarm_status: int) -> None:
+    def set_alert(self, host_id: int, alarm_status: int) -> None:
         """
-        Set the alarm status for a host.
+        Set the alert status for a host.
 
         Args:
             host_id (int): ID of the host to update.
@@ -199,7 +199,7 @@ class HostService:
         if host_id is None or not isinstance(host_id, int):
             self.logger.warning(f"Invalid host ID in set_alarm: {host_id}")
             return
-        self.host_model.set_alarm(host_id, alarm_status)
+        self.host_model.set_alert(host_id, alarm_status)
         self.host_model.commit()
 
     def set_warn(self, host_id: int, warn_status: int) -> None:
