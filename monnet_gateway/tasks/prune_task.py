@@ -28,7 +28,7 @@ class PruneTask:
                 self.clear_system_logs()
                 self.clear_hosts_logs()
                 self.clear_reports()
-                self.clear_not_seen_hosts()
+                #self.clear_not_seen_hosts()
         except Exception as e:
             self.logger.error(f"Error during PruneTask: {e}")
         finally:
@@ -69,10 +69,10 @@ class PruneTask:
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear reports, affected rows: {affected}")
 
-    #def clear_not_seen_hosts(self):
-    #    """Cleans up hosts not seen for a specified number of days."""
-    #    days = self.config.get("clear_not_seen_hosts_intvl", 30)  # Default to 30 days
-    #    if days <= 0:
-    #        return
-    #    affected = self.host_service.clear_not_seen_hosts(days)
-    #    self.logger.info(f"Cleared {affected} hosts not seen for more than {days} days.")
+    def clear_not_seen_hosts(self):
+        """Cleans up hosts not seen for a specified number of days."""
+        days = self.config.get("clear_not_seen_hosts_intvl", 30)  # Default to 30 days
+        if days <= 0:
+            return
+        affected = self.host_service.clear_not_seen_hosts(days)
+        self.logger.info(f"Cleared {affected} hosts not seen for more than {days} days.")
