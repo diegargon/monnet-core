@@ -187,6 +187,36 @@ class HostService:
             except Exception as e:
                 self.logger.error(f"Error updating host {host_id}: {e}")
 
+    def set_alarm(self, host_id: int, alarm_status: int) -> None:
+        """
+        Set the alarm status for a host.
+
+        Args:
+            host_id (int): ID of the host to update.
+            alarm_status (int): New alarm status (0 or 1).
+        """
+        self._ensure_db_connection()
+        if host_id is None or not isinstance(host_id, int):
+            self.logger.warning(f"Invalid host ID in set_alarm: {host_id}")
+            return
+        self.host_model.set_alarm(host_id, alarm_status)
+        self.host_model.commit()
+
+    def set_warn(self, host_id: int, warn_status: int) -> None:
+        """
+        Set the warn status for a host.
+
+        Args:
+            host_id (int): ID of the host to update.
+            warn_status (int): New warn status (0 or 1).
+        """
+        self._ensure_db_connection()
+        if host_id is None or not isinstance(host_id, int):
+            self.logger.warning(f"Invalid host ID in set_warn: {host_id}")
+            return
+        self.host_model.set_warn(host_id, warn_status)
+        self.host_model.commit()
+
     def _host_events(self, host: dict, current_host: dict) -> None:
         hid = host.get("id", None)
         ip = host.get("ip", None)

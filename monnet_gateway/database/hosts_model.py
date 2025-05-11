@@ -107,3 +107,23 @@ class HostsModel:
 
     def rollback(self) -> None:
         self.db.rollback()
+
+    def set_alarm(self, host_id: int, alarm_status: int) -> None:
+        """
+        Set the alarm status for a host.
+
+        Args:
+            host_id (int): ID of the host to update.
+            alarm_status (int): New alarm status (0 or 1).
+        """
+        self.db.update("hosts", {"alert": alarm_status}, {"id": host_id})
+
+    def set_warn(self, host_id: int, warn_status: int) -> None:
+        """
+        Set the warn status for a host.
+
+        Args:
+            host_id (int): ID of the host to update.
+            warn_status (int): New warn status (0 or 1).
+        """
+        self.db.update("hosts", {"warn": warn_status}, {"id": host_id})
