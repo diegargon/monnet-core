@@ -53,3 +53,5 @@ class EventType:
     PORT_NEW_LOCAL = 18
     PORT_UP_LOCAL = 19
     PORT_DOWN_LOCAL = 20
+    TASK_FAILURE = 21
+    TASK_SUCCESS = 22
