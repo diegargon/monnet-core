@@ -350,6 +350,21 @@ class AnsibleService:
         reports_model.save_report(report_data)
         reports_model.commit()
 
+    def get_report_status(self, report: dict) -> int:
+        """
+        Extract the report status from the playbook result.
+        Args:
+            stats (dict): The stats dictionary from the playbook result.
+        Returns:
+            int: Status (0 for success, 1 for failure).
+        """
+        stats = report.get("stats", {})
+
+        for host, host_stats in stats.items():
+            if host_stats.get("failures", 0) > 0 or host_stats.get("unreachable", 0) > 0:
+                return 1
+        return 0
+
     def prepare_report(self, ctx: AppContext, data: dict, result: dict, rtype: int) -> dict:
         """
         Prepare a report for saving in the database.
@@ -361,15 +376,12 @@ class AnsibleService:
         Returns:
             dict: Prepared report data.
         """
-        status = 0
-
         self.logger.debug(f"Preparing report")
+        if not isinstance(result, dict):
+            self.logger.error("Prepare Report: Result is not a dictionary")
+            return {}
 
-        stats = result.get("stats", {})
-        for host, host_stats in stats.items():
-            if host_stats.get("failures", 0) > 0 or host_stats.get("unreachable", 0) > 0:
-                status = 1
-                break
+        status = self.get_report_status(result)
 
         try:
             report_json = json.dumps(result)
