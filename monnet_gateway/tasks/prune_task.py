@@ -32,6 +32,8 @@ class PruneTask:
     def clear_stats(self):
         """Cleans up old statistics."""
         interval = self.config.get("clear_stats_intvl", 30)  # Default to 30 days
+        if (interval <= 0):
+            return
         query = "DELETE FROM stats WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear stats, affected rows: {affected}")
@@ -39,6 +41,8 @@ class PruneTask:
     def clear_system_logs(self):
         """Cleans up old system logs."""
         interval = self.config.get("clear_logs_intvl", 30)  # Default to 30 days
+        if (interval <= 0):
+            return
         query = "DELETE FROM system_logs WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear system logs, affected rows: {affected}")
@@ -46,6 +50,8 @@ class PruneTask:
     def clear_hosts_logs(self):
         """Cleans up old host logs."""
         interval = self.config.get("clear_logs_intvl", 30)  # Default to 30 days
+        if (interval <= 0):
+            return
         query = "DELETE FROM hosts_logs WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear host logs, affected rows: {affected}")
@@ -53,6 +59,8 @@ class PruneTask:
     def clear_reports(self):
         """Cleans up old reports."""
         interval = self.config.get("clear_reports_intvl", 30)  # Default to 30 days
+        if (interval <= 0):
+            return
         query = "DELETE FROM reports WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear reports, affected rows: {affected}")
