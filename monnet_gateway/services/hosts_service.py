@@ -16,6 +16,9 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
 from monnet_gateway.services.event_host import EventHostService
+from monnet_gateway.services.networks_service import NetworksService
+
+
 from shared.time_utils import date_now
 
 
@@ -442,4 +445,46 @@ class HostService:
         deleted_count = self.host_model.delete_hosts_by_ids(host_ids)
         self.host_model.commit()
         self.logger.info(f"Purged {deleted_count} hosts with IDs: {host_ids}")
+        return deleted_count
+
+    def clear_not_seen_hosts(self, days: int) -> int:
+        """
+        Clear hosts that have not been seen for more than the specified number of days,
+        filtered by networks with `clear=1`.
+
+        Args:
+            days (int): Number of days.
+
+        Returns:
+            int: Number of hosts cleared.
+        """
+        if days <= 0:
+            raise ValueError("Days must be a positive integer.")
+        self._ensure_db_connection()
+
+        # Instantiate NetworksService
+        networks_service = NetworksService(self.ctx)
+
+        # Get networks with `clear=1`
+        networks_to_clear = networks_service.get_networks_for_clear()
+
+        if not networks_to_clear:
+            self.logger.debug("No networks with `clear=1` found.")
+            return 0
+
+        # Extract network IDs
+        network_ids = [network["id"] for network in networks_to_clear]
+
+        # Get hosts not seen for the specified number of days in these networks
+        hosts_to_clear = self.host_model.get_hosts_not_seen_in_networks(days, network_ids)
+        host_ids = [host["id"] for host in hosts_to_clear]
+
+        if not host_ids:
+            self.logger.debug(f"No hosts found not seen for more than {days} days in the specified networks.")
+            return 0
+
+        # Delete the hosts
+        deleted_count = self.delete_hosts_by_ids(host_ids)
+        self.logger.notice(f"Cleared {deleted_count} hosts not seen for more than {days} days.")
+
         return deleted_count

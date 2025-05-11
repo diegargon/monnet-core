@@ -142,7 +142,7 @@ class HostsModel:
         """
         query = """
             SELECT * FROM hosts
-            WHERE last_seen < NOW() - INTERVAL %s DAY
+            WHERE last_check < NOW() - INTERVAL %s DAY
         """
         return self.db.fetchall(query, (days,))
 
@@ -160,3 +160,27 @@ class HostsModel:
             return 0
         query = "DELETE FROM hosts WHERE id IN (%s)" % ",".join(["%s"] * len(host_ids))
         return self.db.execute(query, tuple(host_ids))
+
+    def get_hosts_not_seen_in_networks(self, days: int, network_ids: list[int]) -> list[dict]:
+        """
+        Get hosts that have not been seen for more than the specified number of days
+        and belong to the specified networks.
+
+        Args:
+            days (int): Number of days.
+            network_ids (list[int]): List of network IDs.
+
+        Returns:
+            list[dict]: List of hosts not seen for more than the specified days in the given networks.
+        """
+        if not network_ids:
+            return []
+
+        placeholders = ",".join(["%s"] * len(network_ids))
+        query = f"""
+            SELECT id FROM hosts
+            WHERE last_seen < NOW() - INTERVAL %s DAY
+            AND network IN ({placeholders})
+        """
+
+        return self.db.fetchall(query, [days] + network_ids)

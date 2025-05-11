@@ -5,11 +5,17 @@ Monnet Gateway - Networks Service
 
 """
 
+from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.networks_model import NetworksModel
+from shared.app_context import AppContext
 
 class NetworksService:
-    def __init__(self, networks_model: NetworksModel):
-        self.networks_model = networks_model
+    def __init__(self, ctx: AppContext):
+        self.ctx = ctx
+        self.logger = ctx.get_logger()
+        self.config = ctx.get_config()
+        self.db = DBManager(self.config)
+        self.networks_model = NetworksModel(self.db)
 
     def get_all(self) -> list[dict]:
         """ Get all networks """

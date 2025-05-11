@@ -7,6 +7,7 @@ Monnet Gateway - Prune Task
 
 from monnet_gateway.database.dbmanager import DBManager
 from shared.app_context import AppContext
+from monnet_gateway.services.hosts_service import HostService
 
 class PruneTask:
     """Class to perform periodic cleanup tasks."""
@@ -14,6 +15,8 @@ class PruneTask:
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
         self.db = None
+        self.host_service = HostService(ctx)
+
     def run(self):
         """Executes the cleanup task."""
         self.logger.info("Running PruneTask...")
@@ -25,6 +28,7 @@ class PruneTask:
                 self.clear_system_logs()
                 self.clear_hosts_logs()
                 self.clear_reports()
+                self.clear_not_seen_hosts()
         except Exception as e:
             self.logger.error(f"Error during PruneTask: {e}")
         finally:
@@ -64,3 +68,11 @@ class PruneTask:
         query = "DELETE FROM reports WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear reports, affected rows: {affected}")
+
+    #def clear_not_seen_hosts(self):
+    #    """Cleans up hosts not seen for a specified number of days."""
+    #    days = self.config.get("clear_not_seen_hosts_intvl", 30)  # Default to 30 days
+    #    if days <= 0:
+    #        return
+    #    affected = self.host_service.clear_not_seen_hosts(days)
+    #    self.logger.info(f"Cleared {affected} hosts not seen for more than {days} days.")
