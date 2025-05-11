@@ -41,6 +41,8 @@ class HostsModel:
     - `ansible_fail` (tinyint): Ansible failure status (default is 0).
     - `agent_installed` (tinyint(1)): Agent installation status (default is 0).
     - `agent_online` (tinyint(1)): Agent online status (default is 0).
+    - `linked` (int, nullable): Linked host ID (default is 0).
+    - `rol` (int, nullable): Host role ID (default is 0).
     """
 
     def __init__(self, db: DBManager):
@@ -127,3 +129,19 @@ class HostsModel:
             warn_status (int): New warn status (0 or 1).
         """
         self.db.update("hosts", {"warn": warn_status}, {"id": host_id})
+
+    def get_hosts_not_seen(self, days: int) -> list[dict]:
+        """
+        Get hosts that have not been seen for more than the specified number of days.
+
+        Args:
+            days (int): Number of days.
+
+        Returns:
+            list[dict]: List of hosts not seen for more than the specified days.
+        """
+        query = """
+            SELECT * FROM hosts
+            WHERE last_seen < NOW() - INTERVAL %s DAY
+        """
+        return self.db.fetchall(query, (days,))

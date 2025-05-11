@@ -408,3 +408,19 @@ class HostService:
             host["display_name"] = host.get("hostname")
         else:
             host["display_name"] = host.get("ip")
+
+    def get_hosts_not_seen(self, days: int) -> list[dict]:
+        """
+        Get hosts that have not been seen for more than the specified number of days.
+
+        Args:
+            days (int): Number of days.
+
+        Returns:
+            list[dict]: List of hosts not seen for more than the specified days.
+        """
+        if days <= 0:
+            raise ValueError("Days must be a positive integer.")
+        self._ensure_db_connection()
+
+        return self.host_model.get_hosts_not_seen_for_days(days)
