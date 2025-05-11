@@ -227,6 +227,11 @@ class HostService:
             log_type (LogType): Type of log for the event.
             event_type (EventType): Type of event.
         """
+        if log_type == LogType.EVENT_WARN:
+            self.set_warn(host_id, 1)
+        elif log_type == LogType.EVENT_ALERT:
+            self.set_alert(host_id, 1)
+
         self.event_host.event(host_id, message, log_type, event_type)
 
     def _host_events(self, host: dict, current_host: dict) -> None:
