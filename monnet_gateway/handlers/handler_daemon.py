@@ -5,6 +5,7 @@
 @description: This module handles commands related to the Monnet Gateway daemon
 """
 from monnet_gateway.services.ansible_service import AnsibleService
+from time import time
 
 
 def handle_daemon_command(ctx, command, data):
@@ -46,5 +47,22 @@ def handle_daemon_command(ctx, command, data):
         config = ctx.get_config()
         config.reload()
         return {"status": "success", "message": "Configuration reloaded"}
+    elif command == "ping":
+        logger.debug("Ping command received.")
+        client_timestamp = data.get("timestamp")
+        if client_timestamp is None:
+            return {"status": "error", "message": "Missing timestamp in ping request"}
+
+        try:
+            server_timestamp = time()
+            latency_ms = (server_timestamp - float(client_timestamp)) * 1000
+            return {
+                "status": "success",
+                "message": "pong",
+                "latency_ms": round(latency_ms, 3),
+                "server_timestamp": server_timestamp
+            }
+        except ValueError:
+            return {"status": "error", "message": "Invalid timestamp format"}
     else:
         return {"status": "error", "message": f"Unknown gatteway-daemon command: {command}"}
