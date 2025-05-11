@@ -9,7 +9,6 @@ from constants.log_level import LogLevel
 from constants.log_type import LogType
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.event_host_model import EventHostModel
-from monnet_gateway.services.hosts_service import HostService
 from shared.app_context import AppContext
 
 class EventHostService:
@@ -52,9 +51,6 @@ class EventHostService:
 
         if  log_type == LogType.EVENT_WARN:
             log_level = LogLevel.WARNING
-            if not self.hostService:
-                self.hostService = HostService(self.ctx)
-                self.hostService.set_warn(host_id)
         elif log_type == LogType.EVENT_ALERT:
             log_level = LogLevel.ALERT
         else:
