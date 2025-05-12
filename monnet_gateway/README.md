@@ -184,6 +184,58 @@ Likewise, we must copy the contents of the public key file and insert it into th
 
 # Technical Info
 
+
+## Playbook Metadata
+
+Playbooks must include metadata at the beginning of the file. This metadata is used by Monnet Gateway to identify and manage playbooks. The metadata should be written as YAML comments and must include at least the following fields:
+
+- `id` (required): A unique identifier for the playbook.
+- `name` (required): A descriptive name for the playbook.
+
+### Optional Metadata Fields
+
+- `description`: A brief description of what the playbook does.
+- `os`: A list of operating systems the playbook is compatible with (e.g., `["linux", "windows"]`).
+- `tags`: A list of tags to categorize the playbook (e.g., `["system", "logs", "std"]`).
+- `vars`: A list of variables the playbook uses, including their types, defaults, and descriptions.
+- `requires`: Specific requirements for the playbook, such as minimum Ansible version or dependencies.
+- `dependencies`: External libraries or tools required for the playbook to function.
+
+### Example Metadata
+
+```
+# @meta
+# id: example_playbook
+# name: Example Playbook
+# description: This is an example playbook with metadata.
+# os: ["linux", "posix"]
+# tags: ["example", "demo"]
+# vars:
+#   - name: example_var
+#     type: str
+#     default: "default_value"
+#     description: "An example variable"
+#     required: yes
+# requires:
+#   - ansible_version: "2.9"
+# dependencies:
+#   - library_name: ">=1.0.0"
+---
+- hosts: all
+  tasks:
+    - name: Example task
+      debug:
+        msg: "This is an example task."
+```
+
+### Notes
+
+- The metadata block must start with `# @meta` and be placed before the playbook content.
+- While only `id` and `name` are mandatory, including additional fields like `description`, `os`, and `tags` improves playbook organization and usability.
+- Use `vars` to document variables required by the playbook, including their types and default values.
+- The `requires` and `dependencies` fields help ensure the playbook is executed in a compatible environment.
+
+
 ## Payload (probably outdated)
 
 Receive:
@@ -192,14 +244,10 @@ Receive:
 {
     "command": playbook
     "data": {
-        "playbook": "mi_playbook.yml",
-        "extra_vars": {
-            "var1": "valor1",
-            "var2": "valor2"
-        },
+        "playbook": "mi-playbook-id",
         "ip": "192.168.1.100",
-        "limit": "mi_grupo" #optional
-        "user": "user" # optional
+        "limit": "mi_grupo"             # Optional (not impemented)
+        "user": "user"                  # Default ansible
     }
 }
 ```
