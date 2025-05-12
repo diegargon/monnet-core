@@ -240,7 +240,7 @@ class MonnetAgent:
                         self.logger.debug(f"Adding new config key '{key}' with value: {value}")
                     self.config[key] = value
                 update_config(self.config)
-                self.logger.log(f"Config updated: {self.config}", "info")
+                self.logger.log(f"Config file updated: {self.config}", "info")
         """
         if isinstance(data, dict) and "something" in data:
             try:

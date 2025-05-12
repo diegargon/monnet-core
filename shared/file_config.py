@@ -28,7 +28,7 @@ def load_file_config(file_path: str) -> dict:
 
 def update_config(config: dict):
     """
-    Saves the entire configu to the file specified in `_config_path`.
+    Saves the entire configuration to the file specified in `_config_path`.
 
     Args:
         config (dict): The loaded configuration dictionary containing `_config_path`.
