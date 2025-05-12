@@ -122,7 +122,7 @@ class Config:
     def _validate_db_config(self, config: dict):
         """
         Validate the database configuration.
-
+        - ctype 0 string 1 int 2 int/bool (0 or 1)  3 float...
         :param config: Configuration dictionary.
         """
         required_keys = ["host", "port", "database", "user", "password", "python_driver"]
@@ -137,12 +137,13 @@ class Config:
         self.logger.debug("Loading additional configuration from database...")
         db = DBManager(self.file_config)
         try:
-            query = "SELECT `ckey`, `cvalue` FROM config WHERE uid = 0"
+            query = "SELECT `ckey`, `cvalue`, `ctype`  FROM config WHERE uid = 0"
             results = db.fetchall(query)
             db.close()
             for row in results:
                 value_raw = row.get("cvalue")
                 key = row.get("ckey")
+                ctype = row.get("ctype")
 
                 if value_raw is None or value_raw.strip() == "":
                     continue
@@ -150,6 +151,10 @@ class Config:
                     value = json.loads(value_raw)
                     if value in (None, "", {}, []):
                         continue
+                    if ctype in (1, 2): # Integer
+                       value = int(value)
+                    if ctype == 3: # Float
+                       value = float(value)
                     self.db_config[row["ckey"]] = value
                 except json.JSONDecodeError:
                     self.db_config[row["ckey"]] = row["cvalue"]
