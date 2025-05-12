@@ -34,4 +34,4 @@ class NetworksModel:
 
     def get_for_clear(self) -> list[dict]:
         """ Get all networks allowed to clear """
-        return self.db.fetchall("SELECT * FROM networks WHERE clear=1")
+        return self.db.fetchall("SELECT * FROM networks WHERE clean=1")

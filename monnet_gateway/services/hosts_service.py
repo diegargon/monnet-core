@@ -469,7 +469,7 @@ class HostService:
         networks_to_clear = networks_service.get_networks_for_clear()
 
         if not networks_to_clear:
-            self.logger.debug("No networks with `clear=1` found.")
+            self.logger.debug("No networks with `clean=1` found.")
             return 0
 
         # Extract network IDs
