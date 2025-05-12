@@ -22,7 +22,7 @@ class NetworksModel:
     - `weight` (tinyint): Weight of the network (default is 50).
     - `disable` (tinyint): Disable status (default is 0).
     - `only_online` (tinyint(1)): Show only online host in this network (default is 0).
-    - `clear` (tinyint(1)): host "not seen" in this network will be cleared (default is 0).
+    - `clean` (tinyint(1)): host "not seen" in this network will be cleared (default is 0).
     """
 
     def __init__(self, db: DBManager):
