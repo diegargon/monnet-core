@@ -191,6 +191,9 @@ class HostsScanner:
         port_updates = []
         stats_updates = {}
 
+        now_utc = datetime.now(timezone.utc)
+        f_now_utc = now_utc.strftime('%Y-%m-%d %H:%M:%S')
+
         for host_status in hosts_status:
             host_id = host_status.get("id")
             if not host_id or not isinstance(host_id, int):
@@ -222,6 +225,9 @@ class HostsScanner:
 
             host_updates[host_id]["misc"]["latency"] = host_status.get("latency")
             host_updates[host_id]["last_check"] = host_status.get("last_check")
+
+            if host_updates[host_id]["online"] == 1:
+                host_updates[host_id]["last_seen"] = f_now_utc
             # Stats update
             stats_updates[host_id] = {
                 "type": 1,
