@@ -211,7 +211,7 @@ class AnsibleService:
         playbook_dirs = [d for d in [standard_playbooks_dir, user_playbooks_dir] if os.path.isdir(d)]
         if not playbook_dirs:
             self.logger.error("No playbooks directories found.")
-            raise FileNotFoundError("No playbooks directories found.")
+            return []
 
         playbook_files = []
         for directory in playbook_dirs:
@@ -222,7 +222,7 @@ class AnsibleService:
 
         if not playbook_files:
             self.logger.warning("No valid YAML files found in the playbooks directories.")
-            raise FileNotFoundError("No valid YAML files found in the playbooks directories.")
+            return []
 
         metadata_list = []
         for filepath in playbook_files:
@@ -243,23 +243,22 @@ class AnsibleService:
 
                 if not metadata or not REQUIRED_FIELDS.issubset(metadata):
                     self.logger.warning(f"Invalid metadata in {filepath}. Required fields: {REQUIRED_FIELDS}")
-                    raise ValueError(f"Invalid metadata in {filepath}. Required fields: {REQUIRED_FIELDS}")
+                    continue
 
                 metadata['_source_file'] = os.path.basename(filepath)
                 metadata_list.append(metadata)
 
             except yaml.YAMLError as e:
                 self.logger.error(f"YAML syntax error in {filepath}: {str(e)}")
-                raise ValueError(f"YAML syntax error in {filepath}: {str(e)}")
+                continue
             except Exception as e:
                 self.logger.error(f"Unexpected error with {filepath}: {str(e)}")
-                raise RuntimeError(f"Unexpected error with {filepath}: {str(e)}")
+                continue
 
         self.pb_metadata = metadata_list
 
         if not metadata_list:
-            self.logger.error("No metadata extracted from playbooks")
-            raise ValueError("No metadata extracted from playbooks")
+            self.logger.warning("No metadata extracted from playbooks")
 
         return metadata_list
 
