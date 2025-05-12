@@ -142,7 +142,7 @@ class HostsModel:
         """
         query = """
             SELECT * FROM hosts
-            WHERE last_check < NOW() - INTERVAL %s DAY
+            WHERE last_seen < NOW() - INTERVAL %s DAY
         """
         return self.db.fetchall(query, (days,))
 
