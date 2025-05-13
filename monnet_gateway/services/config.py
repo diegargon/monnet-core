@@ -15,18 +15,28 @@ class Config:
     """
     Configuration class for the Monnet Gateway.
     Combines file-based and database-based configurations.
+
+    :param ctx: Application context.
+    :param config_file_path: Path to the configuration file.
+    :param use_database: Whether to use database-based configuration. Default is True.
     """
-    def __init__(self, ctx: AppContext, config_file_path: str):
+    def __init__(self, ctx: AppContext, config_file_path: str, use_database: bool = True):
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.file_config = {}
         self.db_config = {}
         self.config_file_path = config_file_path
+        self.use_database = use_database
 
         # Load file-based configuration
         self.logger.debug(f"Loading configuration from file: {config_file_path}")
         self.load_file_config()
-        self.load_db_config()
+        if use_database:
+            self.logger.debug("Database configuration enabled. Loading from database...")
+            self.load_db_config()
+        else:
+            self.logger.debug("Database configuration disabled. Skipping database load.")
+
         self.ctx.set_config(self)
 
     def get(self, key: str, default=None):
@@ -37,8 +47,12 @@ class Config:
         :param default: The default value to return if the key is not found.
         :return: The configuration value or the default value.
         """
-        # Check database config first, then file config
-        return self.db_config.get(key, self.file_config.get(key, default))
+
+        if self.use_database:
+            # Check database config first, then file config
+            return self.db_config.get(key, self.file_config.get(key, default))
+
+        return self.file_config.get(key, default)
 
     def update_file_key(self, key: str, value, create_key: bool = False):
         """
@@ -73,6 +87,9 @@ class Config:
         :param value: The value to set for the key.
         :param create_key: Whether to create the key if it does not exist. Default is False.
         """
+        if not self.use_database:
+            raise RuntimeError("Database configuration is disabled. Cannot update database keys.")
+
         db = DBManager(self.file_config)
 
         try:
@@ -111,7 +128,8 @@ class Config:
         try:
             with open(self.config_file_path, "r", encoding="utf-8") as file:
                 file_config = json.load(file)
-                self._validate_db_config(file_config)
+                if self.use_database:
+                    self._validate_db_config(file_config)
                 self.file_config.update(file_config)
                 self.file_config["_config_path"] = self.config_file_path
         except json.JSONDecodeError as e:
@@ -171,7 +189,8 @@ class Config:
             if not self.config_file_path:
                 raise ValueError("File path for configuration is not set.")
             self.load_file_config()
-            self.load_db_config()
+            if self.use_database:
+                self.load_db_config()
 
             self.logger.info("Configuration reloaded successfully.")
         except Exception as e:
