@@ -6,7 +6,7 @@ Monnet Shared: Config
 import os
 import json
 
-from constants.log_level import SYSLOG_LEVELS
+from constants.log_level import LogLevel
 
 def load_file_config(file_path: str) -> dict:
     """Load JSON config"""
@@ -40,7 +40,7 @@ def update_config(config: dict):
         if '_config_path' not in config:
             raise ValueError("Configuration dictionary missing '_config_path' key.")
 
-        if not os.path.isfile(config["_config_path"]) or not os.access([config['_config_path']], os.W_OK):
+        if not os.path.isfile(config["_config_path"]) or not os.access(config['_config_path'], os.W_OK):
             raise ValueError("Config path not exist or not writable")
 
         # Save the entire config back to the file
@@ -74,7 +74,7 @@ def update_config_key(config: dict, key: str, value):
         if '_config_path' not in config:
             raise ValueError("Configuration dictionary missing '_config_path' key.")
 
-        if not os.path.isfile(config["_config_path"]) or not os.access([config['_config_path']], os.W_OK):
+        if not os.path.isfile(config["_config_path"]) or not os.access(config['_config_path'], os.W_OK):
             raise ValueError("Config path not exist or not writable")
         # Update or add the key-value pair
         config[key] = value
@@ -116,11 +116,11 @@ def validate_agent_config(config: dict):
         raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
 
     # Validate log_level
-    log_level = config.get("log_level", "info")
-    if log_level not in SYSLOG_LEVELS:
-        config["log_level"] = "info"
+    log_level = config.get("agent_log_level", "INFO")
+    if log_level.upper() not in LogLevel.__dict__:
+        config["agent_log_level"] = "INFO"
     else:
-        config["log_level"] = log_level
+        config["agent_log_level"] = log_level
 
     return True
 
