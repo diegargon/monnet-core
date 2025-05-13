@@ -49,7 +49,7 @@ class Datastore:
             data (dict):
         """
         if key not in self.data:
-            self.logger.log(f"New data set added: {key}")
+            self.logger.info(f"New data set added: {key}")
         self.data[key] = data
 
         if time.time() - self.last_save >= self.save_interval:
@@ -82,10 +82,10 @@ class Datastore:
                       "w", encoding='utf-8') as file:
                 json.dump(self.data, file, indent=4)
             self.last_save = time.time()
-            self.logger.log(f"Data saved successfully to {self.filename}")
+            self.logger.info(f"Data saved successfully to {self.filename}")
             return True
         except Exception as e:
-            self.logger.log(f"Error saving data to {self.filename}: {e}")
+            self.logger.error(f"Error saving data to {self.filename}: {e}")
             return False
 
     def load_data(self)-> bool:
@@ -95,11 +95,11 @@ class Datastore:
         try:
             with open(self.filename, "r", encoding='utf-8') as file:
                 self.data = json.load(file)
-            self.logger.log(f"Data loaded successfully from {self.filename}")
+            self.logger.info(f"Data loaded successfully from {self.filename}")
             return True
         except FileNotFoundError:
-            self.logger.log("No existing data file found. Starting fresh.")
+            self.logger.notice("No existing data file found. Starting fresh.")
             return False
         except Exception as e:
-            self.logger.log(f"Error loading data from {self.filename}: {e}")
+            self.logger.error(f"Error loading data from {self.filename}: {e}")
             return False

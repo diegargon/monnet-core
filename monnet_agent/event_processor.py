@@ -164,7 +164,7 @@ class EventProcessor:
                         # If the disk usage is below the threshold, remove the event start time
                         self.event_start_times.pop(f"high_disk_usage_{stats.get('device', 'unknown')}", None)
         else:
-            self.logger.log(f"Unexpected structure in disk info: {type(disk_info)} -> {disk_info}", "err")
+            self.logger.error(f"Unexpected structure in disk info: {type(disk_info)} -> {disk_info}")
         # Cleanup processed_events
         self._cleanup_events(current_time)
 

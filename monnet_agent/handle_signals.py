@@ -41,11 +41,11 @@ def handle_signal(signum, frame, ctx: AppContext):
     else:
         signal_name = signum
 
-    logger.log(f"Receive Signal {signal_name}  Stopping app...", "notice")
+    logger.notice(f"Receive Signal {signal_name}  Stopping app...")
 
     # Cancel all timers
     for name, timer in agent_config.timers.items():
-        logger.log(f"Clearing timer: {name}")
+        logger.notice(f"Clearing timer: {name}")
         timer.cancel()
     agent_config.timers.clear()
 
@@ -54,27 +54,27 @@ def handle_signal(signum, frame, ctx: AppContext):
     try:
         _is_system_shutdown = info_linux.is_system_shutting_down()
     except FileNotFoundError:
-        logger.log("Systemd not available - skipping shutdown check", "notice")
+        logger.notice("Systemd not available - skipping shutdown check")
         _is_system_shutdown = False
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.strip() if e.stderr else "Unknown error while checking system status"
-        logger.log(f"Failed to check system status: {error_message}", "err")
-        logger.log(f"Command: {e.cmd}", "debug")
-        logger.log(f"Return code: {e.returncode}", "debug")
+        logger.err(f"Failed to check system status: {error_message}")
+        logger.debug(f"Command: {e.cmd}")
+        logger.debug(f"Return code: {e.returncode}")
         _is_system_shutdown = False
     except Exception as e:
-        logger.log(f"Unexpected error while checking system status: {str(e)}", "err")
-        logger.log(f"Exception type: {type(e).__name__}", "debug")
+        logger.err(f"Unexpected error while checking system status: {str(e)}")
+        logger.debug(f"Exception type: {type(e).__name__}")
         _is_system_shutdown = False
 
     if _is_system_shutdown:
-        logger.log("System shutdown detected", "notice")
+        logger.notice("System shutdown detected")
         notification_type = "system_shutdown"
         msg = "System shutdown/reboot detected"
         log_level = LogLevel.ALERT
         event_type = EventType.SYSTEM_SHUTDOWN
     else:
-        logger.log("Agent shutdown detected", "notice")
+        logger.notice("Agent shutdown detected")
         notification_type = "agent_shutdown"
         msg = f"Signal receive: {signal_name}. Closing application."
         log_level = LogLevel.ALERT

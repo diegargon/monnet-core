@@ -87,7 +87,7 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             "data": data or {},
             "meta": meta
         }
-        logger.log(f"Notification payload: {payload}", "debug")
+        logger.debug(f"Notification payload: {payload}")
         connection = None
         try:
             context = ssl._create_unverified_context() if ignore_cert else None
@@ -102,18 +102,18 @@ def send_notification(ctx: AppContext, name: str, data: dict):
                     try:
                         parsed_data = json.loads(raw_data)
                         if "expected_key" not in parsed_data:
-                            logger.log("Missing 'expected_key' in response data.", "err")
+                            logger.err("Missing 'expected_key' in response data.")
                             return None
                         return parsed_data
                     except json.JSONDecodeError as e:
-                        logger.log(f"Error decoding JSON response: {e} Raw data: {raw_data}", "err")
+                        logger.err(f"Error decoding JSON response: {e} Raw data: {raw_data}")
                         return None
             else:
-                logger.log(f"HTTP Error: {response.status} {response.reason},
+                logger.err(f"HTTP Error: {response.status} {response.reason},
             """
-            logger.log(f"Notification response: {response.status} {response.reason}", "debug")
+            logger.debug(f"Notification response: {response.status} {response.reason}")
         except Exception as e:
-            logger.log(f"Error sending notification to {server_host}: {e}", "err")
+            logger.err(f"Error sending notification to {server_host}: {e}")
         finally:
             if connection:
                 connection.close()
@@ -125,9 +125,9 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             if "name" in data:
                 data.pop("name")
 
-            logger.log("Notification process completed", "debug")
+            logger.debug("Notification process completed")
     except Exception as e:
-        logger.log(f"Unexpected error in send_notification: {e}", "err")
+        logger.err(f"Unexpected error in send_notification: {e}")
 
 def send_request(ctx: AppContext, cmd="ping", data=None):
     """
@@ -153,7 +153,7 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
         server_host = config["server_host"]
         server_endpoint = config["server_endpoint"]
     except KeyError as e:
-        logger.log(f"Missing configuration key: {e}", "err")
+        logger.err(f"Missing configuration key: {e}")
         return None
 
     meta = get_meta(ctx)
@@ -183,28 +183,28 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
         # Response
         response = connection.getresponse()
         raw_data = response.read().decode()
-        logger.log(f"Response status: {response.status}, reason: {response.reason}", "debug")
-        logger.log(f"Raw response: {raw_data}", "debug")
+        logger.debug(f"Response status: {response.status}, reason: {response.reason}")
+        logger.debug(f"Raw response: {raw_data}")
 
         if response.status == 200:
             if raw_data:
                 try:
                     return json.loads(raw_data)
                 except json.JSONDecodeError as e:
-                    logger.log(f"Error decoding JSON response: {e} Raw data: {raw_data}", "err")
+                    logger.err(f"Error decoding JSON response: {e} Raw data: {raw_data}")
         else:
-            logger.log(f"HTTP Error: {response.status} {response.reason}, Raw data: {raw_data}", "err")
+            logger.err(f"HTTP Error: {response.status} {response.reason}, Raw data: {raw_data}")
 
     except http.client.HTTPException as e:
-        logger.log(f"HTTP exception occurred: {e}", "err")
+        logger.err(f"HTTP exception occurred: {e}")
     except Exception as e:
-        logger.log(f"Unexpected error on request: {e}", "err")
+        logger.err(f"Unexpected error on request: {e}")
     finally:
         if connection:
             try:
                 connection.close()
             except Exception as e:
-                logger.log(f"Error closing connection: {e}", "err")
+                logger.err(f"Error closing connection: {e}")
 
     return None
 
@@ -223,6 +223,6 @@ def validate_response(ctx: AppContext, response, token):
 
     if response and response.get("cmd") == "pong" and response.get("token") == token:
         return response
-    logger.log("Invalid response from server or wrong token.", "warning")
+    logger.warning("Invalid response from server or wrong token.")
 
     return None

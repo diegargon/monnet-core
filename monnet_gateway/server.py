@@ -40,7 +40,7 @@ def run_server(ctx: AppContext):
         server_socket.settimeout(1.0)
         server_socket.bind((HOST, port))
         server_socket.listen()
-        logger.log(f"v{GW_F_VERSION}: Waiting for connection on {HOST}:{port}...", "info")
+        logger.info(f"v{GW_F_VERSION}: Waiting for connection on {HOST}:{port}...")
 
         while not stop_event.is_set():
             try:
@@ -53,7 +53,7 @@ def run_server(ctx: AppContext):
                     break  # Exit loop if the server is stopping
                 raise e
     except Exception as e:
-        logger.log(f"Error in the server: {str(e)}", "err")
+        logger.error(f"Error in the server: {str(e)}")
         if not stop_event.is_set():
             stop_event.set()
         # Attempt to respond to the client if a connection exists
