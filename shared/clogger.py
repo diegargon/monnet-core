@@ -5,10 +5,10 @@ Monnet Shared: Logger
 """
 
 import syslog
-from constants.log_level import SYSLOG_LEVELS
+from constants.log_level import LogLevel
 
 class Logger:
-    def __init__(self, min_log_level: str = "debug", max_stored: int = 200) -> None:
+    def __init__(self, min_log_level: str = "DEBUG", max_stored: int = 200) -> None:
         self.min_log_level = min_log_level
         self.max_stored = max_stored
         self.recent_messages = []
@@ -17,15 +17,15 @@ class Logger:
         """ Set min log level """
         self.min_log_level = min_log_level
 
-    def logpo(self, msg: str, data, priority: str = "info") -> None:
+    def logpo(self, msg: str, data, priority: str = "INFO") -> None:
         """
         Converts any Python data type to a string and logs it with a specified priority.
 
         Args:
             msg: A str
             data: The data to log. Can be any Python object.
-            priority (str): The priority level (info, warning, error, critical).
-                            Defaults to 'info'.
+            priority (str): The priority level (INFO, WARNING, ERROR, CRITICAL).
+                            Defaults to 'INFO'.
 
         Raises:
             ValueError: If the priority level is invalid in the underlying `log` function.
@@ -36,7 +36,7 @@ class Logger:
         except ValueError as e:
             raise ValueError(f"Error in logging: {e}") from e
 
-    def log(self, message: str, priority: str = "info") -> None:
+    def log(self, message: str, priority: str = "INFO") -> None:
         """
         Sends a message to the system log (syslog) with a specified priority.
 
@@ -48,21 +48,22 @@ class Logger:
         Raises:
             ValueError: If the priority level is invalid.
         """
-        if priority not in SYSLOG_LEVELS:
+        priority = priority.upper()  # Force uppercase for compatibility
+        if priority not in LogLevel.__dict__:
             self.log_error(
                 f"Invalid priority level: {priority}. "
-                f"Valid options are {list(SYSLOG_LEVELS.keys())}"
+                f"Valid options are {list(LogLevel.__dict__.keys()) if '__dict__' in dir(LogLevel) else []}"
             )
 
-        if self.min_log_level not in SYSLOG_LEVELS:
+        if self.min_log_level.upper() not in LogLevel.__dict__:
             self.log_error(
                 f"Invalid MAX_LOG_PRIORITY: {self.min_log_level}. "
-                f"Valid options are {list(SYSLOG_LEVELS.keys())}"
+                f"Valid options are {list(LogLevel.__dict__.keys()) if '__dict__' in dir(LogLevel) else []}"
             )
 
-        if SYSLOG_LEVELS[priority] <= SYSLOG_LEVELS[self.min_log_level]:
+        if getattr(LogLevel, priority, None) <= getattr(LogLevel, self.min_log_level.upper(), None):
             syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
-            syslog.syslog(SYSLOG_LEVELS[priority], message)
+            syslog.syslog(getattr(LogLevel, priority), message)
             self.closelog()
             self._store_message(message, priority)
 
@@ -117,37 +118,37 @@ class Logger:
         """
         Logs an informational message.
         """
-        self.logpo("", message, "info")
+        self.logpo("", message, "INFO")
 
     def error(self, message: object) -> None:
         """
         Logs an error message.
         """
-        self.logpo("", message, "err")
+        self.logpo("", message, "ERROR")
 
     def err(self, message: object) -> None:
         """
         Logs an error message.
         """
-        self.logpo("", message, "err")
+        self.logpo("", message, "ERROR")
 
     def debug(self, message: object) -> None:
         """
         Logs a debug message.
         """
-        self.logpo("", message, "debug")
+        self.logpo("", message, "DEBUG")
 
     def notice(self, message: object) -> None:
         """
         Logs a notice message.
         """
-        self.logpo("", message, "notice")
+        self.logpo("", message, "NOTICE")
 
     def warning(self, message: object) -> None:
         """
         Logs a warning message.
         """
-        self.logpo("", message, "warning")
+        self.logpo("", message, "WARNING")
 
     def _store_message(self, message: str, priority: str) -> None:
         """
@@ -158,15 +159,16 @@ class Logger:
             message (str): The message to store.
             priority (str): The priority level of the message.
         """
+        priority = priority.upper()  # Ensure priority is uppercase
 
         # WARN: Store debug messages will raise an exhaust problem when pop logs is called
-        if SYSLOG_LEVELS[priority] <= syslog.LOG_NOTICE:
+        if getattr(LogLevel, priority, None) <= LogLevel.NOTICE:
             if self.recent_messages and self.recent_messages[-1]["message"] == message:
                 return  # Skip storing if the message is identical to the last one
 
             truncated_message = message[:255]  # Truncate message to 255 characters for database storage
             self.recent_messages.append({
-                "level": SYSLOG_LEVELS[priority],
+                "level": getattr(LogLevel, priority, None),
                 "message": truncated_message
             })
             if len(self.recent_messages) > self.max_stored:
