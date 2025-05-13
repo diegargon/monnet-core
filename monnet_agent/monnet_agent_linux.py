@@ -60,9 +60,9 @@ def main():
         logger.err(f"Unexpected error during validation: {e}")
         sys.exit(1)
 
-    log_level = config.get("log_level", "info")
-    logger.info(f"Setting log level to: {log_level}")
-    logger.set_min_log_level(log_level)
+    agent_log_level = config.get("agent_log_level", "INFO")
+    logger.info(f"Setting log level to: {agent_log_level}")
+    logger.set_min_log_level(agent_log_level)
     ctx.set_config(config)
 
     agent = MonnetAgent(ctx)
