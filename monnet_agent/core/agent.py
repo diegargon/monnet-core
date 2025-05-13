@@ -126,7 +126,7 @@ class MonnetAgent:
 
     def _send_starting_notification(self):
         """Send initial notification with system info."""
-        self.logger.log("Sending starting notification", "info")
+        self.logger.info("Sending starting notification")
         try:
             uptime = info_linux.get_uptime()
         except (FileNotFoundError, ValueError, OSError) as e:
@@ -134,7 +134,7 @@ class MonnetAgent:
             uptime = None
 
         if uptime is None:
-            self.logger.log("Uptime not available", "warning")
+            self.logger.warning("Uptime not available")
             return
 
         date_now = datetime.now().time().strftime("%H:%M:%S")
@@ -200,25 +200,25 @@ class MonnetAgent:
 
     def _send_ping(self, data_values: Dict[str, Any]):
         """Send ping to the server with collected data."""
-        self.logger.log("Preparing to send ping to server", "debug")
+        self.logger.debug("Preparing to send ping to server")
 
         if not data_values:
             self.logger.debug("No data values to send in ping")
             data_values = {}
 
-        self.logger.log(f"Ping data: {data_values}", "debug")
+        self.logger.debug(f"Ping data: {data_values}")
         response = send_request(self.ctx, cmd="ping", data=data_values)
 
         if response:
-            self.logger.log(f"Response received: {response}", "debug")
+            self.logger.debug(f"Response received: {response}")
             valid_response = validate_response(self.ctx, response, self.config["token"])
             if valid_response:
-                self.logger.log("Valid response received. Handling response...", "debug")
+                self.logger.debug("Valid response received. Handling response...")
                 self._handle_valid_response(valid_response)
             else:
-                self.logger.log("Invalid response received", "warning")
+                self.logger.warning("Invalid response received")
         else:
-            self.logger.log("No response received from server", "err")
+            self.logger.err("No response received from server")
 
     def _handle_valid_response(self, response: Dict[str, Any]):
         """Handle valid server response."""
@@ -227,7 +227,7 @@ class MonnetAgent:
 
         if new_interval and self.config['interval'] != int(new_interval):
             self.config["interval"] = new_interval
-            self.logger.log(f"Interval updated to {self.config['interval']} seconds", "info")
+            self.logger.info(f"Interval updated to {self.config['interval']} seconds")
 
         if isinstance(data, dict) and "config" in data:
             new_config = data["config"]
@@ -239,14 +239,21 @@ class MonnetAgent:
                     else:
                         self.logger.debug(f"Adding new config key '{key}' with value: {value}")
                     self.config[key] = value
-                update_config(self.config)
-                self.logger.log(f"Config file updated: {self.config}", "info")
+                    if key == "agent_log_level":
+                        self.logger.set_min_log_level(value)
+                        self.logger.info(f"Log level updated to: {value}")
+                try:
+                    update_config(self.config)
+                except Exception as e:
+                    self.logger.err(f"Error updating config file: {e}")
+                    return
+                self.logger.info(f"Config file updated: {self.config}")
         """
         if isinstance(data, dict) and "something" in data:
             try:
                 pass
             except ValueError:
-                self.logger.log("Invalid command", "warning")
+                self.logger.warning("Invalid command")
         """
 
     def _process_events(self):
@@ -266,9 +273,8 @@ class MonnetAgent:
         end_time = time.time()
         duration = end_time - start_time
         sleep_time = max(0, self.config["interval"] - duration)
-        self.logger.log(
-            f"Loop time {duration:.2f} + Sleeping {sleep_time:.2f} seconds.",
-            "debug"
+        self.logger.debug(
+            f"Loop time {duration:.2f} + Sleeping {sleep_time:.2f} seconds."
         )
         time.sleep(sleep_time)
 
@@ -293,4 +299,4 @@ class MonnetAgent:
                     self.logger.warning(f"Error cancelling timer {timer_name}: {e}")
             else:
                 self.logger.warning(f"Timer {timer_name} is not cancelable or does not exist.")
-        self.logger.log("Agent stopped and timers cleaned up.", "info")
+        self.logger.info("Agent stopped and timers cleaned up.")

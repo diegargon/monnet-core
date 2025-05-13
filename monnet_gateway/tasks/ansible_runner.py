@@ -284,7 +284,7 @@ class AnsibleTask:
         return {
             "id": host.get("id"),
             "token": token,
-            "log_level": self.config.get("agent_log_level", "info"),
+            "agent_log_level": self.config.get("agent_log_level", "INFO"),
             "default_interval": self.config.get("agent_default_interval", 60),
             "ignore_cert": self.config.get("agent_allow_selfcerts", 0),
             "server_host": server_host,
