@@ -64,14 +64,15 @@ class MonnetAgent:
             return False
 
         try:
-            self._setup_tasksched()
-        except Exception as e:
-            self.logger.err(f"Error setting up task scheduler: {e}")
-            return False
-        try:
             self._send_starting_notification()
         except Exception as e:
             self.logger.err(f"Error sending starting notification: {e}")
+            return False
+
+        try:
+            self._setup_tasksched()
+        except Exception as e:
+            self.logger.err(f"Error setting up task scheduler: {e}")
             return False
 
         return True
