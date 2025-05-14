@@ -191,6 +191,7 @@ class TaskSched:
         try:
             if self.thread.is_alive():
                 self.thread.join()
+            self.db.close()
             self.logger.info("TaskSched stopped.")
         except Exception as e:
             self.logger.error(f"Error stopping TaskSched: {e}")

@@ -42,6 +42,7 @@ class AnsibleTask:
         """Ensure the database connection is active and reconnect if necessary."""
         try:
             if not self.db.is_connected():
+                self.db.close()
                 self.db = DBManager(self.config)
                 self.ansible_model = AnsibleModel(self.db)
                 self.ansible_service = AnsibleService(self.ctx, self.ansible_model)
@@ -51,162 +52,167 @@ class AnsibleTask:
             raise
 
     def run(self):
-        self.logger.debug("Execution ansible task...")
-        self._ensure_db_connection()
-        tasks = self.ansible_service.fetch_active_tasks()
-        self.logger.debug(f"Number of tasks {len(tasks)}")
-        now = datetime.now()
-
-        for task in tasks:
+        try:
+            self.logger.debug("Execution ansible task...")
             self._ensure_db_connection()
-            trigger_type = task.get("trigger_type")
-            if trigger_type in [2, 3, 6]:
-                self.logger.debug(f"Ignoring task {task['task_name']} with trigger_type={trigger_type}")
-                continue
+            tasks = self.ansible_service.fetch_active_tasks()
+            self.logger.debug(f"Number of tasks {len(tasks)}")
+            now = datetime.now()
 
-            if trigger_type == 1 and task.get("done") > 0:
-                self.logger.debug(f"Task {task['task_name']} with trigger_type=1 is already done. Skipping.")
-                continue
-
-            next_trigger = task.get("next_trigger")
-            last_triggered = task.get("last_triggered")
-            hid = task.get("hid")
-            pid = task.get("pid")
-            if not pid:
-                self.logger.warning(f"PID not found for task {task['task_name']}. Skipping task.")
-                continue
-            # Fetch the playbook associated with the task
-            self.logger.debug(f"Fetching playbook for task {task['task_name']} with pid={pid}")
-            playbook = self.ansible_service.get_pb_meta_by_pid(pid)
-            if not playbook:
-                self.logger.warning(f"Playbook {playbook} not found for task {task['task_name']}. Skipping task.")
-                continue
-
-            playbook_file = playbook.get("_source_file")
-            if not playbook_file:
-                self.logger.warning(f"Playbook file not found for task {task['task_name']}. Skipping task.")
-                continue
-
-            # Fetch the IP of the host associated with the hid
-            host = self.host_service.get_by_id(hid)
-            if not host or "ip" not in host or not host["ip"]:
-                self.logger.warning(f"Host with hid={hid} not found or missing IP. Skipping task {task['task_name']}.")
-                continue
-
-            try:
-                host_ip = ip_address(host["ip"])
-            except ValueError:
-                self.logger.error(f'Invalid IP address for task task {task["task_name"]}. Skipping.')
-                continue
-            # Initialize extra_vars
-            extra_vars = {}
-
-            # Check if the playbook metadata contains the tag 'agent-config'
-            tags = playbook.get("tags", [])
-            if "agent-config" in tags:
-                agent_config = self._build_agent_config(host)
-                if not agent_config:
-                    self.logger.error(f"Failed to build agent config for task {task['task_name']}. Skipping.")
-                    continue
-                try:
-                    extra_vars["agent_config"] = json.dumps(agent_config)
-                except (TypeError, ValueError) as e:
-                    self.logger.error(f"Failed to serialize agent_config to JSON for task {task['task_name']}: {e}")
+            for task in tasks:
+                self._ensure_db_connection()
+                trigger_type = task.get("trigger_type")
+                if trigger_type in [2, 3, 6]:
+                    self.logger.debug(f"Ignoring task {task['task_name']} with trigger_type={trigger_type}")
                     continue
 
-            # Fetch Ansible variables associated with the hid
-            playbook_vars = self.ansible_service.fetch_playbook_vars_by_hid(hid)
-            extra_vars.update({var["vkey"]: var["vvalue"] for var in playbook_vars})
-            self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
-
-            # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
-            ansible_user = extra_vars.get("ansible_user") or self.config.get("ansible_user", "ansible")  # Simplified logic
-
-            # TODO: set ansible_group
-            ansible_group = None
-
-            # 1 Uniq task: run and delete
-            # 2 Manual: Ignore, triggered by user
-            # 3 Event Response: Ignore, triggered by event
-            # 4 Cron: run if cron time is reached
-            # 5 Interval: run if interval time is reached
-            # 6 Task Chain: Ignore, triggered by another task
-            if trigger_type == 1:
-                self.ansible_service.task_done(task["id"])
-                self.logger.info(f"Running Uniq task: {task['task_name']}")
-                result = self.ansible_service.run_ansible_playbook(
-                    playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
-                )
-
-                if not self._handle_task_result(hid, task, result):
+                if trigger_type == 1 and task.get("done") > 0:
+                    self.logger.debug(f"Task {task['task_name']} with trigger_type=1 is already done. Skipping.")
                     continue
 
-            elif trigger_type == 4:
-                crontime = task.get("crontime")
+                next_trigger = task.get("next_trigger")
                 last_triggered = task.get("last_triggered")
-                created = task.get("created")
-                if crontime and croniter.is_valid(crontime):
-                    # TODO manage croniter exceptions
-                    cron = croniter(crontime, now)
-                    next_cron_time = cron.get_next(datetime)
-                    last_cron_time = cron.get_prev(datetime)
-                    # Run the task if:
-                    # 1 Normal: if now is equal or greater than next_cron_time
-                    # 2 Last triggered is less than last_cron_time (Missing Task Run)
-                    # 3 Never triggered and the last cron (never none) is greater than created time
-                    if (
-                        now >= next_cron_time or
-                        (last_triggered is not None and last_triggered < last_cron_time) or
-                        (last_triggered is None and now >= last_cron_time and last_cron_time > created)
-                    ):
-                        self.logger.info(
-                            f"Running task: {task['task_name']} at crontime={crontime}"
-                        )
-                        self.ansible_service.task_done(task["id"])
-                        result = self.ansible_service.run_ansible_playbook(
-                            playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
-                        )
-
-                        if not self._handle_task_result(hid, task, result):
-                            continue
-
-                        self.ansible_service.update_task_triggers(
-                            task["id"], last_triggered=now
-                        )
-                        self.logger.debug(
-                            f"Updated task {task['id']} with last_triggered={now} "
-                            f"and next_trigger={next_cron_time}"
-                        )
-
-            elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
-                if task.get('task_interval', None) is None:
-                    self.logger.warning(f"Missing interval from the interval task {task['task_name']}")
+                hid = task.get("hid")
+                pid = task.get("pid")
+                if not pid:
+                    self.logger.warning(f"PID not found for task {task['task_name']}. Skipping task.")
                     continue
+                # Fetch the playbook associated with the task
+                self.logger.debug(f"Fetching playbook for task {task['task_name']} with pid={pid}")
+                playbook = self.ansible_service.get_pb_meta_by_pid(pid)
+                if not playbook:
+                    self.logger.warning(f"Playbook {playbook} not found for task {task['task_name']}. Skipping task.")
+                    continue
+
+                playbook_file = playbook.get("_source_file")
+                if not playbook_file:
+                    self.logger.warning(f"Playbook file not found for task {task['task_name']}. Skipping task.")
+                    continue
+
+                # Fetch the IP of the host associated with the hid
+                host = self.host_service.get_by_id(hid)
+                if not host or "ip" not in host or not host["ip"]:
+                    self.logger.warning(f"Host with hid={hid} not found or missing IP. Skipping task {task['task_name']}.")
+                    continue
+
                 try:
-                    interval_seconds = self._parse_interval(task["task_interval"])
-                except ValueError as e:
+                    host_ip = ip_address(host["ip"])
+                except ValueError:
+                    self.logger.error(f'Invalid IP address for task task {task["task_name"]}. Skipping.')
                     continue
+                # Initialize extra_vars
+                extra_vars = {}
 
-                self.logger.info(f"Running interval task: {task['task_name']} at interval of {task['task_interval']}")
+                # Check if the playbook metadata contains the tag 'agent-config'
+                tags = playbook.get("tags", [])
+                if "agent-config" in tags:
+                    agent_config = self._build_agent_config(host)
+                    if not agent_config:
+                        self.logger.error(f"Failed to build agent config for task {task['task_name']}. Skipping.")
+                        continue
+                    try:
+                        extra_vars["agent_config"] = json.dumps(agent_config)
+                    except (TypeError, ValueError) as e:
+                        self.logger.error(f"Failed to serialize agent_config to JSON for task {task['task_name']}: {e}")
+                        continue
 
-                self.ansible_service.task_done(task["id"])
-                result = self.ansible_service.run_ansible_playbook(
-                    playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
-                )
+                # Fetch Ansible variables associated with the hid
+                playbook_vars = self.ansible_service.fetch_playbook_vars_by_hid(hid)
+                extra_vars.update({var["vkey"]: var["vvalue"] for var in playbook_vars})
+                self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
 
-                if not self._handle_task_result(hid, task, result):
-                    continue
+                # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
+                ansible_user = extra_vars.get("ansible_user") or self.config.get("ansible_user", "ansible")  # Simplified logic
 
-                # Calculate new triggers
-                new_last_triggered = now
-                new_next_trigger = now + timedelta(seconds=interval_seconds)
-                self.ansible_service.update_task_triggers(
-                    task["id"], last_triggered=new_last_triggered, next_trigger=new_next_trigger
-                )
-                self.logger.debug(
-                    f"Updated task {task['id']} with last_triggered={new_last_triggered} "
-                    f"and next_trigger={new_next_trigger}"
-                )
+                # TODO: set ansible_group
+                ansible_group = None
+
+                # 1 Uniq task: run and delete
+                # 2 Manual: Ignore, triggered by user
+                # 3 Event Response: Ignore, triggered by event
+                # 4 Cron: run if cron time is reached
+                # 5 Interval: run if interval time is reached
+                # 6 Task Chain: Ignore, triggered by another task
+                if trigger_type == 1:
+                    self.ansible_service.task_done(task["id"])
+                    self.logger.info(f"Running Uniq task: {task['task_name']}")
+                    result = self.ansible_service.run_ansible_playbook(
+                        playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                    )
+
+                    if not self._handle_task_result(hid, task, result):
+                        continue
+
+                elif trigger_type == 4:
+                    crontime = task.get("crontime")
+                    last_triggered = task.get("last_triggered")
+                    created = task.get("created")
+                    if crontime and croniter.is_valid(crontime):
+                        # TODO manage croniter exceptions
+                        cron = croniter(crontime, now)
+                        next_cron_time = cron.get_next(datetime)
+                        last_cron_time = cron.get_prev(datetime)
+                        # Run the task if:
+                        # 1 Normal: if now is equal or greater than next_cron_time
+                        # 2 Last triggered is less than last_cron_time (Missing Task Run)
+                        # 3 Never triggered and the last cron (never none) is greater than created time
+                        if (
+                            now >= next_cron_time or
+                            (last_triggered is not None and last_triggered < last_cron_time) or
+                            (last_triggered is None and now >= last_cron_time and last_cron_time > created)
+                        ):
+                            self.logger.info(
+                                f"Running task: {task['task_name']} at crontime={crontime}"
+                            )
+                            self.ansible_service.task_done(task["id"])
+                            result = self.ansible_service.run_ansible_playbook(
+                                playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                            )
+
+                            if not self._handle_task_result(hid, task, result):
+                                continue
+
+                            self.ansible_service.update_task_triggers(
+                                task["id"], last_triggered=now
+                            )
+                            self.logger.debug(
+                                f"Updated task {task['id']} with last_triggered={now} "
+                                f"and next_trigger={next_cron_time}"
+                            )
+
+                elif trigger_type == 5 and (not next_trigger or not last_triggered or now >= next_trigger):
+                    if task.get('task_interval', None) is None:
+                        self.logger.warning(f"Missing interval from the interval task {task['task_name']}")
+                        continue
+                    try:
+                        interval_seconds = self._parse_interval(task["task_interval"])
+                    except ValueError as e:
+                        continue
+
+                    self.logger.info(f"Running interval task: {task['task_name']} at interval of {task['task_interval']}")
+
+                    self.ansible_service.task_done(task["id"])
+                    result = self.ansible_service.run_ansible_playbook(
+                        playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                    )
+
+                    if not self._handle_task_result(hid, task, result):
+                        continue
+
+                    # Calculate new triggers
+                    new_last_triggered = now
+                    new_next_trigger = now + timedelta(seconds=interval_seconds)
+                    self.ansible_service.update_task_triggers(
+                        task["id"], last_triggered=new_last_triggered, next_trigger=new_next_trigger
+                    )
+                    self.logger.debug(
+                        f"Updated task {task['id']} with last_triggered={new_last_triggered} "
+                        f"and next_trigger={new_next_trigger}"
+                    )
+        finally:
+            # Testing with and without close_connection
+            # self.close_connection()
+            pass
 
     def _parse_interval(self, interval: str) -> int:
         """
@@ -370,3 +376,12 @@ class AnsibleTask:
 
         self.ansible_service.save_report(report_data)
         return True
+
+    def close_connection(self):
+        """Closes the database connection."""
+        try:
+            if self.db:
+                self.db.close()
+                self.logger.debug("AnsibleTask: Database connection closed.")
+        except Exception as e:
+            self.logger.error(f"AnsibleTask: Failed to close database connection: {e}")
