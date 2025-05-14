@@ -29,27 +29,23 @@ class AnsibleService:
     """Service layer for interacting with AnsibleModel."""
 
     def __init__(self, ctx: AppContext, ansible_model: AnsibleModel = None):
-        self.ansible_model = ansible_model
-        self.logger = ctx.get_logger()
         self.ctx = ctx
+        self.logger = ctx.get_logger()
         self.config = ctx.get_config()
+        self.db = DBManager(self.config)  # Always instantiate DBManager
+        self.ansible_model = ansible_model or AnsibleModel(self.db)
         self.pb_metadata = None
 
     def _ensure_model(self):
         """Ensure the AnsibleModel """
         try:
-            if not self.ansible_model:
-                self.logger.debug("Initializing AnsibleModel lazily.")
-                db = DBManager(self.config)
-                self.ansible_model = AnsibleModel(db)
-            else:
-                if not self.ansible_model.db.is_connected():
-                    self.logger.warning("AnsibleService Database connection lost. Attempting to reconnect.")
-                    db = DBManager(self.config)
-                    self.ansible_model = AnsibleModel(db)
+            if not self.ansible_model.db.is_connected():
+                self.logger.warning("AnsibleService Database connection lost. Attempting to reconnect.")
+                self.db = DBManager(self.config)
+                self.ansible_model = AnsibleModel(self.db)
         except Exception as e:
             self.logger.error(f"Error ensuring AnsibleModel: {e}")
-            raise RuntimeError("Failed to initialize or reconnect AnsibleModel.")
+            raise RuntimeError("Failed to reconnect AnsibleModel.")
 
     def fetch_active_tasks(self):
         """Fetch all active tasks."""
@@ -142,24 +138,29 @@ class AnsibleService:
                 groups[-1]['hosts'].append(line)
         return groups
 
-    def run_ansible_playbook(self, playbook: str, extra_vars=None, ip=None, user=None, ansible_group=None):
+    def run_ansible_playbook(self, playbook_id: str, extra_vars=None, ip=None, user=None, ansible_group=None):
         """
         Run Ansible Playbook
         """
-        workdir = self.ctx.workdir
-        standard_playbook_directory = os.path.join(workdir, 'monnet_gateway/playbooks')
-        user_playbook_directory = '/var/lib/monnet/playbooks'
-        self.logger.debug(f"Running ansible playbook: {playbook}")
+        if not self.pb_metadata:
+            self.extract_pb_metadata()
 
-        # Check standard and user playbook directories
+        playbook_metadata = next((pb for pb in self.pb_metadata if pb.get('id') == playbook_id), None)
+        if not playbook_metadata:
+            raise FileNotFoundError(f"Playbook with ID {playbook_id} not found in metadata.")
+
         playbook_path = None
-        if os.path.exists(os.path.join(user_playbook_directory, playbook)):
-            playbook_path = os.path.join(user_playbook_directory, playbook)
-        elif os.path.exists(os.path.join(standard_playbook_directory, playbook)):
-            playbook_path = os.path.join(standard_playbook_directory, playbook)
+        for directory in [
+            os.path.join(self.ctx.workdir, '/var/lib/monnet/playbooks'),
+            'monnet_gateway/playbooks'
+        ]:
+            potential_path = os.path.join(directory, playbook_metadata['_source_file'])
+            if os.path.exists(potential_path):
+                playbook_path = potential_path
+                break
 
         if not playbook_path:
-            raise FileNotFoundError(f"The playbook: {playbook} could not be found in either directory.")
+            raise FileNotFoundError(f"The playbook file for ID {playbook_id} could not be found in any directory.")
 
         command = ['ansible-playbook', playbook_path]
         try:
@@ -341,13 +342,14 @@ class AnsibleService:
             self.logger.error(f"Failed to convert report data to JSON: {e}")
             return
 
-        db = DBManager(self.config)
-        if not db:
-            self.logger.error("Database connection failed.")
-
-        reports_model = ReportsModel(db)
-        reports_model.save_report(report_data)
-        reports_model.commit()
+        self._ensure_model()
+        try:
+            with self.db.transaction():
+                reports_model = ReportsModel(self.db)
+                reports_model.save_report(report_data)
+                reports_model.commit()
+        except Exception as e:
+            self.logger.error(f"Failed to save report: {e}")
 
     def get_report_status(self, report: dict) -> int:
         """

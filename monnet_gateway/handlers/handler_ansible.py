@@ -111,7 +111,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
             Returns:
                 dict: response
     """
-    playbook = data_content.get('playbook', None)
+    playbook_id = data_content.get('pid', None)
     extra_vars = data_content.get('extra_vars', {})
     ip = data_content.get('ip', None)
     ansible_group = data_content.get('ansible_group', None)
@@ -120,7 +120,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
 
     logger.debug(f"Executing ansible playbook... {data_content}")
 
-    if not playbook:
+    if not playbook_id:
         return _response_error(command, "Playbook not specified")
 
     # Fetch Ansible variables associated with the hid
@@ -142,14 +142,14 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
     extra_vars = fetched_extra_vars
 
     try:
-        logger.info("Running ansible playbook... " + str(playbook))
+        logger.info("Running ansible playbook... " + str(playbook_id))
         result = ansible_service.run_ansible_playbook(
-            playbook, extra_vars, ip=ip, user=user, ansible_group=ansible_group
+            playbook_id, extra_vars, ip=ip, user=user, ansible_group=ansible_group
         )
         try:
             result_data = json.loads(result)
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to decode JSON result for playbook {playbook}: {e}")
+            logger.error(f"Failed to decode JSON result for playbook {playbook_id}: {e}")
             return _response_error(command, f"Failed to decode JSON result: {e}. Result: {result}")
 
         report_data = ansible_service.prepare_report(ctx, data_content, result_data, rtype=1)
@@ -157,7 +157,7 @@ def ansible_exec(ctx: AppContext, ansible_service: AnsibleService, command: str,
 
         return _response_success(command, result_data)
     except Exception as e:
-        logger.error(f"Error executing the playbook {playbook}: {e}")
+        logger.error(f"Error executing the playbook {playbook_id}: {e}")
         return _response_error(command, f"Error executing the playbook: {e}")
 
 def _response_success(command: str, data: dict):

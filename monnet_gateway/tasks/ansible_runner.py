@@ -84,11 +84,6 @@ class AnsibleTask:
                     self.logger.warning(f"Playbook {playbook} not found for task {task['task_name']}. Skipping task.")
                     continue
 
-                playbook_file = playbook.get("_source_file")
-                if not playbook_file:
-                    self.logger.warning(f"Playbook file not found for task {task['task_name']}. Skipping task.")
-                    continue
-
                 # Fetch the IP of the host associated with the hid
                 host = self.host_service.get_by_id(hid)
                 if not host or "ip" not in host or not host["ip"]:
@@ -122,7 +117,7 @@ class AnsibleTask:
                 self.logger.debug(f"Extra vars for task {task['task_name']}: {extra_vars}")
 
                 # Fetch ansible user. Precedence: ansible_var, otherwise config default or "ansible"
-                ansible_user = extra_vars.get("ansible_user") or self.config.get("ansible_user", "ansible")  # Simplified logic
+                ansible_user = extra_vars.get("ansible_user") or self.config.get("ansible_user", "ansible")
 
                 # TODO: set ansible_group
                 ansible_group = None
@@ -135,9 +130,9 @@ class AnsibleTask:
                 # 6 Task Chain: Ignore, triggered by another task
                 if trigger_type == 1:
                     self.ansible_service.task_done(task["id"])
-                    self.logger.info(f"Running Uniq task: {task['task_name']}")
+                    self.logger.info(f"Running Uniq task: {task['task_name']} {task['pid']}")
                     result = self.ansible_service.run_ansible_playbook(
-                        playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                        pid, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                     )
 
                     if not self._handle_task_result(hid, task, result):
@@ -166,7 +161,7 @@ class AnsibleTask:
                             )
                             self.ansible_service.task_done(task["id"])
                             result = self.ansible_service.run_ansible_playbook(
-                                playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                                pid, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                             )
 
                             if not self._handle_task_result(hid, task, result):
@@ -193,7 +188,7 @@ class AnsibleTask:
 
                     self.ansible_service.task_done(task["id"])
                     result = self.ansible_service.run_ansible_playbook(
-                        playbook_file, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
+                        pid, extra_vars, ip=host_ip, user=ansible_user, ansible_group=ansible_group
                     )
 
                     if not self._handle_task_result(hid, task, result):
