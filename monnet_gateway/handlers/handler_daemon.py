@@ -60,7 +60,8 @@ def handle_daemon_command(ctx, command, data):
                 "status": "success",
                 "message": "pong",
                 "latency_ms": round(latency_ms, 3),
-                "server_timestamp": server_timestamp
+                "server_timestamp": server_timestamp,
+                'version': ctx.get_var('version', None),
             }
         except ValueError:
             return {"status": "error", "message": "Invalid timestamp format"}

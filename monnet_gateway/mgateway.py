@@ -117,7 +117,7 @@ def main():
 
     ctx = AppContext(workdir)
     ctx.set_var('stop_event', stop_event)
-
+    ctx.set_var('version', mgateway_config.GW_F_VERSION)
     # Initialize Logger
     logger = Logger()
     ctx.set_logger(logger)
