@@ -41,7 +41,7 @@ def run_server(ctx: AppContext):
         server_socket.bind((HOST, port))
         server_socket.listen()
         logger.info(f"v{GW_F_VERSION}: Waiting for connection on {HOST}:{port}...")
-
+        ctx.set_var('server_ready', True)
         while not stop_event.is_set():
             try:
                 conn, addr = server_socket.accept()
@@ -64,6 +64,7 @@ def run_server(ctx: AppContext):
                 conn.close()
         except Exception as send_error:
             logger.warning(f"Failed to send error response to client: {str(send_error)}")
+        raise e
     finally:
         if server_socket:
             server_socket.close()

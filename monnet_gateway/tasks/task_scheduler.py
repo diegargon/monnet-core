@@ -14,7 +14,7 @@ from monnet_gateway.database.dbmanager import DBManager
 from shared.app_context import AppContext
 from monnet_gateway.tasks.discovery import DiscoveryHostsTask
 from monnet_gateway.tasks.known_checker import HostsCheckerTask
-from monnet_gateway.tasks.ansible_runner import AnsibleTask
+from monnet_gateway.tasks.ansible_task import AnsibleTask
 from monnet_gateway.tasks.prune_task import PruneTask
 from monnet_gateway.tasks.weekly_task import WeeklyTask
 

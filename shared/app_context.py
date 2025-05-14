@@ -35,13 +35,13 @@ class AppContext:
         """
         self._variables[key] = value
 
-    def get_var(self, key: str):
+    def get_var(self, key: str, default=None):
         """
         Var Getter
         Args:
             key(str):
         """
-        return self._variables.get(key, None)
+        return self._variables.get(key, default)
 
     def has_var(self, key: str) -> bool:
         """

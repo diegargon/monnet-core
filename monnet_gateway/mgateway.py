@@ -75,6 +75,14 @@ def run(ctx: AppContext):
     server_thread = threading.Thread(target=run_server, args=(ctx,), daemon=False)
     server_thread.start()
 
+    try:
+        while ctx.get_var('server_ready', None) is not True or stop_event.is_set():
+            sleep(0.1)
+    except Exception as e:
+        logger.error(f"Error waiting for server to be ready: {e}")
+        stop_event.set()
+        return
+
     task_thread = TaskSched(ctx)
     task_thread.start()
 

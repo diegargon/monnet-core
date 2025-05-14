@@ -8,8 +8,7 @@ Monnet Gateway Class Task Queue Ansible CLI TEST
 from pathlib import Path
 import sys
 
-from monnet_gateway.database.dbmanager import DBManager
-from monnet_gateway.tasks.ansible_runner import AnsibleTask
+from monnet_gateway.tasks.ansible_task import AnsibleTask
 from monnet_gateway.tests_cli.common_cli import init_context
 
 BASE_DIR = Path(__file__).resolve().parent.parent

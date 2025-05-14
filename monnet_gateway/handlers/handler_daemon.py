@@ -56,14 +56,19 @@ def handle_daemon_command(ctx, command, data):
         try:
             server_timestamp = time()
             latency_ms = (server_timestamp - float(client_timestamp)) * 1000
+
             return {
                 "status": "success",
                 "message": "pong",
                 "latency_ms": round(latency_ms, 3),
                 "server_timestamp": server_timestamp,
-                'version': ctx.get_var('version', None),
+                "version": ctx.get_var("version", 0),
             }
-        except ValueError:
-            return {"status": "error", "message": "Invalid timestamp format"}
+        except TypeError as e:
+            return {"status": "error", "message": f"GPing: Type error: {e}"}
+        except KeyError as e:
+            return {"status": "error", "message": f"GPing: Key error: {e}"}
+        except ValueError as e:
+            return {"status": "error", "message": f"GPing Invalid value {e}"}
     else:
         return {"status": "error", "message": f"Unknown gatteway-daemon command: {command}"}
