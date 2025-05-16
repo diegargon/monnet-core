@@ -27,7 +27,8 @@ from monnet_agent import agent_config, info_linux
 from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
-from monnet_agent.notifications import send_notification, send_request, validate_response
+from monnet_agent.notifications import send_notification
+from monnet_agent.requests import send_request, validate_response
 from monnet_shared.app_context import AppContext
 from monnet_shared.file_config import update_config
 
