@@ -76,7 +76,7 @@ def run(ctx: AppContext):
     server_thread.start()
 
     try:
-        timeout = 30
+        timeout = 5
         waited = 0
         while ctx.get_var('server_ready', None) is not True or stop_event.is_set():
             sleep(0.1)
