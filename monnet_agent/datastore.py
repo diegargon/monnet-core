@@ -10,7 +10,7 @@ import time
 from typing import Optional, Dict, Any
 
 # Local
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 class Datastore:
     """

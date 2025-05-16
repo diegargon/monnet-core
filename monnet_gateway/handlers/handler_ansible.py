@@ -16,7 +16,7 @@ import yaml
 # Local
 from monnet_gateway.mgateway_config import GW_F_VERSION
 from monnet_gateway.services.ansible_service import AnsibleService
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 def handle_ansible_command(ctx: AppContext, command: str, data_content: dict):
     """

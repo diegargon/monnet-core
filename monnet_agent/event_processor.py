@@ -9,7 +9,7 @@ import time
 from typing import List, Dict, Any
 # Local
 import monnet_agent.agent_config as agent_config
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 from constants import LogLevel
 from constants import EventType
 

@@ -15,7 +15,7 @@ import sys
 
 # Local
 import info_linux
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 from monnet_agent import agent_config
 from monnet_agent.notifications import send_notification
 from constants import LogLevel, EventType

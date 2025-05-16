@@ -5,7 +5,7 @@ Monnet Shared: Context
 @description: This module provides a context class for managing application state, including configuration, logger, and variables.
 """
 
-from shared.clogger import Logger
+from monnet_shared.clogger import Logger
 
 class AppContext:
     """

@@ -23,7 +23,7 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.reports_model import ReportsModel
 from monnet_gateway.mgateway_config import DEFAULT_ANSIBLE_GROUPS_FILE
 from monnet_gateway.services.encrypt_service import EncryptService
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 class AnsibleService:
     """Service layer for interacting with AnsibleModel."""

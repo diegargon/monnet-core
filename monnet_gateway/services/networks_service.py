@@ -7,7 +7,7 @@ Monnet Gateway - Networks Service
 
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.networks_model import NetworksModel
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 class NetworksService:
     def __init__(self, ctx: AppContext):

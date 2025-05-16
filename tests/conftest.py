@@ -32,7 +32,7 @@ def sample_data():
 def datastore(temp_json_file, mock_logger):
     """Instancia limpia de Datastore con mock logger"""
     from monnet_agent.datastore import Datastore
-    from shared.app_context import AppContext
+    from monnet_shared.app_context import AppContext
 
     mock_ctx = MagicMock()
     mock_ctx.get_logger.return_value = mock_logger

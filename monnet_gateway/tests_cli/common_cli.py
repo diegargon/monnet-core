@@ -9,8 +9,8 @@ import sys
 
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import mgateway_config
-from shared.clogger import Logger
-from shared.app_context import AppContext
+from monnet_shared.clogger import Logger
+from monnet_shared.app_context import AppContext
 from monnet_gateway.services.config import Config
 
 def init_context(base_dir):

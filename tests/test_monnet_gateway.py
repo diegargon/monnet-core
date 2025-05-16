@@ -14,7 +14,7 @@ import select
 # Local
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.handlers.handler_ansible import run_ansible_playbook
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 class TestMonnetGateway(unittest.TestCase):
 

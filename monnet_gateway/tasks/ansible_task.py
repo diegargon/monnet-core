@@ -21,7 +21,7 @@ from croniter import croniter
 # Local
 from constants.event_type import EventType
 from constants.log_type import LogType
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.ansible_model import AnsibleModel
 from monnet_gateway.services.hosts_service import HostService

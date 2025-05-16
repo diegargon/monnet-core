@@ -17,8 +17,8 @@ import uuid
 
 # Local
 import info_linux
-from shared.app_context import AppContext
-import shared.time_utils as time_utils
+from monnet_shared.app_context import AppContext
+import monnet_shared.time_utils as time_utils
 from monnet_agent import agent_config
 
 def get_meta(ctx: AppContext):

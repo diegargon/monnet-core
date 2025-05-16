@@ -21,8 +21,8 @@ from monnet_gateway.networking.net_utils import get_mac, get_org_from_mac, get_h
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.tests_cli.common_cli import init_context
-from shared.time_utils import utc_date_now
-from shared.clogger import Logger
+from monnet_shared.time_utils import utc_date_now
+from monnet_shared.clogger import Logger
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))

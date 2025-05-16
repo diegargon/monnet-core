@@ -28,8 +28,8 @@ from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification, send_request, validate_response
-from shared.app_context import AppContext
-from shared.file_config import update_config
+from monnet_shared.app_context import AppContext
+from monnet_shared.file_config import update_config
 
 class MonnetAgent:
     def __init__(self, ctx: AppContext):

@@ -12,7 +12,7 @@ from time import time
 from monnet_gateway.handlers.handler_ansible import handle_ansible_command
 from monnet_gateway.handlers.handler_daemon import handle_daemon_command
 from monnet_gateway.mgateway_config import ALLOWED_MODULES
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 def handle_client(ctx: AppContext, conn, addr):
     """

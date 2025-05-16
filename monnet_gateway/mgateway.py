@@ -26,8 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
-from shared.app_context import AppContext
-from shared.clogger import Logger
+from monnet_shared.app_context import AppContext
+from monnet_shared.clogger import Logger
 from monnet_gateway.services.ansible_service import AnsibleService
 from monnet_gateway.server import run_server, stop_server
 from monnet_gateway.tasks.task_scheduler import TaskSched

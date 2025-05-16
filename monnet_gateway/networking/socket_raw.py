@@ -8,7 +8,7 @@ Monnet Gateway - Raw Socket
 import socket
 
 # Local
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 class SocketRawHandler:
 

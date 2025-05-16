@@ -91,10 +91,10 @@
         dest: /opt/monnet_agent/
         mode: '0755'
 
-    - name: Copy shared dir
+    - name: Copy monnet-shared dir
       copy:
-        src: /opt/monnet-core/shared/
-        dest: /opt/monnet_agent/shared/
+        src: /opt/monnet-core/monnet-shared/
+        dest: /opt/monnet_agent/monnet-shared/
 
     - name: Copy constants dir
       copy:

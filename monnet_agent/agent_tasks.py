@@ -16,7 +16,7 @@ import threading
 import info_linux
 import monnet_agent.agent_config as agent_config
 from monnet_agent.datastore import Datastore
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 def check_listen_ports(ctx: AppContext, datastore: Datastore, notify_callback, startup=None):
     """

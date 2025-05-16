@@ -15,14 +15,14 @@ import argparse
 # Third Party
 import daemon
 
-from shared.file_config import load_file_config, validate_agent_config
+from monnet_shared.file_config import load_file_config, validate_agent_config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
-from shared.clogger import Logger
-from shared.app_context import AppContext
+from monnet_shared.clogger import Logger
+from monnet_shared.app_context import AppContext
 from monnet_agent.core.agent import MonnetAgent
 from monnet_agent import agent_config
 

@@ -9,7 +9,7 @@ import os
 import json
 
 # Local
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 from monnet_gateway.database.dbmanager import DBManager
 class Config:
     """

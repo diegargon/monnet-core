@@ -19,10 +19,10 @@ from monnet_gateway.services.event_host import EventHostService
 from monnet_gateway.services.networks_service import NetworksService
 
 
-from shared.time_utils import date_now
+from monnet_shared.time_utils import date_now
 
 
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 class HostService:
     """Business logic for managing hosts"""
 

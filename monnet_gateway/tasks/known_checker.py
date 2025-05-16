@@ -8,8 +8,8 @@ Monnet Gateway - Check Known Hosts
 from time import time
 from monnet_gateway.services.hosts_scanner import HostsScanner
 from monnet_gateway.services.hosts_service import HostService
-from shared.app_context import AppContext
-from shared.time_utils import utc_date_now
+from monnet_shared.app_context import AppContext
+from monnet_shared.time_utils import utc_date_now
 
 class HostsCheckerTask:
     """ Verify known hosts """

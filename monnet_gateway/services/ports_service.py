@@ -7,7 +7,7 @@ Monnet Gateway - Ports Service
 
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.ports_model import PortsModel
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 
 class PortsService:

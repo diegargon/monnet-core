@@ -21,7 +21,7 @@ from monnet_gateway.database.networks_model import NetworksModel
 from monnet_gateway.networking.socket_raw import SocketRawHandler
 from monnet_gateway.networking.socket import SocketHandler
 from monnet_gateway.networking.icmp_packet import ICMPPacket
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 
 class NetworkScanner:
     def __init__(self, ctx: AppContext):

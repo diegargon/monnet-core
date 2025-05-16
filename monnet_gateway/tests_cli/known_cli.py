@@ -15,7 +15,7 @@ from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.tests_cli.common_cli import init_context
 from monnet_gateway.services.hosts_scanner import HostsScanner
 from monnet_gateway.utils.myutils import pprint_table
-from shared.time_utils import utc_date_now
+from monnet_shared.time_utils import utc_date_now
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))

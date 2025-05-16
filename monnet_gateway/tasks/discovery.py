@@ -13,8 +13,8 @@ from monnet_gateway.database.networks_model import NetworksModel
 from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.network_scanner import NetworkScanner
-from shared.app_context import AppContext
-from shared.time_utils import utc_date_now
+from monnet_shared.app_context import AppContext
+from monnet_shared.time_utils import utc_date_now
 
 class DiscoveryHostsTask:
     """ Descubrimiento de hosts """

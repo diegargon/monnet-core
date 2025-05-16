@@ -11,7 +11,7 @@ import syslog
 
 # Local
 from monnet_gateway.database.dbmanager import DBManager
-from shared.app_context import AppContext
+from monnet_shared.app_context import AppContext
 from monnet_gateway.tasks.discovery import DiscoveryHostsTask
 from monnet_gateway.tasks.known_checker import HostsCheckerTask
 from monnet_gateway.tasks.ansible_task import AnsibleTask
