@@ -157,13 +157,13 @@ class TaskSched:
             else:
                 self.logger.info(f"TaskSched: {task_name} task locked..")
 
-    def _send_store_logs(self):
+    def _send_store_logs(self, num_pop: int = 10):
         """
         Collects logs from the Logger and inserts them into the system_logs table.
         """
         # self.logger.debug("Storing logs in system_logs table...")
         try:
-            logs = self.logger.pop_logs()
+            logs = self.logger.pop_logs(num_pop)
             if logs:
                 with self.db.transaction():
                     cursor = self.db.cursor
@@ -191,6 +191,8 @@ class TaskSched:
         try:
             if self.thread.is_alive():
                 self.thread.join()
+            # Ensure all logs are sent before stopping
+            self._send_store_logs(50)
             self.db.close()
             self.logger.info("TaskSched stopped.")
         except Exception as e:

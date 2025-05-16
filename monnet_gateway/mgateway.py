@@ -97,7 +97,7 @@ def run(ctx: AppContext):
         while not stop_event.is_set():
             sleep(1)
     except (KeyboardInterrupt, SystemExit):
-        logger.info("Stopping server...")
+        logger.warning("Stopping Gateway server...")
     finally:
         stop_event.set()
         if server_thread is not None:
