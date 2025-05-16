@@ -1,7 +1,7 @@
 """
     LogLevel and EventType constants
 """
-from .log_level import LogLevel
-from .event_type import EventType
+from ..monnet_shared.log_level import LogLevel
+from ..monnet_shared.event_type import EventType
 
 __all__ = ["LogLevel", "EventType"]

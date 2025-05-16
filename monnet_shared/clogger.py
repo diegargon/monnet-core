@@ -5,7 +5,7 @@ Monnet Shared: Logger
 """
 
 import syslog
-from constants.log_level import LogLevel
+from monnet_shared.log_level import LogLevel
 
 class Logger:
     def __init__(self, min_log_level: str = "DEBUG", max_stored: int = 200) -> None:

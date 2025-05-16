@@ -10,8 +10,8 @@ import ipaddress
 import json
 
 # Local
-from constants.log_type import LogType
-from constants.event_type import EventType
+from monnet_shared.log_type import LogType
+from monnet_shared.event_type import EventType
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac

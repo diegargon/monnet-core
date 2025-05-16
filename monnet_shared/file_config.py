@@ -1,12 +1,12 @@
 """
 @copyright Copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Shared: Config
+Monnet Shared: File Config
 """
 import os
 import json
 
-from constants.log_level import LogLevel
+from monnet_shared.log_level import LogLevel
 
 def load_file_config(file_path: str) -> dict:
     """Load JSON config"""

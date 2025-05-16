@@ -19,9 +19,9 @@ from typing import Any, Dict
 import psutil
 
 # Local
-from constants.log_level import LogLevel
-from constants.event_type import EventType
-from constants.log_type import LogType
+from monnet_shared.log_level import LogLevel
+from monnet_shared.event_type import EventType
+from monnet_shared.log_type import LogType
 import monnet_agent.agent_tasks as agent_tasks
 from monnet_agent import agent_config, info_linux
 from monnet_agent.datastore import Datastore

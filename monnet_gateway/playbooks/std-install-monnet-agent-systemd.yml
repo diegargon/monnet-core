@@ -90,16 +90,25 @@
         src: "/opt/monnet-core/monnet_agent/"
         dest: /opt/monnet_agent/
         mode: '0755'
+      register: copy_monnet_agent
+      ignore_errors: true
+
+    - name: Fail if copy monnet_agent failed
+      ansible.builtin.fail:
+        msg: "Failed to copy monnet_agent to /opt/monnet_agent"
+      when: copy_monnet_agent is failed
 
     - name: Copy monnet-shared dir
       copy:
-        src: /opt/monnet-core/monnet-shared/
-        dest: /opt/monnet_agent/monnet-shared/
+        src: /opt/monnet-core/monnet_shared/
+        dest: /opt/monnet_agent/monnet_shared/
+      register: copy_monnet_shared
+      ignore_errors: true
 
-    - name: Copy constants dir
-      copy:
-        src: /opt/monnet-core/constants/
-        dest: /opt/monnet_agent/constants/
+    - name: Fail if copy monnet_shared failed
+      ansible.builtin.fail:
+        msg: "Failed to copy monnet_shared to /opt/monnet_agent/monnet_shared/"
+      when: copy_monnet_shared is failed
 
     - name: Check if the /etc/monnet directory exists
       stat:
@@ -131,6 +140,13 @@
         src: "/opt/monnet-core/files/monnet-agent-linux.service"
         dest: /etc/systemd/system/monnet-agent-linux.service
         mode: '0644'
+      register: copy_systemd_service
+      ignore_errors: true
+
+    - name: Fail if copy monnet-agent-linux.service failed
+      ansible.builtin.fail:
+        msg: "Failed to copy monnet-agent-linux.service to /etc/systemd/system/"
+      when: copy_systemd_service is failed
 
     - name: Check if the /etc/systemd/system/monnet-agent-linux.service file exists
       stat:

@@ -5,8 +5,8 @@ Monnet Gateway - Event Log Service
 
 """
 from datetime import datetime
-from constants.log_level import LogLevel
-from constants.log_type import LogType
+from monnet_shared.log_level import LogLevel
+from monnet_shared.log_type import LogType
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.event_host_model import EventHostModel
 from monnet_shared.app_context import AppContext
