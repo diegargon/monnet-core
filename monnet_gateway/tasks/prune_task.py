@@ -29,6 +29,7 @@ class PruneTask:
                 self.clear_hosts_logs()
                 self.clear_reports()
                 #self.clear_not_seen_hosts()
+                self.clear_uniq_done_tasks()
         except Exception as e:
             self.logger.error(f"Error during PruneTask: {e}")
         finally:
@@ -76,3 +77,12 @@ class PruneTask:
             return
         affected = self.host_service.clear_not_seen_hosts(days)
         self.logger.info(f"Cleared {affected} hosts not seen for more than {days} days.")
+
+    def clear_uniq_done_tasks(self):
+        """Cleans up tasks that are done. Only Uniq tasks are deleted."""
+        interval = self.config.get("clear_task_done_intvl", 30)
+        if (interval <= 0):
+            return
+        query = "DELETE FROM tasks WHERE trigger_type = 1 AND done = 1 AND date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
+        affected = self.db.execute(query, (interval,))
+        self.logger.info(f"Clear done tasks, affected rows: {affected}")
