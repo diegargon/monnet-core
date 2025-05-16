@@ -20,7 +20,7 @@ from time import sleep
 import daemon
 
 from monnet_gateway import mgateway_config
-from monnet_gateway.services.config import Config
+from monnet_shared.config import Config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -76,8 +76,15 @@ def run(ctx: AppContext):
     server_thread.start()
 
     try:
+        timeout = 30
+        waited = 0
         while ctx.get_var('server_ready', None) is not True or stop_event.is_set():
             sleep(0.1)
+            waited += 0.1
+            if waited >= timeout:
+                logger.error("Timeout waiting for server to be ready.")
+                stop_event.set()
+                return
     except Exception as e:
         logger.error(f"Error waiting for server to be ready: {e}")
         stop_event.set()

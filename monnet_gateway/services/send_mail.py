@@ -16,7 +16,7 @@ import ssl
 # Local
 from monnet_gateway.mgateway_config import CONFIG_DB_PATH
 from monnet_shared.app_context import AppContext
-from monnet_gateway.services.config import Config
+from monnet_shared.config import Config
 
 class SendMailService:
     def __init__(self, ctx: AppContext):
