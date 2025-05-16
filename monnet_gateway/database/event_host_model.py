@@ -21,6 +21,7 @@ class EventHostModel:
     - `msg` (char(255)): Message or description of the log.
     - `ack` (tinyint(1)): Acknowledgment status (0 = not acknowledged, 1 = acknowledged).
     - `date` (Index, datetime): Timestamp of the log entry.
+    - 'tid' int task id for events trigger
     """
 
     def __init__(self, db: DBManager):
