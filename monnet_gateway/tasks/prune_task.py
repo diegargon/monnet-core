@@ -22,7 +22,7 @@ class PruneTask:
         self.logger.info("Running PruneTask...")
         try:
             if not self.db or self.db is not isinstance(self.db, DBManager):
-                self.db = DBManager(self.config)
+                self.db = DBManager(self.config.file_config)
             with self.db.transaction():
                 self.clear_stats()
                 self.clear_system_logs()

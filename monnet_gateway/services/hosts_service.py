@@ -30,7 +30,7 @@ class HostService:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
-        self.db = DBManager(self.config)
+        self.db = DBManager(self.config.file_config)
         self.host_model = HostsModel(self.db)
         self.event_host = EventHostService(ctx)
 

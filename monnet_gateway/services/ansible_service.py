@@ -32,7 +32,7 @@ class AnsibleService:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
-        self.db = DBManager(self.config)  # Always instantiate DBManager
+        self.db = DBManager(self.config.file_config)
         self.ansible_model = ansible_model or AnsibleModel(self.db)
         self.pb_metadata = None
 

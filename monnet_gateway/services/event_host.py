@@ -21,7 +21,7 @@ class EventHostService:
             logger: Logger instance.
         """
         self.ctx = ctx
-        self.db = DBManager(ctx.get_config())
+        self.db = DBManager(ctx.get_config().file_config)
         self.logger = ctx.get_logger()
         self.event_host_model = EventHostModel(self.db)
         self.hostService = None

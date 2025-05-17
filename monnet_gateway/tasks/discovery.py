@@ -24,7 +24,7 @@ class DiscoveryHostsTask:
         self.config = ctx.get_config()
 
     def run(self):
-        db = DBManager(self.ctx.get_config())
+        db = DBManager(self.config.file_config)
         start_time = time()
 
         networks_model = NetworksModel(db)
@@ -122,4 +122,3 @@ class DiscoveryHostsTask:
         self.logger.debug(f"Discovery hosts: {len(discovery_host)}")
         end_time = time()
         self.logger.debug(f"Total scan time {round(end_time - start_time, 2)} seconds")
-

@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway CLI TEST
+Monnet Gateway - Database CLI TEST
 
 """
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     ctx = init_context("/opt/monnet-core")
     ctx.get_logger().log("Starting test_config CLI", "info")
 
-    db = DBManager(ctx.get_config())
+    db = DBManager(ctx.get_config().file_config)
     if db:
         try:
             users = db.fetchall("SELECT * FROM users")

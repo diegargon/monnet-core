@@ -25,7 +25,7 @@ class HostsScanner:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.network_scanner = NetworkScanner(ctx)
-        self.db = DBManager(ctx.get_config())
+        self.db = DBManager(ctx.get_config().file_config)
         self.ports_service = PortsService(ctx)
         self.hosts_service = HostService(ctx)
         self.stats_model = StatsModel(self.db)

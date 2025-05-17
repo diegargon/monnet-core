@@ -14,7 +14,7 @@ class NetworksService:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
-        self.db = DBManager(self.config)
+        self.db = DBManager(self.config.file_config)
         self.networks_model = NetworksModel(self.db)
 
     def get_all(self) -> list[dict]:

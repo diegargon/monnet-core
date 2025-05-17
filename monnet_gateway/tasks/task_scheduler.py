@@ -24,7 +24,7 @@ class TaskSched:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
-        self.db = DBManager(self.config)
+        self.db = DBManager(self.config.file_config)
         current_time = time()
 
         try:
@@ -93,7 +93,7 @@ class TaskSched:
             if not self.db.is_connected():
                 self.logger.warning("TaskSched: Database connection lost. Forcing reconnection.")
                 self.db.close()
-                self.db = DBManager(self.config)
+                self.db = DBManager(self.config.file_config)
         except Exception as e:
             self.logger.error(f"TaskSched: Failed to reconnect to the database: {e}")
             raise

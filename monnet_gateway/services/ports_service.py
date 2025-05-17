@@ -14,7 +14,7 @@ class PortsService:
     """ Ports service """
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
-        self.db = DBManager(ctx.get_config())
+        self.db = DBManager(ctx.get_config().file_config)
         self.ports_model = PortsModel(self.db)
 
     def update_ports(self, ports_data: list[dict]):

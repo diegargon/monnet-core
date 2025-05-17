@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway CLI TEST
+Monnet Gateway - Insert Host CLI Test
 
 """
 # Local
@@ -12,7 +12,7 @@ from monnet_gateway.tests_cli.common_cli import init_context
 
 print("Init monnet hosts test CLI")
 ctx = init_context("/opt/monnet-core")
-db = DBManager(ctx.get_config())
+db = DBManager(ctx.get_config().file_config)
 
 host_service = HostService(ctx)
 

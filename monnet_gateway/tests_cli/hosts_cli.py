@@ -1,7 +1,7 @@
 """
 @copyright CC BY-NC-ND 4.0 @ 2020 - 2025 Diego Garcia (diego/@/envigo.net)
 
-Monnet Gateway CLI TEST
+Monnet Gateway - Hosts CLI TEST
 
 """
 
@@ -21,7 +21,7 @@ sys.path.append(str(BASE_DIR))
 if __name__ == "__main__":
     print("Init monnet hosts test CLI")
     ctx = init_context("/opt/monnet-core")
-    db = DBManager(ctx.get_config())
+    db = DBManager(ctx.get_config().file_config)
 
     hosts = HostsModel(db)
     try:

@@ -20,7 +20,7 @@ from time import sleep
 import daemon
 
 from monnet_gateway import mgateway_config
-from monnet_shared.config import Config
+from monnet_shared.config import DBConfig
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -137,8 +137,8 @@ def main():
     logger = Logger()
     ctx.set_logger(logger)
 
-    # Initialize Config
-    config = Config(ctx, mgateway_config.CONFIG_DB_PATH)
+    # Initialize Config (use DBConfig instead of Config)
+    config = DBConfig(ctx, mgateway_config.CONFIG_DB_PATH)
     ctx.set_config(config)
 
     # Setting up signal handlers

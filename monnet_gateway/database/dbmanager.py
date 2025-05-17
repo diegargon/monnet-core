@@ -39,13 +39,20 @@ class DBManager:
     MySQL database wrapper with optional dependencies and improved error handling.
     """
 
-    def __init__(self, config: dict):
+    def __init__(self, config):
         """
         Initialize the database connection.
 
-        :param config: Database configuration.
+        :param config: Database configuration (dict or FileConfig/DBConfig instance).
         """
-        self.config = config
+        # Permitir que config sea un dict o una instancia de FileConfig/DBConfig
+        if hasattr(config, "file_config") and isinstance(config.file_config, dict):
+            self.config = config.file_config
+        elif isinstance(config, dict):
+            self.config = config
+        else:
+            raise ValueError("Invalid config type for DBManager. Must be dict or FileConfig/DBConfig instance.")
+
         self.conn = None
         self.cursor = None
         self._connect()

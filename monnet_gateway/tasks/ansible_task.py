@@ -33,7 +33,7 @@ class AnsibleTask:
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.config = ctx.get_config()
-        self.db = DBManager(self.config)
+        self.db = DBManager(self.config.file_config)
         self.ansible_model = AnsibleModel(self.db)
         self.ansible_service = AnsibleService(ctx, self.ansible_model)
         self.host_service = HostService(ctx)
