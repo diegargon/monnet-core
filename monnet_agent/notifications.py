@@ -9,6 +9,7 @@ import http.client
 import json
 
 # Local
+from monnet_agent.meta import get_meta
 from monnet_shared.app_context import AppContext
 from monnet_agent import agent_config
 

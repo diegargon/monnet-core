@@ -89,7 +89,7 @@ class MonnetAgent:
         while self.running:
             current_time = time.time()
 
-            # Collect data
+            # Collect data - System Data
             try:
                 system_metrics = self._collect_system_data()
             except (FileNotFoundError, ValueError, OSError) as e:
@@ -101,6 +101,7 @@ class MonnetAgent:
 
             self.logger.debug(f"System metrics collected: {system_metrics}")
 
+            # Collect data - Logs
             try:
                 host_logs = self.logger.pop_logs()
             except Exception as e:
@@ -156,18 +157,19 @@ class MonnetAgent:
         system_metrics = {}
 
         # Get system info
+        # Load AVG
         try:
             current_load_avg = info_linux.get_load_avg()
         except (FileNotFoundError, ValueError, OSError) as e:
             self.logger.warning(f"Error load avg: {e}")
             current_load_avg = None
-
+        # Memory
         try:
             current_memory_info = info_linux.get_memory_info()
         except (FileNotFoundError, ValueError, OSError) as e:
             self.logger.warning(f"Error memory info: {e}")
             current_memory_info = None
-
+        # Disk
         try:
             current_disk_info = info_linux.get_disks_info()
         except (FileNotFoundError, ValueError, OSError) as e:
@@ -189,7 +191,7 @@ class MonnetAgent:
             self.datastore.update_data("last_disk_info", current_disk_info)
             system_metrics.update(current_disk_info)
 
-        # Get IOwait
+        # Get and Update IOwait
         current_cpu_times = psutil.cpu_times()
         current_iowait = info_linux.get_iowait(self.last_cpu_times, current_cpu_times)
         current_iowait = round(current_iowait, 2)

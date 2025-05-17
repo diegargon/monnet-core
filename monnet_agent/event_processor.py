@@ -40,6 +40,7 @@ class EventProcessor:
         """
         events = []
         current_time = time.time()
+
         # Event > Iowait threshold
         iowait = datastore.get_data("last_iowait")
         if iowait is not None and iowait > agent_config.WARN_THRESHOLD:  # Check that it is not None
@@ -68,6 +69,7 @@ class EventProcessor:
             # If the iowait is below the threshold, remove the event start time
             self.event_start_times.pop("high_io_delay", None)
 
+        # Event: > Load avg threshold
         load_avg = datastore.get_data("last_load_avg")
         # logpo("Load avg", load_avg, "debug")
         if load_avg and "loadavg" in load_avg:
