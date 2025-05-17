@@ -190,7 +190,7 @@ class TaskSched:
         self.stop_event.set()
         try:
             if self.thread.is_alive():
-                self.thread.join()
+                self.thread.join(timeout=20)
             # Ensure all logs are sent before stopping
             self._send_store_logs(50)
             self.db.close()
