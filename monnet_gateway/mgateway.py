@@ -137,7 +137,7 @@ def main():
     logger = Logger()
     ctx.set_logger(logger)
 
-    # Initialize Config (use DBConfig instead of Config)
+    # Initialize Config (use DBConfig)
     config = DBConfig(ctx, mgateway_config.CONFIG_DB_PATH)
     ctx.set_config(config)
 

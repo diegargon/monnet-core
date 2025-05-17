@@ -28,11 +28,11 @@ def send_notification(ctx: AppContext, name: str, data: dict):
     logger = ctx.get_logger()
 
     try:
-        token = config["token"]
-        idx = config["id"]
-        ignore_cert = config["ignore_cert"]
-        server_host = config["server_host"]
-        server_endpoint = config["server_endpoint"]
+        token = config.get("token")
+        idx = config.get("id")
+        ignore_cert = config.get("ignore_cert")
+        server_host = config.get("server_host")
+        server_endpoint = config.get("server_endpoint")
         meta = get_meta(ctx)
 
         # TODO DEL data["name"] = name

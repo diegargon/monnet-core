@@ -18,28 +18,35 @@ from monnet_agent.agent_tasks import check_listen_ports, send_stats
 class AgentTaskSched:
     """Agent Task Scheduler (single thread, robust, inspired by gateway)"""
     def __init__(self, ctx, datastore, notify_callback):
-        self.ctx = ctx
-        self.logger = ctx.get_logger()
-        self.datastore = datastore
-        self.notify_callback = notify_callback
-        self._scheduler_stop_event = threading.Event()
         current_time = time()
+        try:
+            self.ctx = ctx
+            self.logger = ctx.get_logger()
+            self.logger.debug("Initializing AgentTaskSched...")
+            self.config = ctx.get_config()
+            self.datastore = datastore
+            self.notify_callback = notify_callback
+            self._scheduler_stop_event = threading.Event()
 
-        # Configurable intervals (seconds)
-        self.task_intervals = {
-            "check_ports": float(ctx.get_config().get("agent_check_ports_interval", 60)),
-            "send_stats": float(ctx.get_config().get("agent_send_stats_interval", 60)),
-        }
-        self.last_run_time = {
-            "check_ports": current_time,
-            "send_stats": current_time,
-        }
-        self.task_locks = {
-            "check_ports": threading.Lock(),
-            "send_stats": threading.Lock(),
-        }
-        self.thread = threading.Thread(target=self.run_task, daemon=True)
-        self.logger.info("Agent TaskSched initialized.")
+            # Configurable intervals (seconds)
+            self.task_intervals = {
+                "check_ports": float(self.config.get("agent_check_ports_interval", 60)),
+                "send_stats": float(self.config.get("agent_send_stats_interval", 60)),
+            }
+            self.last_run_time = {
+                "check_ports": current_time,
+                "send_stats": current_time,
+            }
+            self.task_locks = {
+                "check_ports": threading.Lock(),
+                "send_stats": threading.Lock(),
+            }
+            self.thread = threading.Thread(target=self.run_task, daemon=True)
+        except Exception as e:
+            self.logger.error(f"Error initializing AgentTaskSched: {e}")
+            raise
+        finally:
+            self.logger.info("Agent TaskSched initialized.")
 
     def start(self):
         if self.thread.is_alive():

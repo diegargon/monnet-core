@@ -16,7 +16,7 @@ import ssl
 # Local
 from monnet_gateway.mgateway_config import CONFIG_DB_PATH
 from monnet_shared.app_context import AppContext
-from monnet_shared.config import Config
+from monnet_shared.db_config import DBConfig
 
 class SendMailService:
     def __init__(self, ctx: AppContext):
@@ -25,19 +25,19 @@ class SendMailService:
 
         # Load configuration using Config class
         if ctx.has_config():
-            config = ctx.get_config()
-            print("Config loaded from context:", config)
+            self.config = ctx.get_config()
+            print("Config loaded from context:", self.config)
         else:
-            config = Config(ctx, CONFIG_DB_PATH)
-            ctx.set_config(config)
+            self.config = DBConfig(ctx, CONFIG_DB_PATH)
+            ctx.set_config(self.config)
 
-        self.smtp_server = config.get('mail_host', 'localhost')
-        self.smtp_port = config.get('mail_port', 25)
-        self.username = config.get('mail_username', '')
-        self.password = config.get('mail_password', '')
-        self.mail_auth_type = config.get('mail_auth_type', {'LOGIN': 1})
-        self.smtp_security = config.get('smtp_security', {'STARTTLS': 1})
-        self.mail_from = config.get('mail_from', 'no-reply@example.com')
+        self.smtp_server = self.config.get('mail_host', 'localhost')
+        self.smtp_port = self.config.get('mail_port', 25)
+        self.username = self.config.get('mail_username', '')
+        self.password = self.config.get('mail_password', '')
+        self.mail_auth_type = self.config.get('mail_auth_type', {'LOGIN': 1})
+        self.smtp_security = self.config.get('smtp_security', {'STARTTLS': 1})
+        self.mail_from = self.config.get('mail_from', 'no-reply@example.com')
 
     def send_email(self, sender: str, recipient: str, subject: str, body: str):
         """

@@ -17,14 +17,14 @@ from typing import Any, Dict
 # Third Party
 import psutil
 
-# Local
+# Local Shared
 from monnet_shared.log_level import LogLevel
 from monnet_shared.event_type import EventType
 from monnet_shared.log_type import LogType
 from monnet_shared.app_context import AppContext
-from monnet_shared.file_config import update_config
+# Local
 from monnet_agent.agent_sched import AgentTaskSched
-from monnet_agent import agent_config, info_linux
+from monnet_agent import info_linux
 from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
@@ -33,52 +33,58 @@ from monnet_agent.requests import send_request, validate_response
 
 class MonnetAgent:
     def __init__(self, ctx: AppContext):
-        self.ctx = ctx
-        self.logger = ctx.get_logger()
-        ctx.set_var("agent_running", True)
-        self.config = ctx.get_config()
-        self.datastore = Datastore(ctx)
-        self.event_processor = EventProcessor(ctx)
-        self.last_cpu_times = psutil.cpu_times()
-        self.task_scheduler = AgentTaskSched(self.ctx, self.datastore, send_notification)
-
+        try:
+            self.ctx = ctx
+            self.logger = ctx.get_logger()
+            ctx.set_var("agent_running", True)
+            self.config = ctx.get_config()
+            self.datastore = Datastore(ctx)
+            self.event_processor = EventProcessor(ctx)
+            self.last_cpu_times = psutil.cpu_times()
+            self.task_scheduler = AgentTaskSched(self.ctx, self.datastore, send_notification)
+        except Exception as e:
+            self.logger.error(f"Error initializing MonnetAgent: {e}")
+            return
+        finally:
+            self.logger.debug("Monnet Agent Core __init__ success.")
 
     def initialize(self):
         """Initialize the Monnet Agent."""
         self.logger.debug("Starting Agent Core")
 
         if not self.config:
-            self.logger.err("Cannot load config. Exiting")
+            self.logger.error("Cannot load config. Exiting")
             return False
 
-        self.config["interval"] = self.config.get("default_interval")
-        try:
-            self.ctx.set_config(self.config)
-        except Exception as e:
-            self.logger.err(f"Error setting config: {e}")
-            return False
+        # Initilize withthe default interval to ping the server
+        self.config.set("interval", self.config.get("default_interval"))
+
         try:
             self._setup_handlers()
         except Exception as e:
-            self.logger.err(f"Error setting up handlers: {e}")
+            self.logger.error(f"Error setting up handlers: {e}")
             return False
 
         try:
             self._send_starting_notification()
         except Exception as e:
-            self.logger.err(f"Error sending starting notification: {e}")
+            self.logger.error(f"Error sending starting notification: {e}")
             return False
 
         try:
             self._setup_tasksched()
         except Exception as e:
-            self.logger.err(f"Error setting up task scheduler: {e}")
+            self.logger.error(f"Error setting up task scheduler: {e}")
             return False
+
+        self.logger.debug("Agent Core initialized successfully.")
 
         return True
 
     def run(self):
         """Main agent loop."""
+        self.logger.debug("Starting Agent core main loop")
+
         if not self.initialize():
             self.logger.err("Agent initialization failed. Exiting...")
             return False
@@ -231,7 +237,7 @@ class MonnetAgent:
         new_interval = int(response.get("refresh"))
 
         if new_interval and int(self.config.get('interval')) != int(new_interval):
-            self.config["interval"] = int(new_interval)
+            self.config.set("interval", int(new_interval))
             self.logger.info(f"Interval updated to {self.config.get('interval')} seconds")
 
         if isinstance(data, dict) and "config" in data:
@@ -239,20 +245,20 @@ class MonnetAgent:
             if isinstance(new_config, dict):
                 # Add or update config values
                 for key, value in new_config.items():
-                    if key in self.config:
+                    if key in self.config.file_config:
                         self.logger.debug(f"Updating config key '{key}' with new value: {value}")
                     else:
                         self.logger.debug(f"Adding new config key '{key}' with value: {value}")
-                    self.config[key] = value
+                    self.config.set(key, value)
                     if key == "agent_log_level":
                         self.logger.set_min_log_level(value)
                         self.logger.info(f"Log level updated to: {value}")
                 try:
-                    update_config(self.config)
+                    self.config.update_file_key(key, value, create_key=True)
                 except Exception as e:
                     self.logger.err(f"Error updating config file: {e}")
                     return
-                self.logger.info(f"Config file updated: {self.config}")
+                self.logger.info(f"Config file updated: {self.config.file_config}")
         """
         if isinstance(data, dict) and "something" in data:
             try:

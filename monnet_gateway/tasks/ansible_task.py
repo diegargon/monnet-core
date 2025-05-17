@@ -43,7 +43,7 @@ class AnsibleTask:
         try:
             if not self.db.is_connected():
                 self.db.close()
-                self.db = DBManager(self.config)
+                self.db = DBManager(self.config.file_config)
                 self.ansible_model = AnsibleModel(self.db)
                 self.ansible_service = AnsibleService(self.ctx, self.ansible_model)
                 self.logger.warning("AnsibleTask: Database connection lost. Reconnect success.")

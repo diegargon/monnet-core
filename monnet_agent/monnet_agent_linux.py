@@ -13,14 +13,13 @@ import argparse
 # Third Party
 import daemon
 
-from monnet_shared.file_config import load_file_config, validate_agent_config
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # Local
 from monnet_shared.clogger import Logger
 from monnet_shared.app_context import AppContext
+from monnet_shared.file_config import FileConfig
 from monnet_agent.core.agent import MonnetAgent
 from monnet_agent import agent_config
 
@@ -44,18 +43,10 @@ def main():
 
     # Load configuration before instantiating MonnetAgent
     try:
-        config = load_file_config(agent_config.CONFIG_AGENT_PATH)
-    except RuntimeError as e:
-        logger.err(f"Error loading config: {e}")
-        sys.exit(1)
-
-    try:
-        validate_agent_config(config)
-    except ValueError as e:
-        logger.err(f"Validation error: {e}")
-        sys.exit(1)
-    except RuntimeError as e:
-        logger.err(f"Unexpected error during validation: {e}")
+        config = FileConfig(ctx, agent_config.CONFIG_AGENT_PATH)
+        config.validate_agent_config()
+    except Exception as e:
+        logger.err(f"Error loading or validating config: {e}")
         sys.exit(1)
 
     agent_log_level = config.get("agent_log_level", "INFO")

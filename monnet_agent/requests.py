@@ -29,12 +29,12 @@ def send_request(ctx: AppContext, cmd="ping", data=None):
 
     # Get base config
     try:
-        token = config["token"]
-        idx = config["id"]
-        interval = config["interval"]
-        ignore_cert = config["ignore_cert"]
-        server_host = config["server_host"]
-        server_endpoint = config["server_endpoint"]
+        token = config.get("token")
+        idx = config.get("id")
+        interval = config.get("interval")
+        ignore_cert = config.get("ignore_cert")
+        server_host = config.get("server_host")
+        server_endpoint = config.get("server_endpoint")
     except KeyError as e:
         logger.err(f"Missing configuration key: {e}")
         return None

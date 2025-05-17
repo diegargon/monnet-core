@@ -5,7 +5,6 @@ Monnet Gateway - Unified Config
 """
 
 # Std
-import os
 import json
 
 # Local
@@ -29,12 +28,6 @@ class DBConfig(FileConfig):
         Retrieve a configuration value by key, preferring database config.
         """
         return self.db_config.get(key, self.file_config.get(key, default))
-
-    def set(self, key: str, value):
-        """
-        Set a configuration value in memory (does not persist to file or database).
-        """
-        self.db_config[key] = value
 
     def update_db_key(self, key: str, value, create_key: bool = False):
         """
