@@ -6,7 +6,6 @@ Monnet Agent - Core Agent Main Loop
 
 """
 TODO:
-    self.config.get instead of self.config["key"] everywhere
     info_linux: Manage exceptions
 
 """
@@ -22,26 +21,26 @@ import psutil
 from monnet_shared.log_level import LogLevel
 from monnet_shared.event_type import EventType
 from monnet_shared.log_type import LogType
-import monnet_agent.agent_tasks as agent_tasks
+from monnet_shared.app_context import AppContext
+from monnet_shared.file_config import update_config
+from monnet_agent.agent_sched import AgentTaskSched
 from monnet_agent import agent_config, info_linux
 from monnet_agent.datastore import Datastore
 from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification
 from monnet_agent.requests import send_request, validate_response
-from monnet_shared.app_context import AppContext
-from monnet_shared.file_config import update_config
 
 class MonnetAgent:
     def __init__(self, ctx: AppContext):
         self.ctx = ctx
         self.logger = ctx.get_logger()
-        self.running = True
-        ctx.set_var("running", True)
+        ctx.set_var("agent_running", True)
         self.config = ctx.get_config()
         self.datastore = Datastore(ctx)
         self.event_processor = EventProcessor(ctx)
         self.last_cpu_times = psutil.cpu_times()
+        self.task_scheduler = AgentTaskSched(self.ctx, self.datastore, send_notification)
 
 
     def initialize(self):
@@ -52,7 +51,7 @@ class MonnetAgent:
             self.logger.err("Cannot load config. Exiting")
             return False
 
-        self.config["interval"] = self.config["default_interval"]
+        self.config["interval"] = self.config.get("default_interval")
         try:
             self.ctx.set_config(self.config)
         except Exception as e:
@@ -81,12 +80,12 @@ class MonnetAgent:
     def run(self):
         """Main agent loop."""
         if not self.initialize():
-            self.logger.err("Initialization failed. Exiting...")
+            self.logger.err("Agent initialization failed. Exiting...")
             return False
         else:
             self.logger.info("Initialization successful. Starting main loop...")
 
-        while self.running:
+        while self.ctx.get_var("agent_running"):
             current_time = time.time()
 
             # Collect data - System Data
@@ -120,7 +119,9 @@ class MonnetAgent:
             self._send_ping(data_values)
             self._process_events()
 
-            self.running = self.ctx.get_var("running")
+            # Comprueba que el scheduler sigue vivo
+            self.task_scheduler.ensure_running()
+
             self._sleep_interval(current_time)
 
         self.logger.notice("Agent run core finish")
@@ -215,7 +216,7 @@ class MonnetAgent:
 
         if response:
             self.logger.debug(f"Response received: {response}")
-            valid_response = validate_response(self.ctx, response, self.config["token"])
+            valid_response = validate_response(self.ctx, response, self.config.get("token"))
             if valid_response:
                 self.logger.debug("Valid response received. Handling response...")
                 self._handle_valid_response(valid_response)
@@ -227,11 +228,11 @@ class MonnetAgent:
     def _handle_valid_response(self, response: Dict[str, Any]):
         """Handle valid server response."""
         data = response.get("data", {})
-        new_interval = response.get("refresh")
+        new_interval = int(response.get("refresh"))
 
-        if new_interval and self.config['interval'] != int(new_interval):
-            self.config["interval"] = new_interval
-            self.logger.info(f"Interval updated to {self.config['interval']} seconds")
+        if new_interval and int(self.config.get('interval')) != int(new_interval):
+            self.config["interval"] = int(new_interval)
+            self.logger.info(f"Interval updated to {self.config.get('interval')} seconds")
 
         if isinstance(data, dict) and "config" in data:
             new_config = data["config"]
@@ -276,7 +277,7 @@ class MonnetAgent:
         """Sleep for the remaining interval time."""
         end_time = time.time()
         duration = end_time - start_time
-        sleep_time = max(0, self.config["interval"] - duration)
+        sleep_time = max(0, self.config.get("interval") - duration)
         self.logger.debug(
             f"Loop time {duration:.2f} + Sleeping {sleep_time:.2f} seconds."
         )
@@ -284,23 +285,12 @@ class MonnetAgent:
 
     def _setup_tasksched(self):
         """Setup Task Scheduler."""
-
-        agent_tasks.check_listen_ports(self.ctx, self.datastore, send_notification, startup=1)
-        agent_tasks.send_stats(self.ctx, self.datastore, send_notification)
+        self.task_scheduler.start()
 
     def stop(self):
         """Stop the agent gracefully."""
-        self.running = False
-        self.ctx.set_var("running", False)
+        self.ctx.set_var("agent_running", False)
+        if self.task_scheduler.is_running():
+            self.task_scheduler.stop()
 
-        # Cancel all active timers
-        for timer_name, timer in agent_config.timers.items():
-            if timer and hasattr(timer, "cancel") and callable(timer.cancel):
-                try:
-                    if timer:
-                        timer.cancel()
-                except Exception as e:
-                    self.logger.warning(f"Error cancelling timer {timer_name}: {e}")
-            else:
-                self.logger.warning(f"Timer {timer_name} is not cancelable or does not exist.")
-        self.logger.info("Agent stopped and timers cleaned up.")
+        self.logger.info("Agent stopped.")

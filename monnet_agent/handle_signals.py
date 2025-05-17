@@ -16,7 +16,6 @@ import sys
 # Local
 import info_linux
 from monnet_shared.app_context import AppContext
-from monnet_agent import agent_config
 from monnet_agent.notifications import send_notification
 from constants import LogLevel, EventType
 
@@ -43,14 +42,7 @@ def handle_signal(signum, frame, ctx: AppContext):
 
     logger.notice(f"Receive Signal {signal_name}  Stopping app...")
 
-    # Cancel all timers
-    for name, timer in agent_config.timers.items():
-        logger.notice(f"Clearing timer: {name}")
-        timer.cancel()
-    agent_config.timers.clear()
-
     # Build notification if detect agent or system shutdown
-
     try:
         _is_system_shutdown = info_linux.is_system_shutting_down()
     except FileNotFoundError:
@@ -83,5 +75,5 @@ def handle_signal(signum, frame, ctx: AppContext):
     # Send
     data = {"msg": msg, "log_level": log_level, "event_type": event_type}
     send_notification(ctx, notification_type, data)
-    ctx.set_var("running", False)
+    ctx.set_var("agent_running", False)
     sys.exit(0)
