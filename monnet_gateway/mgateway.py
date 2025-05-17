@@ -55,7 +55,7 @@ def signal_handler(sig: signal.Signals, frame: types.FrameType, ctx: AppContext)
             stop_server()
 
         if server_thread is not None:
-            server_thread.join()
+            server_thread.join(timeout=10)
 
         if task_thread is not None:
             task_thread.stop()
@@ -101,7 +101,7 @@ def run(ctx: AppContext):
     finally:
         stop_event.set()
         if server_thread is not None:
-            server_thread.join()
+            server_thread.join(timeout=20)
         if task_thread is not None:
             task_thread.stop()
 
