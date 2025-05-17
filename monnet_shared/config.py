@@ -11,56 +11,30 @@ import json
 # Local
 from monnet_shared.app_context import AppContext
 from monnet_gateway.database.dbmanager import DBManager
-class Config:
-    """
-    Configuration class for the Monnet Gateway.
-    Combines file-based and database-based configurations.
 
-    :param ctx: Application context.
-    :param config_file_path: Path to the configuration file.
-    :param use_database: Whether to use database-based configuration. Default is True.
+class FileConfig:
     """
-    def __init__(self, ctx: AppContext, config_file_path: str, use_database: bool = True):
+    Configuration class for file-based configuration.
+    """
+    def __init__(self, ctx: AppContext, config_file_path: str):
         self.ctx = ctx
         self.logger = ctx.get_logger()
         self.file_config = {}
-        self.db_config = {}
         self.config_file_path = config_file_path
-        self.use_database = use_database
 
-        # Load file-based configuration
         self.logger.debug(f"Loading configuration from file: {config_file_path}")
         self.load_file_config()
-        if use_database:
-            self.logger.debug("Database configuration enabled. Loading from database...")
-            self.load_db_config()
-        else:
-            self.logger.debug("Database configuration disabled. Skipping database load.")
-
         self.ctx.set_config(self)
 
     def get(self, key: str, default=None):
         """
-        Retrieve a configuration value by key.
-
-        :param key: The configuration key to retrieve.
-        :param default: The default value to return if the key is not found.
-        :return: The configuration value or the default value.
+        Retrieve a configuration value by key from file-based config.
         """
-
-        if self.use_database:
-            # Check database config first, then file config
-            return self.db_config.get(key, self.file_config.get(key, default))
-
         return self.file_config.get(key, default)
 
     def update_file_key(self, key: str, value, create_key: bool = False):
         """
         Update a key-value pair in the file-based configuration and save it to the file.
-
-        :param key: The key to update.
-        :param value: The value to set for the key.
-        :param create_key: Whether to create the key if it does not exist. Default is False.
         """
         if key not in self.file_config and not create_key:
             raise KeyError(f"Key '{key}' does not exist in the file-based configuration.")
@@ -79,19 +53,59 @@ class Config:
         except Exception as e:
             raise RuntimeError(f"Error saving configuration: {e}")
 
+    def load_file_config(self):
+        """
+        Load configuration from the JSON file specified in self.config_file_path.
+        """
+        if not os.path.isfile(self.config_file_path) or not os.access(self.config_file_path, os.R_OK):
+            raise ValueError(f"File path does not exist or is not readable: {self.config_file_path}")
+
+        try:
+            with open(self.config_file_path, "r", encoding="utf-8") as file:
+                file_config = json.load(file)
+                self.file_config.update(file_config)
+                self.file_config["_config_path"] = self.config_file_path
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON format in configuration file: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Error loading configuration file: {e}")
+
+    def reload(self):
+        """
+        Reload the configuration from the file.
+        """
+        self.logger.debug("Triggered reload configuration...")
+        try:
+            if not self.config_file_path:
+                raise ValueError("File path for configuration is not set.")
+            self.load_file_config()
+            self.logger.info("Configuration reloaded successfully.")
+        except Exception as e:
+            self.logger.error(f"Failed to reload configuration: {e}")
+            raise RuntimeError(f"Error reloading configuration: {e}")
+
+class DBConfig(FileConfig):
+    """
+    Configuration class for file-based and database-based configuration.
+    """
+    def __init__(self, ctx: AppContext, config_file_path: str):
+        super().__init__(ctx, config_file_path)
+        self.db_config = {}
+        self.logger.debug("Database configuration enabled. Loading from database...")
+        self._validate_db_config(self.file_config)
+        self.load_db_config()
+
+    def get(self, key: str, default=None):
+        """
+        Retrieve a configuration value by key, preferring database config.
+        """
+        return self.db_config.get(key, self.file_config.get(key, default))
+
     def update_db_key(self, key: str, value, create_key: bool = False):
         """
         Update a key-value pair in the database-based configuration.
-
-        :param key: The key to update.
-        :param value: The value to set for the key.
-        :param create_key: Whether to create the key if it does not exist. Default is False.
         """
-        if not self.use_database:
-            raise RuntimeError("Database configuration is disabled. Cannot update database keys.")
-
         db = DBManager(self.file_config)
-
         try:
             query_check = "SELECT COUNT(*) as count FROM config WHERE ckey = %s"
             result = db.fetchone(query_check, (key,))
@@ -118,30 +132,9 @@ class Config:
         finally:
             db.close()
 
-    def load_file_config(self):
-        """
-        Load configuration from the JSON file specified in self.config_file_path.
-        """
-        if not os.path.isfile(self.config_file_path) or not os.access(self.config_file_path, os.R_OK):
-            raise ValueError(f"File path does not exist or is not readable: {self.config_file_path}")
-
-        try:
-            with open(self.config_file_path, "r", encoding="utf-8") as file:
-                file_config = json.load(file)
-                if self.use_database:
-                    self._validate_db_config(file_config)
-                self.file_config.update(file_config)
-                self.file_config["_config_path"] = self.config_file_path
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON format in configuration file: {e}")
-        except Exception as e:
-            raise RuntimeError(f"Error loading configuration file: {e}")
-
     def _validate_db_config(self, config: dict):
         """
         Validate the database configuration.
-        - ctype 0 string 1 int 2 int/bool (0 or 1)  3 float...
-        :param config: Configuration dictionary.
         """
         required_keys = ["host", "port", "database", "user", "password", "python_driver"]
         missing_keys = [key for key in required_keys if not config.get(key)]
@@ -189,9 +182,7 @@ class Config:
             if not self.config_file_path:
                 raise ValueError("File path for configuration is not set.")
             self.load_file_config()
-            if self.use_database:
-                self.load_db_config()
-
+            self.load_db_config()
             self.logger.info("Configuration reloaded successfully.")
         except Exception as e:
             self.logger.error(f"Failed to reload configuration: {e}")

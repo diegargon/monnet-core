@@ -4,7 +4,7 @@
 Monnet Gateway - Config file
 """
 
-GW_VERSION = "0.13"
+GW_VERSION = "0.14"
 GW_VERSION_MINOR = 37
 GW_F_VERSION =  str(GW_VERSION) + "." + str(GW_VERSION_MINOR)
 
