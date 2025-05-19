@@ -83,6 +83,6 @@ class PruneTask:
         interval = self.config.get("clear_task_done_intvl", 30)
         if (interval <= 0):
             return
-        query = "DELETE FROM tasks WHERE trigger_type = 1 AND done = 1 AND date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
+        query = "DELETE FROM tasks WHERE trigger_type = 1 AND done = 1 AND created < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
         self.logger.info(f"Clear done tasks, affected rows: {affected}")
