@@ -46,14 +46,13 @@ class TaskSched:
                 "weekly_task": float(60 * 60 * 24 * 7),
             }
 
-            # TODO save last run time in DB? and apply here
             self.last_run_time = {
-                "send_logs": current_time,
-                "discovery_hosts": current_time,
-                "hosts_checker": current_time,
-                "ansible_task": current_time,
-                "prune": current_time,
-                "weekly_task": current_time,
+                "send_logs": self.config.get("last_send_logs", current_time),
+                "discovery_hosts": self.config.get("last_discovery_hosts", current_time),
+                "hosts_checker": self.config.get("last_host_checker", current_time),
+                "ansible_task": self.config.get("last_ansible_task", current_time),
+                "prune": self.config.get("last_prune", current_time),
+                "weekly_task": self.config.get("last_weekly_task", current_time),
             }
 
             # Avoid parallel task
@@ -149,6 +148,12 @@ class TaskSched:
                     self.logger.debug(f"Running {task_name}...")
                     task_function()
                     self.last_run_time[task_name] = current_time
+                    # Persist last run time v75
+                    if self.config.get("db_monnet_version") >= 0.75:
+                        try:
+                            self.config.update_db_key(f"last_{task_name}", current_time)
+                        except Exception as e:
+                            self.logger.error(f"Failed to persist last_{task_name} to config: {e}")
                 except Exception as e:
                     self.logger.error(f"Error during {task_name}: {e}")
                     raise # Propagate to run_task to try reconnect
