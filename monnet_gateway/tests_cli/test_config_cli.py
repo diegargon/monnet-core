@@ -3,8 +3,8 @@ Monnet Gateway - Test DB Config
 """
 
 from monnet_gateway.mgateway_config import CONFIG_DB_PATH
-from monnet_shared.config import DBConfig
 from monnet_gateway.tests_cli.common_cli import init_context
+from monnet_shared.db_config import DBConfig
 
 ctx = init_context("/opt/monnet-core")
 ctx.get_logger().log("Starting test_config CLI", "info")

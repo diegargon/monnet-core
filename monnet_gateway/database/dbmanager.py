@@ -76,11 +76,11 @@ class DBManager:
         try:
             mysql_connector = importlib.import_module("mysql.connector")
             self.conn = mysql_connector.connect(
-                host=self.config.get('host'),
-                port=self.config.get('port'),
-                user=self.config.get('user'),
-                password=self.config.get('password'),
-                database=self.config.get('database')
+                host=self.config.get('dbhost'),
+                port=self.config.get('dbport'),
+                user=self.config.get('dbuser'),
+                password=self.config.get('dbpassword'),
+                database=self.config.get('dbname')
             )
             # Return results as dictionaries
             self.cursor = self.conn.cursor(dictionary=True)
@@ -97,11 +97,11 @@ class DBManager:
         try:
             pymysql = importlib.import_module("pymysql")
             self.conn = pymysql.connect(
-                host=self.config.get('host'),
-                port=self.config.get('port'),
-                user=self.config.get('user'),
-                password=self.config.get('password'),
-                database=self.config.get('database')
+                host=self.config.get('dbhost'),
+                port=self.config.get('dbport'),
+                user=self.config.get('dbuser'),
+                password=self.config.get('dbpassword'),
+                database=self.config.get('dbname')
             )
             # Return results as dictionaries
             self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)

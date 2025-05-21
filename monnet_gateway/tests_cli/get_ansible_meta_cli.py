@@ -31,4 +31,3 @@ if __name__ == "__main__":
     response = handle_ansible_command(ctx, command, data_content)
     print("Response:")
     print(json.dumps(response, indent=4))
-

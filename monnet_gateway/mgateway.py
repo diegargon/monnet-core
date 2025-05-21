@@ -20,7 +20,7 @@ from time import sleep
 import daemon
 
 from monnet_gateway import mgateway_config
-from monnet_shared.config import DBConfig
+from monnet_shared.db_config import DBConfig
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))

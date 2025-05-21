@@ -18,10 +18,34 @@ class DBConfig(FileConfig):
     """
     def __init__(self, ctx: AppContext, config_file_path: str):
         super().__init__(ctx, config_file_path)
+        self._migrate_legacy_db_keys()
         self.db_config = {}
         self.logger.debug("Database configuration enabled. Loading from database...")
         self._validate_db_config(self.file_config)
         self.load_db_config()
+
+    def _migrate_legacy_db_keys(self):
+        """
+        Temporarily migrate legacy DB keys to new db* keys and remove old keys.
+        """
+        legacy_map = {
+            "host": "dbhost",
+            "port": "dbport",
+            "database": "dbname",
+            "user": "dbuser",
+            "password": "dbpassword"
+        }
+        changed = False
+        for old_key, new_key in legacy_map.items():
+            if old_key in self.file_config:
+                self.file_config[new_key] = self.file_config[old_key]
+                del self.file_config[old_key]
+                changed = True
+        if changed:
+            try:
+                self.update_file_key("_config_path", self.config_file_path, create_key=True)
+            except Exception:
+                pass  # Ignore errors in migration file update
 
     def get(self, key: str, default=None):
         """
@@ -64,10 +88,15 @@ class DBConfig(FileConfig):
         """
         Validate the database configuration.
         """
-        required_keys = ["host", "port", "database", "user", "password", "python_driver"]
+        required_keys = ["dbhost", "dbport", "dbname", "dbuser", "dbpassword", "python_driver"]
         missing_keys = [key for key in required_keys if not config.get(key)]
         if missing_keys:
             raise ValueError(f"Missing or invalid values for keys: {', '.join(missing_keys)}")
+        try:
+            if int(config["dbport"]) <= 0:
+                raise ValueError
+        except Exception:
+            raise ValueError("Invalid value for dbport: must be a positive integer")
 
     def load_db_config(self):
         """

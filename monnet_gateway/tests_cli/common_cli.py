@@ -11,7 +11,8 @@ from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway import mgateway_config
 from monnet_shared.clogger import Logger
 from monnet_shared.app_context import AppContext
-from monnet_shared.config import DBConfig
+from monnet_shared.db_config import DBConfig
+
 
 def init_context(base_dir):
     """

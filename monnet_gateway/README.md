@@ -40,11 +40,11 @@ chmod +x install.bash
 ```
 /etc/monnet/config-db.json
 {
-    "host": "localhost",
-    "port": 3306,
-    "database": "monnet",
-    "user": "usuario",
-    "password": "mypass",
+    "dbhost": "localhost",
+    "dbport": 3306,
+    "dbname": "monnet",
+    "dbuser": "username",
+    "dbpassword": "mydbpass",
     "python_driver": "mysql-connector"
 }
 ```
