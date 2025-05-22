@@ -23,6 +23,7 @@ class EventProcessor:
         """
         self.ctx = ctx
         self.logger = ctx.get_logger()
+        self.config = ctx.get_config()
 
         # Dict  processed events with time stamp
         self.processed_events: Dict[str, float] = {}
@@ -40,15 +41,22 @@ class EventProcessor:
         """
         events = []
         current_time = time.time()
+        config = self.config
+
+        # Thresholds
+        disks_alert_threshold = config.get("disks_alert_threshold", agent_config.DFLT_ALERT_THRESHOLD)
+        disks_warn_threshold = config.get("disks_warn_threshold", agent_config.DFLT_WARN_THRESHOLD)
+        mem_alert_threshold = config.get("mem_alert_threshold", agent_config.DFLT_ALERT_THRESHOLD)
+        mem_warn_threshold = config.get("mem_warn_threshold", agent_config.DFLT_WARN_THRESHOLD)
 
         # Event > Iowait threshold
         iowait = datastore.get_data("last_iowait")
-        if iowait is not None and iowait > agent_config.WARN_THRESHOLD:  # Check that it is not None
+        if iowait is not None and iowait > agent_config.DFLT_WARN_THRESHOLD:
             event_id = "high_io_delay"
             if event_id not in self.event_start_times:
                 self.event_start_times[event_id] = current_time
             elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
-                if iowait > agent_config.ALERT_THRESHOLD:
+                if iowait > agent_config.DFLT_ALERT_THRESHOLD:
                     log_level = LogLevel.ALERT
                 else:
                     log_level = LogLevel.WARNING
@@ -76,13 +84,13 @@ class EventProcessor:
             loadavg_data = load_avg["loadavg"]
             if (
                 loadavg_data.get("usage") is not None
-                and loadavg_data.get("usage") > agent_config.WARN_THRESHOLD
+                and loadavg_data.get("usage") > agent_config.DFLT_WARN_THRESHOLD
             ):
                 event_id = "high_cpu_usage"
                 if event_id not in self.event_start_times:
                     self.event_start_times[event_id] = current_time
                 elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
-                    if loadavg_data.get("usage") > agent_config.ALERT_THRESHOLD:
+                    if loadavg_data.get("usage") > agent_config.DFLT_ALERT_THRESHOLD:
                         log_level = LogLevel.ALERT
                     else:
                         log_level = LogLevel.WARNING
@@ -108,12 +116,12 @@ class EventProcessor:
         # logpo("Memory info", memory_info, "debug")
         if memory_info and "meminfo" in memory_info:
             meminfo_data = memory_info["meminfo"]
-            if meminfo_data["percent"] > agent_config.WARN_THRESHOLD:
+            if meminfo_data["percent"] > mem_warn_threshold:
                 event_id = "high_memory_usage"
                 if event_id not in self.event_start_times:
                     self.event_start_times[event_id] = current_time
                 elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
-                    if meminfo_data["percent"] > agent_config.ALERT_THRESHOLD:
+                    if meminfo_data["percent"] > mem_alert_threshold:
                         log_level = LogLevel.ALERT
                     else:
                         log_level = LogLevel.WARNING
@@ -139,12 +147,12 @@ class EventProcessor:
         if isinstance(disk_info, dict) and "disksinfo" in disk_info:
             for stats in disk_info["disksinfo"]:
                 if isinstance(stats, dict):
-                    if stats.get("percent") and stats["percent"] > agent_config.WARN_THRESHOLD:
+                    if stats.get("percent") and stats["percent"] > disks_warn_threshold:
                         event_id = f"high_disk_usage_{stats.get('device', 'unknown')}"
                         if event_id not in self.event_start_times:
                             self.event_start_times[event_id] = current_time
                         elif current_time - self.event_start_times[event_id] >= self.threshold_duration:
-                            if stats["percent"] > agent_config.ALERT_THRESHOLD:
+                            if stats["percent"] > disks_alert_threshold:
                                 log_level = LogLevel.ALERT
                             else:
                                 log_level = LogLevel.WARNING

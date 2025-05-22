@@ -7,7 +7,7 @@ Global Vars
 
 """
 
-AGENT_VERSION = "0.194"
+AGENT_VERSION = "0.195"
 # Config file
 CONFIG_AGENT_PATH = "/etc/monnet/agent-config"
 DATASTORE_FILE_PATH = "/tmp/datastore.json"
@@ -16,8 +16,8 @@ timers = {}
 
 # Threshold
 THRESHOLD_DURATION = 60
-ALERT_THRESHOLD = 90
-WARN_THRESHOLD = 80
+DFLT_ALERT_THRESHOLD = 90
+DFLT_WARN_THRESHOLD = 80
 
 # Timer Stats interval
 TIMER_STATS_INTERVAL = 300
