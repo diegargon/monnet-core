@@ -76,7 +76,7 @@ class DBConfig(FileConfig):
             db.commit()
 
             self.db_config[key] = value
-            self.logger.info(f"Configuration key '{key}' updated successfully in the database.")
+            self.logger.debug(f"Configuration key '{key}' updated successfully in the database.")
         except Exception as e:
             db.rollback()
             self.logger.error(f"Failed to update configuration key '{key}' in the database: {e}")
