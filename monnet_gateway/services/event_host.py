@@ -26,6 +26,13 @@ class EventHostService:
         self.event_host_model = EventHostModel(self.db)
         self.hostService = None
 
+    def _ensure_connection(self):
+        if not self.db.is_connected():
+            self.logger.warning("EventHostService DB connection lost. Attempting to reconnect.")
+            self.db.close()
+            self.db = DBManager(self.ctx.get_config().file_config)
+            self.event_host_model = EventHostModel(self.db)
+
     def event(
         self,
         host_id: int,
@@ -67,6 +74,7 @@ class EventHostService:
             "date": utc_now,
         }
 
+        self._ensure_connection()
         try:
             self.event_host_model.insert_event(log_data)
             self.event_host_model.commit()
