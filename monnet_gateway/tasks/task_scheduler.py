@@ -8,6 +8,7 @@ Monnet Gateway - Task Scheduler
 import threading
 from time import sleep, time
 import syslog
+from datetime import datetime
 
 # Local
 from monnet_gateway.database.dbmanager import DBManager
@@ -47,12 +48,12 @@ class TaskSched:
             }
 
             self.last_run_time = {
-                "send_logs": self.config.get("last_send_logs", current_time),
-                "discovery_hosts": self.config.get("last_discovery_hosts", current_time),
-                "hosts_checker": self.config.get("last_host_checker", current_time),
-                "ansible_task": self.config.get("last_ansible_task", current_time),
-                "prune": self.config.get("last_prune", current_time),
-                "weekly_task": self.config.get("last_weekly_task", current_time),
+                "send_logs": self._to_timestamp(self.config.get("last_send_logs", current_time)),
+                "discovery_hosts": self._to_timestamp(self.config.get("last_discovery_hosts", current_time)),
+                "hosts_checker": self._to_timestamp(self.config.get("last_host_checker", current_time)),
+                "ansible_task": self._to_timestamp(self.config.get("last_ansible_task", current_time)),
+                "prune": self._to_timestamp(self.config.get("last_prune", current_time)),
+                "weekly_task": self._to_timestamp(self.config.get("last_weekly_task", current_time)),
             }
 
             # Avoid parallel task
@@ -189,6 +190,19 @@ class TaskSched:
             # Log errors directly to syslog to avoid recursive logging issues
             syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
             syslog.syslog(syslog.LOG_ERR, f"Error storing logs in system_logs table: {e}")
+
+    def _to_timestamp(self, value):
+        if isinstance(value, (float, int)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                # Ajusta el formato según el que uses en tu config
+                dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                return time.mktime(dt.timetuple())
+            except Exception:
+                # Si falla, usa el tiempo actual
+                return time()
+        return time()
 
     def stop(self):
         """Stops the periodic task."""
