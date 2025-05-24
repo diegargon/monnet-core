@@ -41,7 +41,7 @@ class PruneTask:
             return
         query = "DELETE FROM stats WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
-        self.logger.info(f"Clear stats, affected rows: {affected}")
+        self.logger.notice(f"Clear stats, affected rows: {affected}")
 
     def clear_system_logs(self):
         """Cleans up old system logs."""
@@ -50,7 +50,7 @@ class PruneTask:
             return
         query = "DELETE FROM system_logs WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
-        self.logger.info(f"Clear system logs, affected rows: {affected}")
+        self.logger.notice(f"Clear system logs, affected rows: {affected}")
 
     def clear_hosts_logs(self):
         """Cleans up old host logs."""
@@ -59,7 +59,7 @@ class PruneTask:
             return
         query = "DELETE FROM hosts_logs WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
-        self.logger.info(f"Clear host logs, affected rows: {affected}")
+        self.logger.noitce(f"Clear host logs, affected rows: {affected}")
 
     def clear_reports(self):
         """Cleans up old reports."""
@@ -68,7 +68,7 @@ class PruneTask:
             return
         query = "DELETE FROM reports WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
-        self.logger.info(f"Clear reports, affected rows: {affected}")
+        self.logger.notice(f"Clear reports, affected rows: {affected}")
 
     def clear_not_seen_hosts(self):
         """Cleans up hosts not seen for a specified number of days."""
@@ -76,7 +76,7 @@ class PruneTask:
         if days <= 0:
             return
         affected = self.host_service.clear_not_seen_hosts(days)
-        self.logger.info(f"Cleared {affected} hosts not seen for more than {days} days.")
+        self.logger.notice(f"Cleared {affected} hosts not seen for more than {days} days.")
 
     def clear_uniq_done_tasks(self):
         """Cleans up tasks that are done. Only Uniq tasks are deleted."""
@@ -85,4 +85,4 @@ class PruneTask:
             return
         query = "DELETE FROM tasks WHERE trigger_type = 1 AND done = 1 AND created < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
-        self.logger.info(f"Clear done tasks, affected rows: {affected}")
+        self.logger.notice(f"Clear done tasks, affected rows: {affected}")
