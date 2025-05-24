@@ -52,22 +52,16 @@ def send_notification(ctx: AppContext, name: str, data: dict):
             headers = {"Content-Type": "application/json"}
             connection.request("POST", server_endpoint, body=json.dumps(payload), headers=headers)
             response = connection.getresponse()
-            """
-            TODO: Test Check if the response is JSON and contains the expected keys.
+
             if response.status == 200:
-                if raw_data:
-                    try:
-                        parsed_data = json.loads(raw_data)
-                        if "expected_key" not in parsed_data:
-                            logger.err("Missing 'expected_key' in response data.")
-                            return None
-                        return parsed_data
-                    except json.JSONDecodeError as e:
-                        logger.err(f"Error decoding JSON response: {e} Raw data: {raw_data}")
-                        return None
+                # Successfully sent notification, need to handle response?
+                pass
+            elif response.status == 204:
+                # Successfully sent notification, no content to return
+                pass
             else:
-                logger.err(f"HTTP Error: {response.status} {response.reason},
-            """
+                logger.err(f"Notification response error: {response.status} {response.reason}")
+
             logger.debug(f"Notification response: {response.status} {response.reason}")
         except Exception as e:
             logger.err(f"Error sending notification to {server_host}: {e}")
