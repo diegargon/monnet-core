@@ -38,7 +38,8 @@ class EventHostService:
         host_id: int,
         msg: str,
         log_type: int = 0,
-        event_type: int = 0
+        event_type: int = 0,
+        reference: str = None
     ) -> None:
         """
         Log a host event.
@@ -48,6 +49,7 @@ class EventHostService:
             msg (str): Log message.
             log_type (int): Log type. Defaults to 0.
             event_type (int): Event type. Defaults to 0.
+            reference (str): Optional reference for the event.
         """
         max_db_msg = 254
         if len(msg) > max_db_msg:
@@ -72,6 +74,7 @@ class EventHostService:
             "log_type": log_type,
             "event_type": event_type,
             "date": utc_now,
+            "reference": reference if reference else None
         }
 
         self._ensure_connection()

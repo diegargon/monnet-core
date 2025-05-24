@@ -16,3 +16,6 @@ sh update.sh
 
 ## Install Monnet Agent
     https://github.com/diegargon/monnet-core/blob/main/monnet_agent/README.md
+
+## Monnet UI
+    https://github.com/diegargon/monnet

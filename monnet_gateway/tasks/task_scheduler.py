@@ -117,15 +117,15 @@ class TaskSched:
 
                 # Insert logs in system_logs table
                 self._run_task("send_logs", self._send_store_logs, current_time)
-                # Run DiscoveryTask if the interval has passed
+                # Run DiscoveryTask
                 self._run_task("discovery_hosts", self.discovery_hosts.run, current_time)
-                # Run HostCheckerTask if the interval has passed
+                # Run HostCheckerTask
                 self._run_task("hosts_checker", self.hosts_checker.run, current_time)
-                # Run AnsibleTask if the interval has passed
+                # Run AnsibleTask
                 self._run_task("ansible_task", self.ansible_task.run, current_time)
-                # Run PruneTask if the interval has passed
+                # Run PruneTask
                 self._run_task("prune", self.prune_task.run, current_time)
-                # Run WeeklyTask if the interval has passed
+                # Run WeeklyTask
                 self._run_task("weekly_task", self.weekly_task.run, current_time)
 
                 sleep(1)
@@ -196,11 +196,11 @@ class TaskSched:
             return float(value)
         if isinstance(value, str):
             try:
-                # Ajusta el formato según el que uses en tu config
                 dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
                 return time.mktime(dt.timetuple())
             except Exception:
-                # Si falla, usa el tiempo actual
+                self.logger.warning(f"Failed to parse timestamp from string: {value}")
+                # if failed to parse, return current time
                 return time()
         return time()
 

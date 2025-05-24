@@ -122,12 +122,12 @@ class AnsibleTask:
                 # TODO: set ansible_group
                 ansible_group = None
 
-                # 1 Uniq task: run and delete
-                # 2 Manual: Ignore, triggered by user
-                # 3 Event Response: Ignore, triggered by event
+                # 1 Uniq task: run and delete -
+                # 2 Manual: Triggered/Enqueue by user
+                # 3 Event Response: TODO, triggered by event
                 # 4 Cron: run if cron time is reached
                 # 5 Interval: run if interval time is reached
-                # 6 Task Chain: Ignore, triggered by another task
+                # 6 Task Chain: TODO, Triggered by another task
                 if trigger_type == 1:
                     self.ansible_service.task_done(task["id"])
                     self.logger.info(f"Running Uniq task: {task['task_name']} {task['pid']}")
@@ -246,13 +246,12 @@ class AnsibleTask:
             self.logger.error(f"Host {host.get('id')} is missing a token. Cannot build agent config.")
             return None
 
-        # Obtener la IP del host
         host_ip = host.get("ip")
         if not host_ip:
             self.logger.error(f"Host {host.get('id')} is missing an IP address. Cannot build agent config.")
             return None
 
-        # Determinar si la IP es externa
+        # Determine if the host IP is external or internal
         try:
             ip = ip_address(host_ip)
             is_external = not any(
@@ -334,7 +333,8 @@ class AnsibleTask:
             host_id=host_id,
             message=f"Task {task['task_name']} status: {message}",
             log_type=log_type,
-            event_type=event_type
+            event_type=event_type,
+            reference= task.get("id")
         )
 
     def _handle_task_result(self, hid, task, result):

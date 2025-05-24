@@ -220,7 +220,7 @@ class HostService:
         self.host_model.set_warn(host_id, warn_status)
         self.host_model.commit()
 
-    def create_event(self, host_id: int, message: str, log_type: LogType, event_type: EventType) -> None:
+    def create_event(self, host_id: int, message: str, log_type: LogType, event_type: EventType, reference: str = None) -> None:
         """
         Encapsulate the creation of an event.
 
@@ -229,6 +229,7 @@ class HostService:
             message (str): Event message.
             log_type (LogType): Type of log for the event.
             event_type (EventType): Type of event.
+            reference (str, optional): Optional reference for the event.
         """
         if log_type == LogType.EVENT_WARN:
             self.set_warn(host_id, 1)
