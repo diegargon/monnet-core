@@ -6,7 +6,7 @@ Monnet Gateway - Task Scheduler
 """
 
 import threading
-from time import sleep, time
+from time import sleep, time, mktime
 import syslog
 from datetime import datetime
 
@@ -197,7 +197,7 @@ class TaskSched:
         if isinstance(value, str):
             try:
                 dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-                return time.mktime(dt.timetuple())
+                return mktime(dt.timetuple())
             except Exception:
                 self.logger.warning(f"Failed to parse timestamp from string: {value}")
                 # if failed to parse, return current time
