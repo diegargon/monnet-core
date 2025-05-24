@@ -282,17 +282,24 @@ class AnsibleTask:
                 self.logger.error(f"Unable to resolve server host for config the agent")
                 return None
 
+        misc = host.get("misc", {}) if isinstance(host.get("misc", {}), dict) else {}
+        mem_alert_threshold = misc.get("mem_alert_threshold", self.config.get("default_mem_alert_threshold", 90))
+        mem_warn_threshold = misc.get("mem_warn_threshold", self.config.get("default_mem_warn_threshold", 80))
+        disks_alert_threshold = misc.get("disks_alert_threshold", self.config.get("default_disks_alert_threshold", 90))
+        disks_warn_threshold = misc.get("disks_warn_threshold", self.config.get("default_disks_warn_threshold", 80))
+        agent_log_level = misc.get("agent_log_level", self.config.get("agent_log_level", "INFO"))
+
         return {
             "id": host.get("id"),
             "token": token,
-            "agent_log_level": self.config.get("agent_log_level", "INFO"),
+            "agent_log_level": agent_log_level,
             "default_interval": self.config.get("agent_default_interval", 60),
             "ignore_cert": self.config.get("agent_allow_selfcerts", 0),
             "server_host": server_host,
-            "mem_alert_threshold": self.config.get("default_mem_alert_threshold", 90),
-            "mem_warn_threshold": self.config.get("default_mem_warn_threshold", 80),
-            "disks_alert_threshold": self.config.get("default_disks_alert_threshold", 90),
-            "disks_warn_threshold": self.config.get("default_disks_warn_threshold", 80),
+            "mem_alert_threshold": mem_alert_threshold,
+            "mem_warn_threshold": mem_warn_threshold,
+            "disks_alert_threshold": disks_alert_threshold,
+            "disks_warn_threshold": disks_warn_threshold,
             "server_endpoint": self.config.get("server_endpoint", "/feedme.php"),
         }
 
