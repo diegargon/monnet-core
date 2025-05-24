@@ -35,8 +35,6 @@ def send_notification(ctx: AppContext, name: str, data: dict):
         server_endpoint = config.get("server_endpoint")
         meta = get_meta(ctx)
 
-        # TODO DEL data["name"] = name
-
         payload = {
             "id": idx,
             "cmd": "notification",
@@ -76,14 +74,6 @@ def send_notification(ctx: AppContext, name: str, data: dict):
         finally:
             if connection:
                 connection.close()
-            """
-                TODO: DEL THIS ALREADY REMOVE AND TESTING
-                We don't want to keep that key due to interference with dict comparison current/last.
-                TODO: Find a safe way.
-                WARNING: Do not modify the data here if it will be compared later.
-            """
-            #if "name" in data:
-            #    data.pop("name")
 
             logger.debug("Notification process completed")
     except Exception as e:
