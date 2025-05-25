@@ -59,7 +59,7 @@ class PruneTask:
             return
         query = "DELETE FROM hosts_logs WHERE date < DATE_SUB(CURDATE(), INTERVAL %s DAY)"
         affected = self.db.execute(query, (interval,))
-        self.logger.noitce(f"Clear host logs, affected rows: {affected}")
+        self.logger.notice(f"Clear host logs, affected rows: {affected}")
 
     def clear_reports(self):
         """Cleans up old reports."""
