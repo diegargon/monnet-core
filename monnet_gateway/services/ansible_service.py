@@ -410,7 +410,8 @@ class AnsibleService:
             "source_id": source_id,
             "rtype": rtype,
             "status": status,
-            "report": report_json
+            "report": report_json,
+            "date": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
         }
 
     def task_done(self, task_id: int):
