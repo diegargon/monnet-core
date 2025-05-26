@@ -185,3 +185,12 @@ class HostsModel:
         """
 
         return self.db.fetchall(query, [days] + network_ids)
+
+    def get_agent_installed_hosts(self) -> list[dict]:
+        """
+        Get all hosts where agent_installed=1.
+
+        Returns:
+            list[dict]: List of hosts with agent_installed=1.
+        """
+        return self.db.fetchall("SELECT * FROM hosts WHERE agent_installed = 1")

@@ -489,3 +489,19 @@ class HostService:
         self.logger.notice(f"Cleared {deleted_count} hosts not seen for more than {days} days.")
 
         return deleted_count
+
+    def get_agent_installed_hosts(self) -> list[dict]:
+        """
+        Retrieve all hosts where agent_installed=1.
+        Returns:
+            list[dict]: List of hosts with agent_installed=1.
+        """
+        self._ensure_db_connection()
+        hosts = self.host_model.get_agent_installed_hosts()
+        for host in hosts:
+            if "misc" in host and host["misc"]:
+                self._deserialize_misc(host)
+            else:
+                host["misc"] = {}
+            self._set_display_name(host)
+        return hosts

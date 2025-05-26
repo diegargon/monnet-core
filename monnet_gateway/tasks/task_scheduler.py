@@ -18,6 +18,7 @@ from monnet_gateway.tasks.known_checker import HostsCheckerTask
 from monnet_gateway.tasks.ansible_task import AnsibleTask
 from monnet_gateway.tasks.prune_task import PruneTask
 from monnet_gateway.tasks.weekly_task import WeeklyTask
+from monnet_gateway.tasks.agents_check import AgentsCheckTask
 
 class TaskSched:
     """Class to execute a periodic task."""
@@ -45,6 +46,8 @@ class TaskSched:
                 "prune": float(self.config.get("gw_prune_intvl", 60 * 60 * 24)),
                 # Default 1 week
                 "weekly_task": float(60 * 60 * 24 * 7),
+                # Default 1 minute
+                "agents_check": float(self.config.get("gw_agents_check_intvl", 60)),  # Default 60s
             }
 
             self.last_run_time = {
@@ -54,6 +57,7 @@ class TaskSched:
                 "ansible_task": self._to_timestamp(self.config.get("last_ansible_task", current_time)),
                 "prune": self._to_timestamp(self.config.get("last_prune", current_time)),
                 "weekly_task": self._to_timestamp(self.config.get("last_weekly_task", current_time)),
+                "agents_check": self._to_timestamp(self.config.get("last_agents_check", current_time)),
             }
 
             # Avoid parallel task
@@ -64,6 +68,7 @@ class TaskSched:
                 "ansible_task": threading.Lock(),
                 "prune": threading.Lock(),
                 "weekly_task": threading.Lock(),
+                "agents_check": threading.Lock(),
             }
 
             self.discovery_hosts = DiscoveryHostsTask(ctx)
@@ -71,6 +76,7 @@ class TaskSched:
             self.ansible_task = AnsibleTask(ctx)
             self.prune_task = PruneTask(ctx)
             self.weekly_task = WeeklyTask(ctx)
+            self.agents_check = AgentsCheckTask(ctx)
 
             # Launch Thread
             self.thread = threading.Thread(target=self.run_task, daemon=True)
@@ -127,6 +133,8 @@ class TaskSched:
                 self._run_task("prune", self.prune_task.run, current_time)
                 # Run WeeklyTask
                 self._run_task("weekly_task", self.weekly_task.run, current_time)
+                # Run AgentsCheckTask
+                self._run_task("agents_check", self.agents_check.run, current_time)
 
                 sleep(1)
             except Exception as e:
@@ -149,8 +157,8 @@ class TaskSched:
                     self.logger.debug(f"Running {task_name}...")
                     task_function()
                     self.last_run_time[task_name] = current_time
-                    # Persist last run time v75
-                    if self.config.get("db_monnet_version") >= 0.75:
+                    # Persist last run time v75, except for last_agents_check TODO temporaly
+                    if self.config.get("db_monnet_version") >= 0.75 and task_name != "agents_check":
                         try:
                             self.config.update_db_key(f"last_{task_name}", current_time)
                         except Exception as e:
