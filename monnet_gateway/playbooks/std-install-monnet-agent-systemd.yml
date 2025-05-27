@@ -25,6 +25,11 @@
       ansible.builtin.debug:
         msg: "The OS family of this host is: {{ ansible_os_family }}"
 
+    - name: Fail if OS family is not recognized
+      ansible.builtin.fail:
+        msg: "Unsupported OS family detected: {{ ansible_facts['os_family'] }}. Skipping installation."
+      when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
+
     - name: Check Python version
       command: python3 --version
       register: python_version_output
@@ -57,15 +62,11 @@
         state: present
       when: ansible_facts['os_family'] == "RedHat"
 
-    - name: Warn if OS family is not recognized
-      ansible.builtin.debug:
-        msg: "Warning: Unsupported OS family detected: {{ ansible_facts['os_family'] }}. Skipping installation."
+    - name: Fail if OS family is not recognized
+      ansible.builtin.fail:
+        msg: "Unsupported OS family detected: {{ ansible_facts['os_family'] }}. Skipping installation."
       when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
 
-    - name: Warn if OS family could not be detected
-      ansible.builtin.debug:
-        msg: "Warning: OS family could not be detected. Skipping installation."
-      when: ansible_facts['os_family'] is undefined
 
     - name: Ensure that agent_config exists
       assert:

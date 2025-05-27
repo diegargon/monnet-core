@@ -17,8 +17,8 @@ import sys
 import info_linux
 from monnet_shared.app_context import AppContext
 from monnet_agent.notifications import send_notification
-from constants import LogLevel, EventType
-
+from monnet_shared.log_level import LogLevel
+from monnet_shared.event_type import EventType
 
 def handle_signal(signum, frame, ctx: AppContext):
     """
