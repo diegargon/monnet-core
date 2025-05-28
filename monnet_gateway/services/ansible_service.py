@@ -248,6 +248,22 @@ class AnsibleService:
                     self.logger.warning(f"Invalid metadata in {filepath}. Required fields: {REQUIRED_FIELDS}")
                     continue
 
+                tags = metadata.get('tags', [])
+                if not isinstance(tags, list):
+                    tags = [tags] if tags else []
+
+                # Add tag 'std' or 'usr' based on the playbook's directory
+                abs_filepath = os.path.abspath(filepath)
+                std_dir = os.path.abspath(standard_playbooks_dir)
+                usr_dir = os.path.abspath(user_playbooks_dir)
+                if os.path.commonpath([abs_filepath, std_dir]) == std_dir:
+                    if 'std' not in tags:
+                        tags.append('std')
+                elif os.path.commonpath([abs_filepath, usr_dir]) == usr_dir:
+                    if 'usr' not in tags:
+                        tags.append('usr')
+                metadata['tags'] = tags
+
                 metadata['_source_file'] = os.path.basename(filepath)
                 metadata_list.append(metadata)
 
