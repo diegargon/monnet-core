@@ -334,7 +334,7 @@ class AnsibleTask:
             message=f"Task {task['task_name']} status: {message}",
             log_type=log_type,
             event_type=event_type,
-            reference= task.get("id")
+            reference= str(task.get("id"))
         )
 
     def _handle_task_result(self, hid, task, result):

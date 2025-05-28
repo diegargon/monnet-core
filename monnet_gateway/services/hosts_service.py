@@ -236,7 +236,7 @@ class HostService:
         elif log_type == LogType.EVENT_ALERT:
             self.set_alert(host_id, 1)
 
-        self.event_host.event(host_id, message, log_type, event_type)
+        self.event_host.event(host_id, message, log_type, event_type, reference)
 
     def _host_events(self, host: dict, current_host: dict) -> None:
         hid = host.get("id", None)
