@@ -3,7 +3,8 @@
 # name: "std-ansible-ping"
 # description: "Test Ansible connectivity"
 # os: ["linux", "windows", "posix"]
-# tags: ["connectivity", "std"]
+# tags: ["connectivity"]
+# version: "0.1"
 ---
 - name: Test Ansible connectivity
   hosts: all

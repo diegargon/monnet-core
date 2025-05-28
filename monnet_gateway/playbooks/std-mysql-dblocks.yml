@@ -24,7 +24,8 @@
 #     type: int
 #     default: 3306
 #     description: "Puerto de la base de datos"
-# tags: ["mysql", "std"]
+# tags: ["mysql"]
+# version: "0.1"
 ---
 - name: Ensure MySQL is running and check database locks
   hosts: all

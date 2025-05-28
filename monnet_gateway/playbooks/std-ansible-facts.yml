@@ -4,6 +4,7 @@
 # description: "Display gathered facts"
 # os: ["linux", "windows", "posix"]
 # tags: ["facts"]
+# version: "0.1"
 ---
 - name: Display gathered facts
   hosts: all

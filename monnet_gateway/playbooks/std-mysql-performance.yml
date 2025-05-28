@@ -12,11 +12,12 @@
 #     type: str_password
 #     required: true
 #     description: "Database password"
-# tags: ["mysql", "performance", "monitoring", "std"]
+# tags: ["mysql", "performance", "monitoring"]
 # requires:
 #   - ansible_version: "2.9"
 # dependencies:
 #   - PyMySQL: ">=0.9.3"
+# version: "0.1"
 ---
 - name: Monitor MySQL performance and resource usage
   hosts: all

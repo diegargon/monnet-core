@@ -3,7 +3,8 @@
 # name: "std-test"
 # description: "Test playbook"
 # os: ["linux", "posix", "windows"]
-# tags: ["test", "std"]
+# tags: ["test"]
+# version: "0.1"
 ---
 - name: Playbook que no hace nada
   hosts: localhost

@@ -3,7 +3,8 @@
 # name: "std-cmd-df-linux"
 # description: "Obtain real partition information"
 # os: ["linux", "posix"]
-# tags: ["filesystem", "resources", "std"]
+# tags: ["filesystem", "resources"]
+# version: "0.1"
 ---
 - name: Obtain real partition information
   hosts: all

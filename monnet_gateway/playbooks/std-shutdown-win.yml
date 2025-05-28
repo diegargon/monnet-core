@@ -3,7 +3,8 @@
 # name: "std-shutdown-win"
 # description: "Shutdown a Windows system"
 # os: ["windows"]
-# tags: ["shutdown", "std"]
+# tags: ["shutdown"]
+# version: "0.1"
 ---
 - name: Shutdown a Windows system
   hosts: all

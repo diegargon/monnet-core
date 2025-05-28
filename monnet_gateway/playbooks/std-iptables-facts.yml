@@ -3,7 +3,8 @@
 # name: "std-iptables-facts"
 # description: "Gather iptables state"
 # os: ["linux", "posix"]
-# tags: ["iptables", "firewall", "std"]
+# tags: ["iptables", "firewall"]
+# version: "0.1"
 ---
 - name: Gather iptables state
   hosts: all

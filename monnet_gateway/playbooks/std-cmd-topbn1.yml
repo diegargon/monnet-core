@@ -3,7 +3,8 @@
 # name: "std-cmd-topbn1"
 # description: "Obtain system load information"
 # os: ["linux", "posix"]
-# tags: ["resources", "performance", "std"]
+# tags: ["resources", "performance"]
+# version: "0.1"
 ---
 - name: Gather system load information
   hosts: all

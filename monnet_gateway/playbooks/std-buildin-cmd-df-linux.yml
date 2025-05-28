@@ -3,7 +3,8 @@
 # name: "std-buildin-cmd-df-linux"
 # description: "Get disk usage"
 # os: ["linux", "posix"]
-# tags: ["filesystem", "std"]
+# tags: ["filesystem"]
+# version: "0.1"
 ---
 - name: Get disk usage
   hosts: all

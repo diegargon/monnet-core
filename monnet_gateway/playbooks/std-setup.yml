@@ -3,7 +3,8 @@
 # name: "std-setup"
 # description: "Gather system information"
 # os: ["linux", "posix", "windows"]
-# tags: ["system", "facts", "std"]
+# tags: ["system", "facts"]
+# version: "0.1"
 ---
 - name: Gather system information
   hosts: all

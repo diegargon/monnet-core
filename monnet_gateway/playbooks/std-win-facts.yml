@@ -3,7 +3,8 @@
 # name: "std-win-facts"
 # description: "Gather Windows facts"
 # os: ["windows"]
-# tags: ["facts", "std"]
+# tags: ["facts"]
+# version: "0.1"
 ---
 - name: Gather facts from Windows hosts
   hosts: all

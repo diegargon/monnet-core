@@ -3,7 +3,8 @@
 # name: "std-buildin-shell-free-linux"
 # description: "Get memory usage"
 # os: ["linux", "posix"]
-# tags: ["resources", "memory" , "std"]
+# tags: ["resources", "memory"]
+# version: "0.1"
 ---
 - name: Get memory usage
   hosts: all

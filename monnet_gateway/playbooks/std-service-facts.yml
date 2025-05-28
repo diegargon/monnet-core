@@ -3,7 +3,8 @@
 # name: "std-service-facts"
 # description: "Gather service facts"
 # os: ["linux", "posix"]
-# tags: ["services", "facts", "std"]
+# tags: ["services", "facts"]
+# version: "0.1"
 ---
 - name: Gather service facts
   hosts: all
