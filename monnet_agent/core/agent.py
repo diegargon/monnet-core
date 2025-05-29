@@ -30,6 +30,7 @@ from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification
 from monnet_agent.requests import send_request, validate_response
+from monnet_agent.netutils import send_wol
 
 class MonnetAgent:
     def __init__(self, ctx: AppContext):
@@ -259,13 +260,17 @@ class MonnetAgent:
                     self.logger.err(f"Error updating config file: {e}")
                     return
                 self.logger.info(f"Config file updated: {self.config.file_config}")
-        """
-        if isinstance(data, dict) and "something" in data:
-            try:
-                pass
-            except ValueError:
-                self.logger.warning("Invalid command")
-        """
+
+        # sendwol
+        if isinstance(data, dict) and "sendwol" in data:
+            sendwol_data = data["sendwol"]
+            if isinstance(sendwol_data, dict) and "mac" in sendwol_data:
+                mac = sendwol_data["mac"]
+                try:
+                    result = send_wol(mac)
+                    self.logger.info(f"sendwol: Magic packet sent to {mac}: {result}")
+                except Exception as e:
+                    self.logger.err(f"sendwol: Failed to send magic packet to {mac}: {e}")
 
     def _process_events(self):
         """Process and send events."""
