@@ -56,6 +56,19 @@ class Datastore:
             return self.save_data()
         return True
 
+    def replace_data(self, key: str, data: Any) -> bool:
+        """
+        Replaces the specified data set, overwriting any existing value.
+
+        Args:
+            key (str): The key to replace.
+            data (Any): The new data to store.
+        """
+        self.data[key] = data
+        if time.time() - self.last_save >= self.save_interval:
+            return self.save_data()
+        return True
+
     def get_data(self, key: str) -> Optional[Dict[str, Any]]:
         """
         Retrieves the data set associated with the given key.
