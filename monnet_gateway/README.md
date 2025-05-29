@@ -259,3 +259,9 @@ echo '{"command": "playbook", "data": {"playbook": "test.yml"}}' | nc localhost 
 echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "ip": "192.168.2.148"}}' | nc localhost 65432
 echo '{"command": "playbook", "data": {"playbook": "ansible-ping.yml", "ip": "192.168.2.148", "user": "ansible"}}' | nc localhost 65432
 ```
+
+# External Resources
+
+- MAC address, latest oui.csv
+
+    https://regauth.standards.ieee.org/standards-ra-web/pub/view.html
