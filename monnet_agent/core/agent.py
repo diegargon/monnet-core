@@ -122,6 +122,13 @@ class MonnetAgent:
                 data_values['host_logs_count'] = len(host_logs)
                 data_values["host_logs"] = host_logs
 
+            # Add collect_macs if exists in datastore
+            collect_macs = self.datastore.get_data("collect_macs")
+            if collect_macs is not None:
+                data_values["collect_macs"] = collect_macs
+                # Clear the datastore entry after sending
+                self.datastore.delete_data("collect_macs")
+
             self.logger.debug(f"Data values prepared for ping: {data_values}")
             self._send_ping(data_values)
             self._process_events()
