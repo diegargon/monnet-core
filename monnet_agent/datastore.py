@@ -116,3 +116,19 @@ class Datastore:
         except Exception as e:
             self.logger.error(f"Error loading data from {self.filename}: {e}")
             return False
+
+    def delete_data(self, key: str) -> bool:
+        """
+        Deletes the specified key from the datastore.
+
+        Args:
+            key (str): The key to delete.
+        Returns:
+            bool: True if deleted, False if not present.
+        """
+        if key in self.data:
+            del self.data[key]
+            if time.time() - self.last_save >= self.save_interval:
+                return self.save_data()
+            return True
+        return False
