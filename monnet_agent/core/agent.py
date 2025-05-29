@@ -30,7 +30,7 @@ from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification
 from monnet_agent.requests import send_request, validate_response
-from monnet_agent.netutils import send_wol
+from monnet_agent.netutils import send_wol, get_mac_from_ip
 
 class MonnetAgent:
     def __init__(self, ctx: AppContext):
@@ -271,6 +271,17 @@ class MonnetAgent:
                     self.logger.info(f"sendwol: Magic packet sent to {mac}: {result}")
                 except Exception as e:
                     self.logger.err(f"sendwol: Failed to send magic packet to {mac}: {e}")
+
+        # collect_macs
+        if isinstance(data, dict) and "collect_macs" in data:
+            ip_list = data["collect_macs"]
+            if isinstance(ip_list, list):
+                macs_info = []
+                for ip in ip_list:
+                    mac = get_mac_from_ip(ip)
+                    macs_info.append({"ip": ip, "mac": mac})
+                self.datastore.replace_data("collect_macs", macs_info)
+                self.logger.debug(f"collect_macs: Stored {len(macs_info)} IP-MAC entries in datastore")
 
     def _process_events(self):
         """Process and send events."""
