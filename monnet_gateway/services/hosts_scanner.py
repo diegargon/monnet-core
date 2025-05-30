@@ -15,6 +15,7 @@ from monnet_gateway.database.stats_model import StatsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.ports_service import PortsService
+from monnet_gateway.networking.net_utils import get_mac
 
 class HostsScanner:
     """
@@ -75,7 +76,7 @@ class HostsScanner:
             if  "disable_ping" in host and host["disable_ping"] == 1 and check_method == 1:
                 continue
 
-            # If host agent is installed and host its online skip ping
+            # If host agent is installed and host its online skip ping TODO: Review this we need latency
             if host.get("online") == 1 and host.get("misc", {}).get("agent_installed") == 1:
                 continue
 
@@ -87,6 +88,7 @@ class HostsScanner:
                     "ip": host["ip"],
                     "host": ip_or_host,
                     "online": 0,
+                    "prev_online": host.get("online", 0),
                     "check_method": check_method,
                     "last_check": f_now_utc
                 }
@@ -120,6 +122,7 @@ class HostsScanner:
                         "ip": host["ip"],
                         "port_id": host_port.get("id"),
                         "online": 0,
+                        "prev_online": host.get("online", 0),
                         "check_method": check_method,
                         "port": pnumber,
                         "last_check": f_now_utc,
@@ -183,7 +186,7 @@ class HostsScanner:
                         break
                     sleep(0.2)
 
-    def preup_hosts(self, hosts_status: list[dict]):
+    def pre_update_hosts(self, hosts_status: list[dict]):
         """
         Prepare data to update the status of hosts and ports.
         """
@@ -226,8 +229,21 @@ class HostsScanner:
             host_updates[host_id]["misc"]["latency"] = host_status.get("latency")
             host_updates[host_id]["last_check"] = host_status.get("last_check")
 
+            # Si pasa de offline a online, intenta obtener la MAC siempre, y solo actualiza si es diferente
             if host_updates[host_id]["online"] == 1:
+                prev_online = host_status.get("prev_online", None)
+                if prev_online == 0 or prev_online is None:
+                    ip = host_status.get("ip")
+                    mac_actual = host_status.get("mac")
+                    if ip:
+                        mac_result = get_mac(ip)
+                        if mac_result and isinstance(mac_result, str):
+                            if mac_result != mac_actual:
+                                host_updates[host_id]["mac"] = mac_result
+                        else:
+                            host_updates[host_id]["mac_check"] = 1  # Marcar para chequeo posterior
                 host_updates[host_id]["last_seen"] = f_now_utc
+
             # Stats update
             stats_updates[host_id] = {
                 "type": 1,

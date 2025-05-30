@@ -59,7 +59,7 @@ class HostsCheckerTask:
             if not host_status["online"]:
                 count_offline += 1
 
-        hosts_scanner.preup_hosts(hosts_status)
+        hosts_scanner.pre_update_hosts(hosts_status)
 
         try:
             self.config.update_db_key("cli_last_run", utc_date_now())

@@ -18,6 +18,7 @@ from monnet_gateway.tasks.known_checker import HostsCheckerTask
 from monnet_gateway.tasks.ansible_task import AnsibleTask
 from monnet_gateway.tasks.prune_task import PruneTask
 from monnet_gateway.tasks.weekly_task import WeeklyTask
+from monnet_gateway.tasks.hourly_task import HourlyTask
 from monnet_gateway.tasks.agents_check import AgentsCheckTask
 
 class TaskSched:
@@ -46,6 +47,7 @@ class TaskSched:
                 "prune": float(self.config.get("gw_prune_intvl", 60 * 60 * 24)),
                 # Default 1 week
                 "weekly_task": float(60 * 60 * 24 * 7),
+                "hourly_task": float(60 * 60),
                 # Default 1 minute
                 "agents_check": float(self.config.get("gw_agents_check_intvl", 60)),  # Default 60s
             }
@@ -57,6 +59,7 @@ class TaskSched:
                 "ansible_task": self._to_timestamp(self.config.get("last_ansible_task", current_time)),
                 "prune": self._to_timestamp(self.config.get("last_prune", current_time)),
                 "weekly_task": self._to_timestamp(self.config.get("last_weekly_task", current_time)),
+                "hourly_task": current_time,
                 "agents_check": self._to_timestamp(self.config.get("last_agents_check", current_time)),
             }
 
@@ -68,6 +71,7 @@ class TaskSched:
                 "ansible_task": threading.Lock(),
                 "prune": threading.Lock(),
                 "weekly_task": threading.Lock(),
+                "hourly_task": threading.Lock(),
                 "agents_check": threading.Lock(),
             }
 
@@ -76,6 +80,7 @@ class TaskSched:
             self.ansible_task = AnsibleTask(ctx)
             self.prune_task = PruneTask(ctx)
             self.weekly_task = WeeklyTask(ctx)
+            self.hourly_task = HourlyTask(ctx)
             self.agents_check = AgentsCheckTask(ctx)
 
             # Launch Thread
@@ -133,6 +138,8 @@ class TaskSched:
                 self._run_task("prune", self.prune_task.run, current_time)
                 # Run WeeklyTask
                 self._run_task("weekly_task", self.weekly_task.run, current_time)
+                # Run HourlyTask
+                self._run_task("hourly_task", self.hourly_task.run, current_time)
                 # Run AgentsCheckTask
                 self._run_task("agents_check", self.agents_check.run, current_time)
 

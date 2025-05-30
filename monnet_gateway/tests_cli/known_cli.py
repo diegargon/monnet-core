@@ -66,7 +66,7 @@ if __name__ == "__main__":
     if hosts_offline:
         pprint_table(hosts_offline)
     """
-    hosts_scanner.preup_hosts(hosts_status)
+    hosts_scanner.pre_update_hosts(hosts_status)
 
     try:
         config.update_db_key("cli_last_run", utc_date_now())

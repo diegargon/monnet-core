@@ -71,6 +71,9 @@ class DiscoveryHostsTask:
                         if "misc" not in host_data:
                             host_data["misc"] = {}
                         host_data["misc"]["mac_vendor"] = organization
+                else:
+                    host_data['mac_check'] = 1  # Mark as MAC check needed
+
                 try:
                     host_ip = ipaddress.IPv4Address(ip)
                 except ipaddress.AddressValueError:
