@@ -42,11 +42,11 @@ class AnsibleTask:
         """Ensure the database connection is active and reconnect if necessary."""
         try:
             if not self.db.is_connected():
+                self.logger.warning("AnsibleTask: DB connection lost. Reconnecting....")
                 self.db.close()
                 self.db = DBManager(self.config.file_config)
                 self.ansible_model = AnsibleModel(self.db)
                 self.ansible_service = AnsibleService(self.ctx, self.ansible_model)
-                self.logger.warning("AnsibleTask: Database connection lost. Reconnect success.")
         except Exception as e:
             self.logger.error(f"AnsibleTask: Failed to ensure database connection: {e}")
             raise

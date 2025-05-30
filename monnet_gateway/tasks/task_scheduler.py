@@ -102,7 +102,7 @@ class TaskSched:
         """Ensure the database connection is active and reconnect if necessary."""
         try:
             if not self.db.is_connected():
-                self.logger.warning("TaskSched: Database connection lost. Forcing reconnection.")
+                self.logger.warning("TaskSched: DB connection lost. Reconnecting...")
                 self.db.close()
                 self.db = DBManager(self.config.file_config)
         except Exception as e:

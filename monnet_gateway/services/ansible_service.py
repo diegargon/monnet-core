@@ -40,7 +40,7 @@ class AnsibleService:
         """Ensure the AnsibleModel """
         try:
             if not self.db.is_connected():
-                self.logger.warning("AnsibleService Database connection lost. Attempting to reconnect.")
+                self.logger.warning("AnsibleService DB connection lost. Reconnect.")
                 if hasattr(self, 'db') and self.db and not self.db.is_connected():
                     self.db.close()
                 self.db = DBManager(self.config)

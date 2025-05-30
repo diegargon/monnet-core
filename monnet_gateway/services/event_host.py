@@ -28,7 +28,7 @@ class EventHostService:
 
     def _ensure_connection(self):
         if not self.db.is_connected():
-            self.logger.warning("EventHostService DB connection lost. Attempting to reconnect.")
+            self.logger.warning("EventHostService: DB connection lost. Reconnecting...")
             self.db.close()
             self.db = DBManager(self.ctx.get_config().file_config)
             self.event_host_model = EventHostModel(self.db)

@@ -40,7 +40,7 @@ class HostService:
         """
         try:
             if not self.db.is_connected():
-                self.logger.warning("Database connection lost. Reconnecting...")
+                self.logger.warning("HostService DB conn lost. Reconnecting...")
                 self.db.reconnect()
         except Exception as e:
             self.logger.error(f"Failed to reconnect to the database: {e}")
