@@ -287,7 +287,8 @@ class MonnetAgent:
                 for ip in ip_list:
                     mac = get_mac_from_ip(ip)
                     macs_info.append({"ip": ip, "mac": mac})
-                self.datastore.replace_data("collect_macs", macs_info)
+                if macs_info:
+                    self.datastore.replace_data("collect_macs", macs_info)
                 self.logger.debug(f"collect_macs: Stored {len(macs_info)} IP-MAC entries in datastore")
 
     def _process_events(self):

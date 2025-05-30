@@ -2,6 +2,7 @@ import socket
 import binascii
 import re
 import subprocess
+import time
 
 def send_wol(host_mac: str) -> bool:
     """
@@ -52,6 +53,12 @@ def get_mac_from_ip(ip: str) -> str | None:
         str | None: The MAC address as a string if found, else None.
     """
     try:
+        # Hacer ping antes de consultar la tabla ARP
+        try:
+            subprocess.run(['ping', '-c', '1', '-W', '1', ip], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(0.5)
+        except Exception:
+            pass
         # Use 'ip neigh' (Linux) or fallback to 'arp -n'
         try:
             output = subprocess.check_output(['ip', 'neigh', 'show', ip], encoding='utf-8')
