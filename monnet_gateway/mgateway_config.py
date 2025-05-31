@@ -4,8 +4,8 @@
 Monnet Gateway - Config file
 """
 
-GW_VERSION = "0.15"
-GW_VERSION_MINOR = 55
+GW_VERSION = "0.16"
+GW_VERSION_MINOR = 1
 GW_F_VERSION =  str(GW_VERSION) + "." + str(GW_VERSION_MINOR)
 
 HOST = 'localhost'
@@ -14,6 +14,6 @@ PORT_TEST = 65433
 GW_CONFIG_PATH = "/etc/monnet/mgateway-config"
 CONFIG_DB_PATH = "/etc/monnet/config-db.json"
 
-ALLOWED_MODULES = ["ansible",]
+ALLOWED_MODULES = ["ansible", "gateway-daemon", "host-command"]
 
 DEFAULT_ANSIBLE_GROUPS_FILE = "/etc/ansible/hosts"
