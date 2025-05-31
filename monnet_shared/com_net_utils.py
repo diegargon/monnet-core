@@ -4,6 +4,7 @@
 Monnet Shared - Network Utilities
 
 """
+import re
 import socket
 import binascii
 
