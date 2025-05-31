@@ -15,7 +15,7 @@ from monnet_gateway.database.stats_model import StatsModel
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.ports_service import PortsService
-from monnet_gateway.networking.net_utils import get_mac
+from monnet_gateway.networking.gw_net_utils import get_mac
 
 class HostsScanner:
     """

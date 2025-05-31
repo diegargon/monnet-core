@@ -17,7 +17,7 @@ from time import time
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
-from monnet_gateway.networking.net_utils import get_mac, get_org_from_mac, get_hostname
+from monnet_gateway.networking.gw_net_utils import get_mac, get_org_from_mac, get_hostname
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_gateway.tests_cli.common_cli import init_context

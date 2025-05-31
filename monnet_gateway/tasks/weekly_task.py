@@ -4,7 +4,7 @@ Weekly task to perform periodic updates, such as updating host details.
 
 import ipaddress
 from monnet_gateway.services.hosts_service import HostService
-from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
+from monnet_gateway.networking.gw_net_utils import get_hostname, get_mac, get_org_from_mac
 
 class WeeklyTask:
     def __init__(self, ctx):

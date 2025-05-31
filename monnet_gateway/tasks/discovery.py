@@ -10,7 +10,7 @@ from time import sleep, time
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
 from monnet_gateway.database.networks_model import NetworksModel
-from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
+from monnet_gateway.networking.gw_net_utils import get_hostname, get_mac, get_org_from_mac
 from monnet_gateway.services.hosts_service import HostService
 from monnet_gateway.services.network_scanner import NetworkScanner
 from monnet_shared.app_context import AppContext
