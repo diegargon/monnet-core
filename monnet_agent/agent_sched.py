@@ -13,7 +13,7 @@ import threading
 from time import sleep, time
 
 # Local
-from monnet_agent.agent_tasks import check_listen_ports, send_stats
+from monnet_agent.agent_tasks import check_listen_ports, send_stats, hourly_task, daily_task
 
 class AgentTaskSched:
     """Agent Task Scheduler (single thread, robust, inspired by gateway)"""
@@ -32,16 +32,22 @@ class AgentTaskSched:
             self.task_intervals = {
                 "check_ports": float(self.config.get("agent_check_ports_interval", 60)),
                 "send_stats": float(self.config.get("agent_send_stats_interval", 60)),
+                "hourly_task": 3600,
+                "daily_task": 86400,
             }
             self.last_run_time = {
                 "check_ports": current_time,
                 "send_stats": current_time,
+                "hourly_task": current_time,
+                "daily_task": current_time,
             }
             self.task_locks = {
                 "check_ports": threading.Lock(),
                 "send_stats": threading.Lock(),
+                "hourly_task": threading.Lock(),
+                "daily_task": threading.Lock(),
             }
-            self.thread = threading.Thread(target=self.run_task, daemon=True)
+            self.thread = threading.Thread(target=self._sched_loop, daemon=True)
         except Exception as e:
             self.logger.error(f"Error initializing AgentTaskSched: {e}")
             raise
@@ -56,10 +62,9 @@ class AgentTaskSched:
         self._scheduler_stop_event.clear()
         self.thread.start()
 
-    def run_task(self):
+    def _sched_loop(self):
         self.logger.debug("TaskSched runner (agent)...")
         while not self._scheduler_stop_event.is_set():
-            # Revisa si el agente ha solicitado parada
             if not self.ctx.get_var("agent_running"):
                 self.logger.info("AgentTaskSched detected agent_running=False, stopping scheduler loop.")
                 break
@@ -67,6 +72,8 @@ class AgentTaskSched:
             try:
                 self._run_task("check_ports", lambda: check_listen_ports(self.ctx, self.datastore, self.notify_callback), current_time)
                 self._run_task("send_stats", lambda: send_stats(self.ctx, self.datastore, self.notify_callback), current_time)
+                self._run_task("hourly_task", lambda: hourly_task(self.ctx, self.datastore, self.notify_callback), current_time)
+                self._run_task("daily_task", lambda: daily_task(self.ctx, self.datastore, self.notify_callback), current_time)
                 sleep(1)
             except Exception as e:
                 self.logger.error(f"Error in TaskSched run: {e}")
@@ -108,5 +115,5 @@ class AgentTaskSched:
             self._scheduler_stop_event.clear()
             # Prevent multiple threads if called in quick succession
             if not self.thread.is_alive():
-                self.thread = threading.Thread(target=self.run_task, daemon=True)
+                self.thread = threading.Thread(target=self._sched_loop, daemon=True)
                 self.thread.start()

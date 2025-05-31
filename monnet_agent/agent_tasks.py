@@ -118,3 +118,32 @@ def send_stats(ctx: AppContext, datastore, notify_callback):
         notify_callback(ctx, 'send_stats', data)
     except Exception as e:
         logger.error(f"Error in send_stats: {e}")  # Log error instead of raising
+
+def hourly_task(ctx: AppContext, datastore, notify_callback):
+    """
+    Tarea programada para ejecutarse cada hora.
+    """
+    logger = ctx.get_logger()
+    logger.debug("hourly_task triggered")
+    try:
+        import info_linux
+        data = {}
+        try:
+            uptime = info_linux.get_uptime()
+            if uptime is not None:
+                data['uptime'] = uptime
+        except Exception as e:
+            logger.warning(f"Could not get uptime: {e}")
+
+        if data:
+            notify_callback(ctx, "scheduler_update", data)
+            logger.debug("hourly_task: scheduler_update sent")
+
+    except Exception as e:
+        logger.error(f"Error in hourly_task: {e}")
+
+def daily_task(ctx: AppContext, datastore, notify_callback):
+    """
+    Tarea programada para ejecutarse diariamente.
+    """
+    pass
