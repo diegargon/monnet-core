@@ -30,7 +30,7 @@ from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification
 from monnet_agent.requests import send_request, validate_response
-from monnet_agent.netutils import send_wol, get_mac_from_ip, get_default_interface, get_own_mac
+from monnet_agent.agent_net_utils import send_wol, get_mac_from_ip, get_default_interface, get_own_mac
 
 class MonnetAgent:
     def __init__(self, ctx: AppContext):
