@@ -30,7 +30,7 @@ from monnet_agent.event_processor import EventProcessor
 from monnet_agent.handle_signals import handle_signal
 from monnet_agent.notifications import send_notification
 from monnet_agent.requests import send_request, validate_response
-from monnet_agent.netutils import send_wol, get_mac_from_ip
+from monnet_agent.netutils import send_wol, get_mac_from_ip, get_default_interface, get_own_mac
 
 class MonnetAgent:
     def __init__(self, ctx: AppContext):
@@ -155,6 +155,10 @@ class MonnetAgent:
             self.logger.warning("Uptime not available")
             return
 
+        # Obtener interfaz principal y su MAC
+        interface = get_default_interface()
+        mac = get_own_mac(interface) if interface else None
+
         date_now = datetime.now().time().strftime("%H:%M:%S")
         starting_data = {
             'msg': f'Agent starting {date_now}',
@@ -163,7 +167,9 @@ class MonnetAgent:
             'uptime': uptime,
             'log_level': LogLevel.NOTICE,
             'log_type': LogType.EVENT,
-            'event_type': EventType.AGENT_STARTING
+            'event_type': EventType.AGENT_STARTING,
+            'interface': interface,
+            'mac': mac
         }
         send_notification(self.ctx, 'starting', starting_data)
 

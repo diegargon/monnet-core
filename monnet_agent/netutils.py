@@ -81,3 +81,43 @@ def get_mac_from_ip(ip: str) -> str | None:
     except Exception:
         pass
     return None
+
+def get_own_mac(interface: str) -> str | None:
+    """
+    Obtiene la dirección MAC de la interfaz de red especificada.
+
+    Args:
+        interface (str): Nombre de la interfaz de red (por ejemplo, 'eth0', 'enp3s0', 'wlan0').
+
+    Returns:
+        str | None: La dirección MAC como string si se encuentra, o None.
+    """
+    try:
+        with open(f'/sys/class/net/{interface}/address', 'r') as f:
+            mac = f.read().strip()
+            if re.fullmatch(r'([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}', mac):
+                return mac
+    except Exception:
+        pass
+    return None
+
+def get_default_interface() -> str | None:
+    """
+    Obtiene el nombre de la interfaz de red principal (default) de la máquina.
+
+    Returns:
+        str | None: El nombre de la interfaz (por ejemplo, 'eth0', 'enp3s0') o None si no se puede determinar.
+    """
+    try:
+        # Usa 'ip route' para obtener la interfaz de la ruta por defecto
+        output = subprocess.check_output(['ip', 'route', 'show', 'default'], encoding='utf-8')
+        # Ejemplo de salida: "default via 192.168.1.1 dev eth0 proto dhcp metric 100"
+        for line in output.splitlines():
+            parts = line.split()
+            if 'dev' in parts:
+                idx = parts.index('dev')
+                if idx + 1 < len(parts):
+                    return parts[idx + 1]
+    except Exception:
+        pass
+    return None
