@@ -14,7 +14,7 @@ from monnet_shared.log_type import LogType
 from monnet_shared.event_type import EventType
 from monnet_gateway.database.dbmanager import DBManager
 from monnet_gateway.database.hosts_model import HostsModel
-from monnet_gateway.networking.net_utils import get_hostname, get_mac, get_org_from_mac
+from monnet_gateway.networking.gw_net_utils import get_hostname, get_mac, get_org_from_mac
 from monnet_gateway.services.event_host import EventHostService
 from monnet_gateway.services.networks_service import NetworksService
 
