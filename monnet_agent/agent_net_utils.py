@@ -67,24 +67,3 @@ def get_own_mac(interface: str) -> str | None:
     except Exception:
         pass
     return None
-
-def get_default_interface() -> str | None:
-    """
-    Obtiene el nombre de la interfaz de red principal (default) de la máquina.
-
-    Returns:
-        str | None: El nombre de la interfaz (por ejemplo, 'eth0', 'enp3s0') o None si no se puede determinar.
-    """
-    try:
-        # Usa 'ip route' para obtener la interfaz de la ruta por defecto
-        output = subprocess.check_output(['ip', 'route', 'show', 'default'], encoding='utf-8')
-        # Ejemplo de salida: "default via 192.168.1.1 dev eth0 proto dhcp metric 100"
-        for line in output.splitlines():
-            parts = line.split()
-            if 'dev' in parts:
-                idx = parts.index('dev')
-                if idx + 1 < len(parts):
-                    return parts[idx + 1]
-    except Exception:
-        pass
-    return None

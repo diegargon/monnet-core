@@ -128,16 +128,6 @@ def same_network(ip1: str, ip2: str, netmask: int = 24) -> bool:
     except Exception:
         return False
 
-def get_default_interface():
-    """Get the default network interface from the routing table"""
-    with open('/proc/net/route') as f:
-        for line in f.readlines()[1:]:
-            fields = line.strip().split()
-            iface, dest, flags = fields[0], fields[1], int(fields[3], 16)
-            if dest == '00000000' and flags & 2:  # default route and UP
-                return iface
-    return None
-
 def get_ip_and_netmask(iface):
     """Get IP address and netmask of an interface"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
