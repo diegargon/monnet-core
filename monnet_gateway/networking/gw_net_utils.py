@@ -157,3 +157,13 @@ def get_ip_and_netmask(iface):
     )[20:24])
 
     return ip, netmask
+
+def is_local_ip(ip):
+    """
+    Returns True if the IP is private or loopback.
+    """
+    try:
+        addr = ipaddress.IPv4Address(ip)
+        return addr.is_private or addr.is_loopback
+    except Exception:
+        return False
