@@ -12,6 +12,8 @@ import subprocess
 import re
 import shutil
 
+from utils import create_machine_id
+
 def get_cpus():
     """ Get number of CPUs """
     return os.cpu_count()
@@ -428,3 +430,23 @@ def is_system_shutting_down() -> bool:
         pass  # Fallback: Assume not shutting down if checks fail
 
     return False
+
+def get_machine_id(path="/etc/machine-id"):
+    """
+    Lee el machine-id de un sistema Linux. Si no existe, lo crea usando utils.get_or_create_machine_id().
+    Args:
+        path (str): Ruta al fichero machine-id (por defecto /etc/machine-id).
+    Returns:
+        str: machine-id (32 caracteres hex, minúsculas, sin guiones).
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            machine_id = f.read().strip()
+            if machine_id:
+                return machine_id
+    except FileNotFoundError:
+        return create_machine_id(path)
+    except Exception as e:
+        raise RuntimeError(f"Error al leer machine-id: {e}")
+
+    return create_machine_id(path)

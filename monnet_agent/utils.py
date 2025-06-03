@@ -7,6 +7,8 @@ Misc utils
 """
 import json
 from collections import defaultdict
+import uuid
+import os
 
 def normalize(data):
     """ NOT USED """
@@ -47,3 +49,33 @@ def deep_compare(obj1, obj2):
         return all(deep_compare(i, j) for i, j in zip(obj1, obj2))
 
     return obj1 == obj2
+
+def generate_machine_id_like() -> str:
+    """
+    Genera un UID en formato idéntico a /etc/machine-id (32 caracteres hex, minúsculas, sin guiones).
+    """
+    return uuid.uuid4().hex
+
+
+def create_machine_id(path="/etc/machine-id") -> str:
+    """
+    Crea un ID de máquina único en formato idéntico a /etc/machine-id.
+    Si el archivo ya existe, no lo sobrescribe y devuelve el contenido existente.
+    Si no existe, lo crea con un nuevo ID y lo devuelve.
+    Args:
+        path (str): Ruta al fichero machine-id (por defecto /etc/machine-id).
+    Returns:
+        str: machine-id (32 caracteres hex, minúsculas, sin guiones).
+    """
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                machine_id = f.read().strip()
+                if machine_id:
+                    return machine_id
+        machine_id = generate_machine_id_like()
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(machine_id + "\n")
+        return machine_id
+    except Exception as e:
+        raise RuntimeError(f"Error al crear machine-id: {e}")

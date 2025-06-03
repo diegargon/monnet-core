@@ -160,12 +160,16 @@ class MonnetAgent:
         interface = get_default_interface()
         mac = get_own_mac(interface) if interface else None
 
+        # Obtener machine-id
+        machine_id = info_linux.get_machine_id()
+
         date_now = datetime.now().time().strftime("%H:%M:%S")
         starting_data = {
             'msg': f'Agent starting {date_now}',
             'date': date_now,
             'ncpu': info_linux.get_cpus(),
             'uptime': uptime,
+            'machine_id': machine_id,
             'log_level': LogLevel.NOTICE,
             'log_type': LogType.EVENT,
             'event_type': EventType.AGENT_STARTING,
