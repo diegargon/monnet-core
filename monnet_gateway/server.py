@@ -31,6 +31,9 @@ def run_server(ctx: AppContext):
     logger = ctx.get_logger()
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Set reuse to avoid "Address already in use" error on restart
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     if ctx.has_var('test-port'):
         port = PORT_TEST
     else:
